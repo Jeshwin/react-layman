@@ -1,0 +1,38 @@
+{
+    "type": "row",
+    "id": 0,
+    "sections": [
+        {
+            "type": "window",
+            "title": "Window #1",
+            "id": "0"
+        },
+        {
+            "type": "column",
+            "id": 0,
+            "sections": [
+                {
+                    "type": "window",
+                    "title": "Window #2",
+                    "id": "1"
+                },
+                {
+                    "type": "row",
+                    "id": 1,
+                    "sections": [
+                        {
+                            "type": "window",
+                            "title": "Window #3",
+                            "id": "2"
+                        },
+                        {
+                            "type": "window",
+                            "title": "Window #4",
+                            "id": "3"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
