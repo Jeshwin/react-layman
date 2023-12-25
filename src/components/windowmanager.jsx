@@ -2,29 +2,41 @@ import { Fragment } from "react"
 import { ColumnSeparator, RowSeparator } from "./separator"
 import { Row, Column } from "./layout"
 import { Window } from "./window"
+import { nanoid } from "nanoid"
 
 export default function WindowManager({ initialLayout }) {
-    const renderSection = (section, index, width = 1, height = 1) => {
+    const renderSection = (
+        section,
+        index = "none",
+        parent = "none",
+        width = 1,
+        height = 1
+    ) => {
+        const className = `parent-${parent} index-${index}`
         switch (section.type) {
             case "window": {
+                const windowId = nanoid()
                 return (
                     <Window
                         key={index}
-                        id={`${section.type}-${section.id}-${index}`}
+                        id={windowId}
+                        className={className}
                         title={section.title}
                         width={width}
                         height={height}
                     >
-                        {section.id}
+                        {windowId}
                     </Window>
                 )
             }
             case "row": {
                 const sectionWidth = 1 / section.sections.length
+                const rowId = nanoid()
                 return (
                     <Row
                         key={index}
-                        id={`${section.type}-${section.id}-${index}`}
+                        id={rowId}
+                        className={className}
                         width={width}
                         height={height}
                     >
@@ -33,12 +45,14 @@ export default function WindowManager({ initialLayout }) {
                                 {renderSection(
                                     subSection,
                                     subIndex,
+                                    rowId,
                                     sectionWidth,
                                     1
                                 )}
                                 {subIndex < section.sections.length - 1 && (
                                     <RowSeparator
-                                        id={`${section.type}-${section.id}-separator-${subIndex}`}
+                                        parentClass={rowId}
+                                        index={subIndex}
                                     />
                                 )}
                             </Fragment>
@@ -48,10 +62,12 @@ export default function WindowManager({ initialLayout }) {
             }
             case "column": {
                 const sectionHeight = 1 / section.sections.length
+                const colId = nanoid()
                 return (
                     <Column
                         key={index}
-                        id={`${section.type}-${section.id}-${index}`}
+                        id={colId}
+                        className={className}
                         width={width}
                         height={height}
                     >
@@ -60,12 +76,14 @@ export default function WindowManager({ initialLayout }) {
                                 {renderSection(
                                     subSection,
                                     subIndex,
+                                    colId,
                                     1,
                                     sectionHeight
                                 )}
                                 {subIndex < section.sections.length - 1 && (
                                     <ColumnSeparator
-                                        id={`${section.type}-${section.id}-separator-${subIndex}`}
+                                        parentClass={colId}
+                                        index={subIndex}
                                     />
                                 )}
                             </Fragment>

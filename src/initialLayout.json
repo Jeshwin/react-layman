@@ -1,34 +1,53 @@
 {
     "type": "row",
-    "id": 0,
     "sections": [
         {
             "type": "window",
-            "title": "Window #1",
-            "id": "0"
+            "title": "Code Editor"
         },
         {
             "type": "column",
-            "id": 0,
             "sections": [
                 {
                     "type": "window",
-                    "title": "Window #2",
-                    "id": "1"
+                    "title": "Shell"
                 },
                 {
                     "type": "row",
-                    "id": 1,
                     "sections": [
                         {
                             "type": "window",
-                            "title": "Window #3",
-                            "id": "2"
+                            "title": "Git"
                         },
                         {
                             "type": "window",
-                            "title": "Window #4",
-                            "id": "3"
+                            "title": "Packages"
+                        }
+                    ]
+                },
+                {
+                    "type": "window",
+                    "title": "Monitor"
+                },
+                {
+                    "type": "row",
+                    "sections": [
+                        {
+                            "type": "window",
+                            "title": "Docs"
+                        },
+                        {
+                            "type": "column",
+                            "sections": [
+                                {
+                                    "type": "window",
+                                    "title": "Secrets"
+                                },
+                                {
+                                    "type": "window",
+                                    "title": "Database"
+                                }
+                            ]
                         }
                     ]
                 }
