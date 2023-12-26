@@ -51,7 +51,7 @@ export default function WindowManager({ initialLayout }) {
                                 )}
                                 {subIndex < section.sections.length - 1 && (
                                     <RowSeparator
-                                        parentClass={rowId}
+                                        parentId={rowId}
                                         index={subIndex}
                                     />
                                 )}
@@ -82,7 +82,7 @@ export default function WindowManager({ initialLayout }) {
                                 )}
                                 {subIndex < section.sections.length - 1 && (
                                     <ColumnSeparator
-                                        parentClass={colId}
+                                        parentId={colId}
                                         index={subIndex}
                                     />
                                 )}
