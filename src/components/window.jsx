@@ -36,12 +36,7 @@ export function Window({
             <WindowContent>{children}</WindowContent>
             <motion.div
                 id={`highlighter-${id}`}
-                className={`absolute rounded-lg border-2 border-fuchsia-600`}
-                style={{
-                    background:
-                        "repeating-linear-gradient(45deg, transparent, transparent 16px, #d946ef 16px, #d946ef 32px)",
-                    opacity: 0.2,
-                }}
+                className={`absolute rounded-lg bg-fuchsia-500 border border-fuchsia-300 opacity-20`}
                 initial={{ top: "-50%", height: "0%", opacity: 0 }} // Initial position off-screen
                 animate={{
                     opacity: hoveredArea == null ? 0 : 0.2,
@@ -61,24 +56,29 @@ export function Window({
                 transition={{ duration: 0.1 }}
             ></motion.div>
             <div
+                onMouseEnter={() => handleHover("middle")}
+                onMouseLeave={handleHoverExit}
+                className="absolute top-0 w-full h-full bg-transparent"
+            ></div>
+            <div
                 onMouseEnter={() => handleHover("top")}
                 onMouseLeave={handleHoverExit}
-                className="absolute top-0 left-0 right-0 h-1/3 bg-transparent"
+                className="absolute top-0 left-0 right-0 h-1/4 bg-transparent"
             ></div>
             <div
                 onMouseEnter={() => handleHover("right")}
                 onMouseLeave={handleHoverExit}
-                className="absolute top-0 bottom-0 right-0 w-1/3 bg-transparent"
+                className="absolute top-0 bottom-0 right-0 w-1/4 bg-transparent"
             ></div>
             <div
                 onMouseEnter={() => handleHover("bottom")}
                 onMouseLeave={handleHoverExit}
-                className="absolute left-0 bottom-0 right-0 h-1/3 bg-transparent"
+                className="absolute left-0 bottom-0 right-0 h-1/4 bg-transparent"
             ></div>
             <div
                 onMouseEnter={() => handleHover("left")}
                 onMouseLeave={handleHoverExit}
-                className="absolute top-0 left-0 bottom-0 w-1/3 bg-transparent"
+                className="absolute top-0 left-0 bottom-0 w-1/4 bg-transparent"
             ></div>
         </div>
     )
