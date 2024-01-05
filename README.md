@@ -1,8 +1,26 @@
-# React + Vite
+# react-window-manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Table of Contents
 
-Currently, two official plugins are available:
+- [About](#about)
+- [Getting Started](#getting_started)
+- [Usage](#usage)
+- [Contributing](../CONTRIBUTING.md)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## About <a name = "about"></a>
+
+This is an environment to test new features for my future frontend web design projects. Currently, I'm trying to implement a dynamic layout design similar to [Replit](https://replit.com)'s IDE and [LeetCode](https://leetcode.com)'s new UI
+
+## Getting Started <a name = "getting_started"></a>
+
+This project uses [Vite](https://vitejs.dev) under the hood, so all you need to do is clone this repository and run `vite` or `npm run dev` in the main folder.
+
+## Progress
+
+- [ ] Dynamic Layout
+    - [x] Rows and columns
+    - [x] Adjustable windows
+    - [ ] Drag and drop
+    - [ ] Delete windows
+    - [ ] Tabbed windows
+
