@@ -13,12 +13,10 @@ export function Window({
 
     const handleHover = (area) => {
         setHoveredArea(area)
-        console.log("Hovered area is " + area)
     }
 
     const handleHoverExit = () => {
         setHoveredArea(null)
-        console.log("Hovered area is null")
     }
 
     return (
