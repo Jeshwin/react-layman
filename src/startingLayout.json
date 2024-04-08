@@ -1,0 +1,23 @@
+{
+    "direction": "row",
+    "first": {
+        "text": "0"
+    },
+    "second": {
+        "direction": "column",
+        "first": {
+            "text": "1"
+        },
+        "second": {
+            "direction": "row",
+            "first": {
+                "text": "2"
+            },
+            "second": {
+                "text": "3"
+            }
+        },
+        "splitPercentage": 40
+    },
+    "splitPercentage": 20
+}
