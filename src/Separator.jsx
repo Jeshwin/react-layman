@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from "react";
-import {separatorThickness} from "./constants";
+import {minPanelSize, separatorThickness} from "./constants";
 import {Inset} from "./Insets";
 
 export default function Separator({
@@ -67,8 +67,8 @@ export default function Separator({
                     currentLayout = currentLayout[index];
                 }
                 currentLayout.splitPercentage = Math.min(
-                    Math.max(relativeSplitPercentage, 0),
-                    100
+                    Math.max(relativeSplitPercentage, minPanelSize),
+                    100 - minPanelSize
                 );
                 setLayout(layoutClone);
             }
