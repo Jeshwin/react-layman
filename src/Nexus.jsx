@@ -1,7 +1,7 @@
 import Separator from "./Separator";
 import {Inset} from "./Insets";
 import {useState} from "react";
-import {separatorThickness} from "./constants";
+import Window from "./Window";
 
 export default function Nexus({initialLayout, renderPane}) {
     const [layout, setLayout] = useState(initialLayout);
@@ -9,30 +9,13 @@ export default function Nexus({initialLayout, renderPane}) {
     const renderLayout = (node, inset, path) => {
         if (node === null) return;
         if (Array.isArray(node)) {
-            const id = node[0];
             return (
-                <>
-                    <div
-                        key={id}
-                        style={{
-                            inset: inset.toString(),
-                            position: "absolute",
-                            margin: `${separatorThickness / 2}px`,
-                        }}
-                        className="h-8 z-10 rounded-t-lg bg-zinc-900 overflow-hidden"
-                    ></div>
-                    <div
-                        key={id}
-                        style={{
-                            inset: inset.toString(),
-                            position: "absolute",
-                            margin: `${separatorThickness / 2}px`,
-                        }}
-                        className="rounded-lg bg-zinc-800 overflow-hidden"
-                    >
-                        {renderPane(id, path)}
-                    </div>
-                </>
+                <Window
+                    inset={inset}
+                    ids={node}
+                    renderPane={renderPane}
+                    path={path}
+                />
             );
         } else if (typeof node === "object") {
             const splitPercentage = node.splitPercentage ?? 50;
@@ -63,7 +46,7 @@ export default function Nexus({initialLayout, renderPane}) {
         }
     };
     return (
-        <div className="w-full h-full relative">
+        <div className="w-full h-full relative overflow-hidden">
             {renderLayout(layout, new Inset({}), [])}
         </div>
     );

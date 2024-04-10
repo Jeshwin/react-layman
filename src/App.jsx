@@ -8,7 +8,7 @@ export default function App() {
             <div className="w-screen h-screen p-16 text-white">
                 <Nexus
                     initialLayout={initialLayout}
-                    renderPane={(id) => <Pane viewId={id} />}
+                    renderPane={(id) => <Pane paneId={id} />}
                 />
             </div>
         </div>

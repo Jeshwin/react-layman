@@ -116,18 +116,16 @@ export default function Separator({
                     direction === "row" ? separatorThickness / -2 : 0
                 }px`,
             }}
-            className={`${
-                direction === "column" ? "h-2" : "w-2"
-            } z-10 grid place-content-center ${
+            className={`${direction === "column" ? "h-2" : "w-2"} ${
                 direction === "column"
                     ? "hover:cursor-ns-resize"
                     : "hover:cursor-ew-resize"
-            }`}
+            } z-10 grid place-content-center overflow-hidden`}
             onMouseDown={handleMouseDown}
         >
             <div
                 className={`${direction === "column" ? "h-0.5" : "w-0.5"} ${
-                    direction === "column" ? "w-10" : "h-10"
+                    direction === "column" ? "w-6" : "h-6"
                 } rounded-full bg-zinc-50`}
             ></div>
         </div>

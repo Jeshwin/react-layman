@@ -1,2 +1,2 @@
 export const separatorThickness = 8;
-export const minPanelSize = 20;
+export const minPanelSize = 5;
