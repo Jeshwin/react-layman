@@ -9,10 +9,11 @@ export default function Nexus({initialLayout, renderPane}) {
     const renderLayout = (node, inset, path) => {
         if (node === null) return;
         if (Array.isArray(node)) {
+            const tabs = node;
             return (
                 <Window
                     inset={inset}
-                    ids={node}
+                    tabs={tabs}
                     renderPane={renderPane}
                     path={path}
                 />

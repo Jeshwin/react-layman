@@ -1,14 +1,15 @@
 {
     "direction": "row",
-    "first": [0],
+    "first": ["explorer"],
     "second": {
         "direction": "column",
-        "first": [1],
-        "second": {
+        "first": {
             "direction": "row",
-            "first": [2],
-            "second": [3]
+            "first": ["file:main.py", "file:utils/rref.py"],
+            "second": ["console", "AI"],
+            "splitPercentage": 60
         },
+        "second": ["shell"],
         "splitPercentage": 80
     },
     "splitPercentage": 20
