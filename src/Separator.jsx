@@ -1,15 +1,15 @@
 import {useEffect, useRef, useState} from "react";
 import {minPanelSize, separatorThickness} from "./constants";
 import {Inset} from "./Insets";
+import {useLayout} from "./LayoutContext";
 
 export default function Separator({
-    layout,
-    setLayout,
     parentInset,
     splitPercentage,
     direction,
     path,
 }) {
+    const {layout, setLayout} = useLayout();
     const separatorRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const [newInset, setNewInset] = useState(new Inset({}));

@@ -1,15 +1,15 @@
 {
     "direction": "row",
-    "first": ["explorer"],
+    "first": ["explorer", "git"],
     "second": {
         "direction": "column",
-        "first": {
-            "direction": "row",
-            "first": ["file:main.py", "file:utils/rref.py"],
-            "second": ["console", "AI"],
-            "splitPercentage": 60
-        },
-        "second": ["shell"],
+        "first": [
+            "file:main.py",
+            "file:utils/rref.py",
+            "file:tests/api.py",
+            "file:api/auth/passwd.py"
+        ],
+        "second": ["console", "shell"],
         "splitPercentage": 80
     },
     "splitPercentage": 20

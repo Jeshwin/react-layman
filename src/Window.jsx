@@ -1,21 +1,33 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {separatorThickness} from "./constants";
 import WindowToolbar from "./WindowToolbar";
+import {useLayout} from "./LayoutContext";
 // import WindowDropTargets from "./WindowDropTargets";
 
-export default function Window({tabs, renderPane, inset, path}) {
+export default function Window({inset, path}) {
+    const {layout, renderPane} = useLayout();
+    const [tabList, setTabList] = useState([]);
     const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+
+    // On initial render, get tab list from layout using path
+    useEffect(() => {
+        let layoutClone = structuredClone(layout);
+        let layouTabList = layoutClone;
+        for (const index of path) {
+            layouTabList = layouTabList[index];
+        }
+        setTabList(layouTabList);
+    }, [layout, path]);
 
     return (
         <>
             <WindowToolbar
-                windowId={path.join(":")}
                 inset={inset}
-                tabs={tabs}
+                path={path}
                 selectedTabIndex={selectedTabIndex}
                 setSelectedTabIndex={setSelectedTabIndex}
             />
-            {tabs.map((tab, index) => (
+            {tabList.map((tab, index) => (
                 <div
                     key={index}
                     id={tab}
