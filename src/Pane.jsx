@@ -1,19 +1,25 @@
-import {useEffect, useState} from "react";
+import {useState, useEffect} from "react";
 
 export default function Pane({paneId}) {
-    const [paneType, setPaneType] = useState(null);
+    const [counter, setCounter] = useState(0);
 
     useEffect(() => {
-        setPaneType(paneId.split(":")[0]);
-    }, [paneId]);
+        const timer = setInterval(() => {
+            setCounter((prevCounter) => prevCounter + 1);
+        }, 100);
+        return () => clearInterval(timer);
+    }, []);
 
     return (
         <div
             id={paneId}
-            className="w-full h-full m-2 grid place-content-center text-center text-xl"
+            className="w-full h-full m-2 grid place-content-center text-center text-xl relative"
         >
+            <div className="absolute top-8 left-0 m-2 text-sm font-mono text-zinc-400">
+                Counter: {(counter / 10).toFixed(1)}s
+            </div>
             <span className="text-3xl">{paneId}</span>
-            This is a {paneType} pane!
+            This is a {paneId.split(":")[0]} pane!
         </div>
     );
 }
