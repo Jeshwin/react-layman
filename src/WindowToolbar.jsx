@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {
     VscAdd,
     VscClose,
@@ -7,27 +7,30 @@ import {
 } from "react-icons/vsc";
 import {separatorThickness} from "./constants";
 import {useLayout} from "./LayoutContext";
+import {stringToUUID} from "./renderFunctions";
 
 export default function WindowToolbar({
     path,
     inset,
-    selectedTabIndex,
-    setSelectedTabIndex,
+    tabs,
+    selectedTabIds,
+    setSelectedTabIds,
 }) {
-    const {renderTab, layout, addRow, addColumn, addTab, removeTab} =
-        useLayout();
-    const [tabList, setTabList] = useState([]);
-    const windowId = path.join(":");
+    const {renderTab, addGeneralWindow, addTab, removeTab} = useLayout();
+    const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
-    // get tabList whenever it changed
+    const indexToTabId = useCallback(
+        (index) => stringToUUID(path.join(":") + tabs[index]),
+        [path, tabs]
+    );
+
     useEffect(() => {
-        let layoutClone = structuredClone(layout);
-        let layoutTabList = layoutClone;
-        for (const index of path) {
-            layoutTabList = layoutTabList[index];
-        }
-        setTabList(layoutTabList);
-    }, [layout, path]);
+        setSelectedTabIds((prevSelectedTabIds) =>
+            !prevSelectedTabIds.includes(indexToTabId(currentTabIndex))
+                ? [...prevSelectedTabIds, indexToTabId(currentTabIndex)]
+                : prevSelectedTabIds
+        );
+    }, [currentTabIndex, indexToTabId, path, setSelectedTabIds, tabs]);
 
     const addBlankTab = () => {
         addTab(path, "blank");
@@ -36,14 +39,29 @@ export default function WindowToolbar({
     const removeTabAtIndex = (index) => {
         removeTab(path, index);
 
+        // Remove tab from list of selected tabs, since it doesn't exist anymore
+        setSelectedTabIds((prevSelectedTabIds) =>
+            prevSelectedTabIds.filter((tab) => tab !== indexToTabId(index))
+        );
+
         // Edge cases: Deleted tab left of selected tab
-        if (index == selectedTabIndex) {
-            setSelectedTabIndex(Math.max(0, index - 1));
-        } else if (index < selectedTabIndex) {
-            setSelectedTabIndex(selectedTabIndex - 1);
+        if (index == currentTabIndex) {
+            setCurrentTabIndex(Math.max(0, index - 1));
+        } else if (index < currentTabIndex) {
+            setCurrentTabIndex(currentTabIndex - 1);
         } else {
-            setSelectedTabIndex(selectedTabIndex);
+            setCurrentTabIndex(currentTabIndex);
         }
+    };
+
+    const handleClickTab = (index) => {
+        // Remove previously selected tab from selected tabs
+        setSelectedTabIds((prevSelectedTabIds) =>
+            prevSelectedTabIds.filter(
+                (tab) => tab !== indexToTabId(currentTabIndex)
+            )
+        );
+        setCurrentTabIndex(index);
     };
 
     const SelectedTab = ({tab, index}) => {
@@ -51,12 +69,7 @@ export default function WindowToolbar({
             <div className="first:rounded-tl w-fit relative flex  items-center bg-zinc-800">
                 {/** Add selection border at top */}
                 <div className="absolute top-0 left-0 right-0 h-px bg-orange-500"></div>
-                <button
-                    className="p-2 text-sm"
-                    onClick={() => setSelectedTabIndex(index)}
-                >
-                    {renderTab(tab)}
-                </button>
+                <button className="p-2 text-sm">{renderTab(tab)}</button>
                 <button
                     className="h-8 w-6 hover:bg-red-500 hover:bg-opacity-50 grid place-content-center"
                     onClick={() => removeTabAtIndex(index)}
@@ -72,7 +85,7 @@ export default function WindowToolbar({
             <div className="first:rounded-tl w-fit flex items-center bg-zinc-900 hover:brightness-150">
                 <button
                     className="p-2 text-sm"
-                    onClick={() => setSelectedTabIndex(index)}
+                    onClick={() => handleClickTab(index)}
                 >
                     {renderTab(tab)}
                 </button>
@@ -88,18 +101,19 @@ export default function WindowToolbar({
 
     return (
         <div
-            id={windowId}
+            id={stringToUUID(path.join(":"))}
             style={{
                 inset: inset.toString(),
                 position: "absolute",
                 margin: `${separatorThickness / 2}px`,
+                marginBottom: 0,
             }}
             className="h-8 z-10 rounded-t bg-zinc-900 flex"
         >
             {/** Render each tab */}
             <div className="flex rounded-tl overflow-x-scroll overflow-y-clip">
-                {tabList.map((tab, index) => {
-                    if (index == selectedTabIndex) {
+                {tabs.map((tab, index) => {
+                    if (selectedTabIds.includes(indexToTabId(index))) {
                         return (
                             <SelectedTab key={index} tab={tab} index={index} />
                         );
@@ -125,13 +139,17 @@ export default function WindowToolbar({
             {/** Buttons to add convert window to a row or column */}
             <button
                 className="w-8 h-8 hover:bg-zinc-800 grid place-content-center"
-                onClick={() => addColumn(path)}
+                onClick={() =>
+                    addGeneralWindow("column", "second", ["blank"], path)
+                }
             >
                 <VscSplitVertical />
             </button>
             <button
                 className="w-8 h-8 rounded-tr hover:bg-zinc-800 grid place-content-center"
-                onClick={() => addRow(path)}
+                onClick={() =>
+                    addGeneralWindow("row", "second", ["blank"], path)
+                }
             >
                 <VscSplitHorizontal />
             </button>

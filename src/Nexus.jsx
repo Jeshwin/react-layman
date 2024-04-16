@@ -1,16 +1,19 @@
+import {useRef} from "react";
 import {LayoutProvider} from "./LayoutContext";
 import LayoutRenderer from "./LayoutRenderer";
 
 export default function Nexus({initialLayout, renderPane, renderTab}) {
+    const nexusRef = useRef(null);
     return (
-        <LayoutProvider
-            initialLayout={initialLayout}
-            renderPane={renderPane}
-            renderTab={renderTab}
-        >
-            <div className="w-full h-full relative overflow-hidden">
+        <div ref={nexusRef} className="w-full h-full relative overflow-hidden">
+            <LayoutProvider
+                initialLayout={initialLayout}
+                renderPane={renderPane}
+                renderTab={renderTab}
+                nexusRef={nexusRef}
+            >
                 <LayoutRenderer />
-            </div>
-        </LayoutProvider>
+            </LayoutProvider>
+        </div>
     );
 }

@@ -1,4 +1,5 @@
-import {createContext, useContext, useState} from "react";
+import {createContext, useContext, useEffect, useState} from "react";
+import {calculateSeparators, calculateWindows} from "./renderFunctions";
 
 const LayoutContext = createContext(null);
 
@@ -11,16 +12,41 @@ export const useLayout = () => useContext(LayoutContext);
  * @param {Array} props.initialLayout - Initial state of the layout.
  * @param {Function} props.renderPane - Function to render panes in the layout.
  * @param {Function} props.renderTab - Function to render tabs within panes.
+ * @param {React.MutableRefObject} props.nexusRef - Reference to parent Nexus node
  * @param {ReactNode} props.children - Child components that may consume layout context.
  */
 export const LayoutProvider = ({
     initialLayout,
     renderPane,
     renderTab,
+    nexusRef,
     children,
 }) => {
     // State to hold the current layout, initialized to initialLayout.
     const [layout, setLayout] = useState(initialLayout);
+    const [selectedTabIds, setSelectedTabIds] = useState([]);
+    const [renderedLayout, setRenderedLayout] = useState([[], [], []]);
+
+    // Convert layout from a binary tree object into three lists
+    useEffect(() => {
+        let renderList = [];
+
+        renderList.push(calculateSeparators(layout)); // List 1: Separators
+        const [toolbars, windows] = calculateWindows(
+            layout,
+            selectedTabIds,
+            setSelectedTabIds
+        );
+        renderList.push(toolbars); // List 2: Window Toolbars
+        renderList.push(windows); // List 3: Windows
+
+        setRenderedLayout(renderList);
+    }, [layout]);
+
+    //! DEBUG: print renderedLayout
+    useEffect(() => {
+        console.dir(renderedLayout);
+    }, [renderedLayout]);
 
     /**
      * Adds a new general window to the layout at the specified path.
@@ -57,22 +83,6 @@ export const LayoutProvider = ({
         setLayout(layoutClone);
 
         console.log("Layout updated with new window:", layoutClone);
-    };
-
-    /**
-     * Shortcut to add a new row with a blank tab to the layout.
-     * @param {Array} path - Path in the layout tree to the target window.
-     */
-    const addRow = (path) => {
-        addGeneralWindow("row", "second", ["blank"], path);
-    };
-
-    /**
-     * Shortcut to add a new column with a blank tab to the layout.
-     * @param {Array} path - Path in the layout tree to the target window.
-     */
-    const addColumn = (path) => {
-        addGeneralWindow("column", "second", ["blank"], path);
     };
 
     /**
@@ -140,13 +150,13 @@ export const LayoutProvider = ({
             value={{
                 layout,
                 setLayout,
-                addRow,
-                addColumn,
+                renderedLayout,
                 addGeneralWindow,
                 addTab,
                 removeTab,
                 renderPane,
                 renderTab,
+                nexusRef,
             }}
         >
             {children}

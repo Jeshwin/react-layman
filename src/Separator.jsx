@@ -1,5 +1,5 @@
-import {useEffect, useRef, useState} from "react";
-import {minPanelSize, separatorThickness} from "./constants";
+import {useEffect, useState} from "react";
+import {windowToolbarHeight, separatorThickness} from "./constants";
 import {Inset} from "./Insets";
 import {useLayout} from "./LayoutContext";
 
@@ -9,10 +9,14 @@ export default function Separator({
     direction,
     path,
 }) {
-    const {layout, setLayout} = useLayout();
-    const separatorRef = useRef(null);
+    const {layout, setLayout, nexusRef} = useLayout();
     const [isDragging, setIsDragging] = useState(false);
     const [newInset, setNewInset] = useState(new Inset({}));
+
+    const minPanelSize = nexusRef.current
+        ? (100 * (windowToolbarHeight + separatorThickness)) /
+          nexusRef.current.getBoundingClientRect().height
+        : 5;
 
     useEffect(() => {
         if (direction === "column") {
@@ -43,9 +47,8 @@ export default function Separator({
 
         const handleMouseMove = (event) => {
             event.preventDefault();
-            if (isDragging && separatorRef.current) {
-                const parentBBox =
-                    separatorRef.current.parentElement.getBoundingClientRect();
+            if (isDragging && nexusRef.current) {
+                const parentBBox = nexusRef.current.getBoundingClientRect();
                 let absolutesSplitPercentage;
                 if (direction === "column") {
                     absolutesSplitPercentage =
@@ -96,6 +99,8 @@ export default function Separator({
         isDragging,
         setLayout,
         path,
+        minPanelSize,
+        nexusRef,
     ]);
 
     const handleMouseDown = (event) => {
@@ -105,7 +110,6 @@ export default function Separator({
 
     return (
         <div
-            ref={separatorRef}
             style={{
                 inset: newInset.toString(),
                 position: "absolute",
