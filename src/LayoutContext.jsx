@@ -41,7 +41,7 @@ export const LayoutProvider = ({
         renderList.push(windows); // List 3: Windows
 
         setRenderedLayout(renderList);
-    }, [layout]);
+    }, [layout, selectedTabIds]);
 
     //! DEBUG: print renderedLayout
     useEffect(() => {
