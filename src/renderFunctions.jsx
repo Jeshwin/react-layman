@@ -2,7 +2,7 @@ import {Inset} from "./Insets";
 import Separator from "./Separator";
 import Window from "./Window";
 import WindowToolbar from "./WindowToolbar";
-import CryptoJS from "crypto-js";
+import crypto from "node:crypto";
 
 export const calculateSeparators = (layout) => {
     const separators = [];
@@ -71,10 +71,10 @@ export const calculateWindows = (layout, selectedTabIds, setSelectedTabIds) => {
 };
 export const stringToUUID = (str) => {
     // Encode the input string as UTF-8 and hash the data using SHA-256
-    const hashWordArray = CryptoJS.SHA256(str);
+    const hashWordArray = crypto.SHA256(str);
 
     // Convert words to hex string
-    const hashHex = hashWordArray.toString(CryptoJS.enc.Hex);
+    const hashHex = hashWordArray.toString(crypto.enc.Hex);
 
     // Extract 32 characters from the hash to fit the UUID format
     const uuidPart = hashHex.slice(0, 32);
