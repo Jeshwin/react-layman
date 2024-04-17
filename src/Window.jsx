@@ -12,7 +12,7 @@ export default function Window({inset, tab, path, selectedTabIds}) {
         top:
             inset.top +
             (nexusRef.current
-                ? (100 * (windowToolbarHeight + separatorThickness)) /
+                ? (100 * windowToolbarHeight) /
                   nexusRef.current.getBoundingClientRect().height
                 : 0),
     });
