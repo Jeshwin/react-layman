@@ -2,10 +2,10 @@
 
 ## Table of Contents
 
-- [About](#about)
-- [Getting Started](#getting_started)
-- [Usage](#usage)
-- [Contributing](../CONTRIBUTING.md)
+-   [About](#about)
+-   [Getting Started](#getting_started)
+-   [Usage](#usage)
+-   [Contributing](../CONTRIBUTING.md)
 
 ## About <a name = "about"></a>
 
@@ -15,12 +15,17 @@ This is an environment to test new features for my future frontend web design pr
 
 This project uses [Vite](https://vitejs.dev) under the hood, so all you need to do is clone this repository and run `vite` or `npm run dev` in the main folder.
 
+# IMPORTANT
+
+See [this](https://blog.replit.com/splits)!
+Look into using [Jotai](https://jotai.org/) and [pnpm](https://pnpm.io/).
+We might need to approach this problem in a completely different way...
+
 ## Progress
 
-- [ ] Dynamic Layout
-    - [x] Rows and columns
-    - [x] Adjustable windows
-    - [ ] Drag and drop
-    - [ ] Delete windows
-    - [ ] Tabbed windows
-
+-   [ ] Dynamic Layout
+    -   [x] Rows and columns
+    -   [x] Adjustable windows
+    -   [ ] Drag and drop
+    -   [ ] Delete windows
+    -   [ ] Tabbed windows
