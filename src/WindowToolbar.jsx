@@ -29,12 +29,23 @@ export default function WindowToolbar({path, inset, tabs}) {
     };
 
     useEffect(() => {
+        for (let i = 0; i < tabs.length; i++) {
+            for (let selectedTab of selectedTabIds) {
+                if (tabs[i] === selectedTab) {
+                    setCurrentTabIndex(i);
+                    break;
+                }
+            }
+        }
+    });
+
+    useEffect(() => {
         setSelectedTabIds((prevSelectedTabIds) =>
             !prevSelectedTabIds.includes(tabs[currentTabIndex])
                 ? [...prevSelectedTabIds, tabs[currentTabIndex]]
                 : prevSelectedTabIds
         );
-    }, [currentTabIndex, path, setSelectedTabIds, tabs]);
+    }, [currentTabIndex, setSelectedTabIds, tabs]);
 
     const addBlankTab = () => {
         addTab(path, createUniqueTabId("blank"));
@@ -115,7 +126,7 @@ export default function WindowToolbar({path, inset, tabs}) {
             {/** Render each tab */}
             <div className="flex rounded-tl overflow-x-scroll overflow-y-clip">
                 {tabs.map((tab, index) => {
-                    if (selectedTabIds.includes(tabs[index])) {
+                    if (index == currentTabIndex) {
                         return (
                             <SelectedTab key={index} tab={tab} index={index} />
                         );

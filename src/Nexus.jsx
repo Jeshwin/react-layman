@@ -1,5 +1,8 @@
 import {createContext, useEffect, useRef, useState} from "react";
-import {calculateComponents} from "./renderFunctions";
+import WindowToolbar from "./WindowToolbar";
+import Window from "./Window";
+import Separator from "./Separator";
+import {Inset} from "./Insets";
 
 export const LayoutContext = createContext(null);
 
@@ -23,9 +26,11 @@ export default function Nexus({initialLayout, renderPane, renderTab}) {
         setGlobalTabList(getAllTabs(layout));
     }, [layout]);
 
-    // Gets all tab ids in layout
-    // Also verifies that all tab ids are unique
-    // If identical tab ids found, throw an exception
+    /**
+     * Gets a list of all tab ids in layout
+     * @param {Object} layout - The nested binary tree layout
+     * @return {Array} a list of all tab ids in layout
+     */
     const getAllTabs = (layout) => {
         const tabs = [];
 
@@ -139,6 +144,62 @@ export default function Nexus({initialLayout, renderPane, renderTab}) {
         setLayout(layoutClone);
     };
 
+    const renderLayout = (layout) => {
+        const separators = [];
+        const toolbars = [];
+        const panes = [];
+
+        function traverseLayout(layout, inset, path) {
+            if (layout.direction) {
+                separators.push(
+                    <Separator
+                        key={path.length != 0 ? path.join(":") : "root"}
+                        parentInset={inset}
+                        splitPercentage={layout.splitPercentage ?? 50}
+                        direction={layout.direction}
+                        path={path}
+                    />
+                );
+                const {firstInset, secondInset} = inset.newInsets(
+                    layout.splitPercentage ?? 50,
+                    layout.direction
+                );
+                traverseLayout(
+                    layout.first,
+                    firstInset,
+                    path.concat(["first"])
+                );
+                traverseLayout(
+                    layout.second,
+                    secondInset,
+                    path.concat(["second"])
+                );
+            } else {
+                toolbars.push(
+                    <WindowToolbar
+                        key={path.join(":")}
+                        inset={inset}
+                        path={path}
+                        tabs={layout}
+                    />
+                );
+                layout.map((tab) =>
+                    panes.push(
+                        <Window
+                            key={path.join(":") + ":" + tab}
+                            inset={inset}
+                            tab={tab}
+                            path={path}
+                        />
+                    )
+                );
+            }
+        }
+
+        traverseLayout(layout, new Inset({}), []);
+        return [separators, toolbars, panes];
+    };
+
     return (
         <div ref={nexusRef} className="w-full h-full relative overflow-hidden">
             <LayoutContext.Provider
@@ -156,7 +217,7 @@ export default function Nexus({initialLayout, renderPane, renderTab}) {
                     setSelectedTabIds,
                 }}
             >
-                {calculateComponents(layout)}
+                {renderLayout(layout)}
             </LayoutContext.Provider>
         </div>
     );
