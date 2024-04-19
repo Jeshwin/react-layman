@@ -1,5 +1,5 @@
 import {createContext, useContext, useEffect, useState} from "react";
-import {calculateSeparators, calculateWindows} from "./renderFunctions";
+import {calculateComponents} from "./renderFunctions";
 
 const LayoutContext = createContext(null);
 
@@ -24,29 +24,39 @@ export const LayoutProvider = ({
 }) => {
     // State to hold the current layout, initialized to initialLayout.
     const [layout, setLayout] = useState(initialLayout);
+    const [globalTabList, setGlobalTabList] = useState([]);
     const [selectedTabIds, setSelectedTabIds] = useState([]);
     const [renderedLayout, setRenderedLayout] = useState([[], [], []]);
 
     // Convert layout from a binary tree object into three lists
     useEffect(() => {
-        let renderList = [];
-
-        renderList.push(calculateSeparators(layout)); // List 1: Separators
-        const [toolbars, windows] = calculateWindows(
-            layout,
-            selectedTabIds,
-            setSelectedTabIds
-        );
-        renderList.push(toolbars); // List 2: Window Toolbars
-        renderList.push(windows); // List 3: Windows
-
-        setRenderedLayout(renderList);
-    }, [layout, selectedTabIds]);
+        setRenderedLayout(calculateComponents(layout));
+        setGlobalTabList(getAllTabs(layout));
+    }, [layout]);
 
     //! DEBUG: print renderedLayout
     useEffect(() => {
         console.dir(renderedLayout);
     }, [renderedLayout]);
+
+    // Gets all tab ids in layout
+    // Also verifies that all tab ids are unique
+    // If identical tab ids found, throw an exception
+    const getAllTabs = (layout) => {
+        const tabs = [];
+
+        const traverseLayout = (layout) => {
+            if (layout.direction) {
+                traverseLayout(layout.first);
+                traverseLayout(layout.second);
+            } else {
+                layout.forEach((tab) => tabs.push(tab));
+            }
+        };
+        traverseLayout(layout);
+
+        return tabs;
+    };
 
     /**
      * Adds a new general window to the layout at the specified path.
@@ -55,7 +65,7 @@ export const LayoutProvider = ({
      * @param {Array} newWindowTabs - Array of tabs for the new window.
      * @param {Array} path - Path in the layout tree to the target window.
      */
-    const addGeneralWindow = (direction, placement, newWindowTabs, path) => {
+    const addWindow = (direction, placement, newWindowTabs, path) => {
         const layoutClone = structuredClone(layout); // Clone the current layout to avoid direct state mutation
         let target = layoutClone; // This will be used to drill down to the target window
 
@@ -151,12 +161,15 @@ export const LayoutProvider = ({
                 layout,
                 setLayout,
                 renderedLayout,
-                addGeneralWindow,
+                addWindow,
                 addTab,
                 removeTab,
                 renderPane,
                 renderTab,
                 nexusRef,
+                globalTabList,
+                selectedTabIds,
+                setSelectedTabIds,
             }}
         >
             {children}

@@ -4,10 +4,12 @@ export default function LayoutRenderer() {
     const {renderedLayout} = useLayout();
 
     return (
-        <>
-            {renderedLayout[0]}
-            {renderedLayout[1]}
-            {renderedLayout[2]}
-        </>
+        renderedLayout ?? (
+            <>
+                {renderedLayout[0]}
+                {renderedLayout[1]}
+                {renderedLayout[2]}
+            </>
+        )
     );
 }

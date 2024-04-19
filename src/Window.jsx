@@ -1,12 +1,16 @@
 import {separatorThickness, windowToolbarHeight} from "./constants";
 import {useLayout} from "./LayoutContext";
 import {Inset} from "./Insets";
-import {stringToUUID} from "./renderFunctions";
+import {useEffect} from "react";
 
-export default function Window({inset, tab, path, selectedTabIds}) {
-    const {renderPane, nexusRef} = useLayout();
+export default function Window({inset, tab}) {
+    const {renderPane, nexusRef, selectedTabIds} = useLayout();
 
-    const windowId = stringToUUID(path.join(":") + tab);
+    //! DEBUG: log when tab is re-rendered
+    useEffect(() => {
+        console.log(`re-rendering tab ${tab} ???`);
+    }, [tab]);
+
     const adjustedInset = new Inset({
         ...inset,
         top:
@@ -19,7 +23,7 @@ export default function Window({inset, tab, path, selectedTabIds}) {
 
     return (
         <div
-            id={windowId}
+            id={tab}
             style={{
                 inset: adjustedInset.toString(),
                 position: "absolute",
@@ -27,10 +31,10 @@ export default function Window({inset, tab, path, selectedTabIds}) {
                 marginTop: 0,
             }}
             className={`rounded bg-zinc-800 overflow-hidden ${
-                selectedTabIds.includes(windowId) ? "visible" : "invisible"
+                selectedTabIds.includes(tab) ? "visible" : "invisible"
             }`}
         >
-            {renderPane(tab, path)}
+            {renderPane(tab)}
         </div>
     );
 }
