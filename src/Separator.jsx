@@ -77,11 +77,6 @@ export default function Separator({
             }
         };
 
-        const handleMouseUp = (event) => {
-            event.preventDefault();
-            setIsDragging(false);
-        };
-
         // Add event listeners to document
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", handleMouseUp);
@@ -102,6 +97,11 @@ export default function Separator({
         minPanelSize,
         nexusRef,
     ]);
+
+    const handleMouseUp = (event) => {
+        event.preventDefault();
+        setIsDragging(false);
+    };
 
     const handleMouseDown = (event) => {
         event.preventDefault();
@@ -126,6 +126,7 @@ export default function Separator({
                     : "hover:cursor-ew-resize"
             } z-10 grid place-content-center overflow-hidden`}
             onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
         >
             <div
                 className={`${direction === "column" ? "h-0.5" : "w-0.5"} ${

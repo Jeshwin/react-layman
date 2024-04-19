@@ -1,6 +1,6 @@
 import {separatorThickness} from "./constants";
 
-export default function WindowDropTargets({inset, path}) {
+export default function WindowDropTargets({inset}) {
     const dropTargetClass =
         "z-20 rounded bg-orange-500 bg-opacity-50 border border-orange-500";
     return (

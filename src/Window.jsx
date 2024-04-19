@@ -2,6 +2,7 @@ import {separatorThickness, windowToolbarHeight} from "./constants";
 import {Inset} from "./Insets";
 import {useContext} from "react";
 import {LayoutContext} from "./Nexus";
+// import WindowDropTargets from "./WindowDropTargets";
 
 export default function Window({inset, tab}) {
     const {renderPane, nexusRef, selectedTabIds} = useContext(LayoutContext);
@@ -17,19 +18,24 @@ export default function Window({inset, tab}) {
     });
 
     return (
-        <div
-            id={tab}
-            style={{
-                inset: adjustedInset.toString(),
-                position: "absolute",
-                margin: `${separatorThickness / 2}px`,
-                marginTop: 0,
-            }}
-            className={`rounded bg-zinc-800 overflow-hidden ${
-                selectedTabIds.includes(tab) ? "visible" : "invisible"
-            }`}
-        >
-            {renderPane(tab)}
-        </div>
+        <>
+            <div
+                id={tab}
+                style={{
+                    inset: adjustedInset.toString(),
+                    position: "absolute",
+                    margin: `${separatorThickness / 2}px`,
+                    marginTop: 0,
+                }}
+                className={`rounded bg-zinc-800 overflow-hidden ${
+                    selectedTabIds.includes(tab) ? "visible" : "invisible"
+                }`}
+            >
+                {renderPane(tab)}
+            </div>
+            {/* {selectedTabIds.includes(tab) && (
+                <WindowDropTargets inset={adjustedInset} />
+            )} */}
+        </>
     );
 }
