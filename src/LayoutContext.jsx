@@ -1,5 +1,4 @@
 import {createContext, useContext, useEffect, useState} from "react";
-import {calculateComponents} from "./renderFunctions";
 
 const LayoutContext = createContext(null);
 
@@ -26,18 +25,11 @@ export const LayoutProvider = ({
     const [layout, setLayout] = useState(initialLayout);
     const [globalTabList, setGlobalTabList] = useState([]);
     const [selectedTabIds, setSelectedTabIds] = useState([]);
-    const [renderedLayout, setRenderedLayout] = useState([[], [], []]);
 
     // Convert layout from a binary tree object into three lists
     useEffect(() => {
-        setRenderedLayout(calculateComponents(layout));
         setGlobalTabList(getAllTabs(layout));
     }, [layout]);
-
-    //! DEBUG: print renderedLayout
-    useEffect(() => {
-        console.dir(renderedLayout);
-    }, [renderedLayout]);
 
     // Gets all tab ids in layout
     // Also verifies that all tab ids are unique
@@ -90,9 +82,8 @@ export const LayoutProvider = ({
         target[targetWindowKey] = newDivision;
 
         // Update the layout in the state
-        setLayout(layoutClone);
-
         console.log("Layout updated with new window:", layoutClone);
+        setLayout(layoutClone);
     };
 
     /**
@@ -107,6 +98,7 @@ export const LayoutProvider = ({
             layoutTabList = layoutTabList[index];
         }
         layoutTabList.push(tabName);
+        console.log("Updated layout:", layoutClone);
         setLayout(layoutClone);
     };
 
@@ -160,7 +152,6 @@ export const LayoutProvider = ({
             value={{
                 layout,
                 setLayout,
-                renderedLayout,
                 addWindow,
                 addTab,
                 removeTab,

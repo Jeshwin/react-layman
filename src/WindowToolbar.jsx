@@ -22,7 +22,6 @@ export default function WindowToolbar({path, inset, tabs}) {
 
     const createUniqueTabId = (tabId) => {
         let count = 0;
-        console.log(globalTabList);
         for (let existingTab of globalTabList) {
             if (existingTab.split(":")[0] === tabId) count++;
         }

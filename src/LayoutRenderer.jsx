@@ -1,15 +1,8 @@
 import {useLayout} from "./LayoutContext";
+import {calculateComponents} from "./renderFunctions";
 
 export default function LayoutRenderer() {
-    const {renderedLayout} = useLayout();
+    const {layout} = useLayout();
 
-    return (
-        renderedLayout ?? (
-            <>
-                {renderedLayout[0]}
-                {renderedLayout[1]}
-                {renderedLayout[2]}
-            </>
-        )
-    );
+    return <>{calculateComponents(layout)}</>;
 }

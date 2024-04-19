@@ -1,15 +1,9 @@
 import {separatorThickness, windowToolbarHeight} from "./constants";
 import {useLayout} from "./LayoutContext";
 import {Inset} from "./Insets";
-import {useEffect} from "react";
 
 export default function Window({inset, tab}) {
     const {renderPane, nexusRef, selectedTabIds} = useLayout();
-
-    //! DEBUG: log when tab is re-rendered
-    useEffect(() => {
-        console.log(`re-rendering tab ${tab} ???`);
-    }, [tab]);
 
     const adjustedInset = new Inset({
         ...inset,
