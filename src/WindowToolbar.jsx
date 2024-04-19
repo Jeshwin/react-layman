@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {
     VscAdd,
     VscClose,
@@ -6,7 +6,7 @@ import {
     VscSplitVertical,
 } from "react-icons/vsc";
 import {separatorThickness} from "./constants";
-import {useLayout} from "./LayoutContext";
+import {LayoutContext} from "./Nexus";
 
 export default function WindowToolbar({path, inset, tabs}) {
     const {
@@ -17,7 +17,7 @@ export default function WindowToolbar({path, inset, tabs}) {
         globalTabList,
         selectedTabIds,
         setSelectedTabIds,
-    } = useLayout();
+    } = useContext(LayoutContext);
     const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
     const createUniqueTabId = (tabId) => {

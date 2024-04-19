@@ -10,12 +10,20 @@ import initialLayout from "./startingLayout.json";
  */
 export default function App() {
     /**
-     * @function idToTabName
+     * @function renderPane
+     * @description Transforms a given pane ID to its corresponding window component
+     * @param {string} id - The unique identifier of the pane.
+     * @return {ReactJSX.Element} The window component based on the given pane ID.
+     */
+    const renderPane = (id) => <Pane paneId={id} />;
+
+    /**
+     * @function renderTab
      * @description Transforms a given pane ID to its corresponding tab name for display purposes.
      * @param {string} id - The unique identifier of the pane.
      * @return {string} The tab name based on the given pane ID.
      */
-    const idToTabName = (id) => {
+    const renderTab = (id) => {
         const idParts = id.split(":");
         const paneType = idParts[0];
         if (paneType === "file") {
@@ -32,8 +40,8 @@ export default function App() {
             <div className="w-screen h-screen p-16 text-white">
                 <Nexus
                     initialLayout={initialLayout}
-                    renderPane={(id) => <Pane paneId={id} />}
-                    renderTab={idToTabName}
+                    renderPane={renderPane}
+                    renderTab={renderTab}
                 />
             </div>
         </div>

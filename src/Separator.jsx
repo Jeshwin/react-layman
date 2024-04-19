@@ -1,7 +1,7 @@
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {windowToolbarHeight, separatorThickness} from "./constants";
 import {Inset} from "./Insets";
-import {useLayout} from "./LayoutContext";
+import {LayoutContext} from "./Nexus";
 
 export default function Separator({
     parentInset,
@@ -9,7 +9,7 @@ export default function Separator({
     direction,
     path,
 }) {
-    const {layout, setLayout, nexusRef} = useLayout();
+    const {layout, setLayout, nexusRef} = useContext(LayoutContext);
     const [isDragging, setIsDragging] = useState(false);
     const [newInset, setNewInset] = useState(new Inset({}));
 
