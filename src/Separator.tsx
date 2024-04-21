@@ -138,15 +138,14 @@ export default function Separator({
             );
         };
     }, [
-        parentInset,
-        layout,
         direction,
-        splitPercentage,
         isDragging,
-        setLayout,
-        path,
+        layout,
         minPanelSize,
         nexusRef,
+        parentInset,
+        path,
+        setLayout,
     ]);
 
     // Toggle isDragging when holding separator

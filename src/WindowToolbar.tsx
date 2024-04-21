@@ -33,6 +33,27 @@ export default function WindowToolbar({
     const renderTab = useAtomValue(renderTabAtom).fn;
     const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
+    // Set current tab to first already selected tab
+    useEffect(() => {
+        for (let i = 0; i < tabs.length; i++) {
+            for (const selectedTab of selectedTabs) {
+                if (tabs[i] === selectedTab) {
+                    setCurrentTabIndex(i);
+                    break;
+                }
+            }
+        }
+    }, [tabs, selectedTabs]);
+
+    // Add currently selected tab to selected tab list if not already there
+    useEffect(() => {
+        setSelectedTabs((prevSelectedTabs: NexusKeys) =>
+            prevSelectedTabs.includes(tabs[currentTabIndex])
+                ? prevSelectedTabs
+                : [...prevSelectedTabs, tabs[currentTabIndex]]
+        );
+    }, [currentTabIndex, selectedTabs, setSelectedTabs, tabs]);
+
     //Adds a new window to the layout at the specified path, on the specified placement.
     const addWindow = (
         direction: NexusDirection,
@@ -175,28 +196,15 @@ export default function WindowToolbar({
     const createUniqueTabId = (tabId: string) => {
         let count = 0;
         for (const existingTab of globalTabs) {
-            if (existingTab.split(":")[0] === tabId) count++;
+            const existingTabParts = existingTab.split(":");
+            if (existingTabParts[0] === tabId) {
+                const existingTabNumber =
+                    parseInt(existingTabParts[1], 10) || 0;
+                count = Math.max(existingTabNumber + 1, count + 1);
+            }
         }
         return `${tabId}:${count}`;
     };
-
-    useEffect(() => {
-        for (let i = 0; i < tabs.length; i++) {
-            for (const selectedTab of selectedTabs) {
-                if (tabs[i] === selectedTab) {
-                    setCurrentTabIndex(i);
-                    break;
-                }
-            }
-        }
-    }, [tabs, selectedTabs]);
-
-    useEffect(() => {
-        setSelectedTabs((prevSelectedTabIds: NexusKeys) => [
-            ...prevSelectedTabIds,
-            tabs[currentTabIndex],
-        ]);
-    }, [currentTabIndex, setSelectedTabs, tabs]);
 
     const addBlankTab = () => {
         addTab(path, createUniqueTabId("blank"));
