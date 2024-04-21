@@ -1,21 +1,29 @@
-import {useContext, useEffect, useState} from "react";
+import {MouseEventHandler, useEffect, useState} from "react";
+import {useAtom, useAtomValue} from "jotai";
 import {windowToolbarHeight, separatorThickness} from "./constants";
-import {Inset} from "./Insets";
-import {LayoutContext} from "./Nexus";
+import {Inset} from "./Inset";
+import {layoutAtom, nexusRefAtom} from "./Nexus";
+import {NexusDirection, NexusPath} from "./types";
 
 export default function Separator({
     parentInset,
     splitPercentage,
     direction,
     path,
+}: {
+    parentInset: Inset;
+    splitPercentage: number;
+    direction: NexusDirection;
+    path: NexusPath;
 }) {
-    const {layout, setLayout, nexusRef} = useContext(LayoutContext);
+    const [layout, setLayout] = useAtom(layoutAtom);
+    const nexusRef = useAtomValue(nexusRefAtom);
     const [isDragging, setIsDragging] = useState(false);
     const [newInset, setNewInset] = useState(new Inset({}));
 
-    const minPanelSize = nexusRef.current
+    const minPanelSize = nexusRef!.current
         ? (100 * (windowToolbarHeight + separatorThickness)) /
-          nexusRef.current.getBoundingClientRect().height
+          nexusRef!.current.getBoundingClientRect().height
         : 5;
 
     useEffect(() => {
@@ -45,10 +53,10 @@ export default function Separator({
             );
         }
 
-        const handleMouseMove = (event) => {
+        const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
             event.preventDefault();
-            if (isDragging && nexusRef.current) {
-                const parentBBox = nexusRef.current.getBoundingClientRect();
+            if (isDragging && nexusRef!.current) {
+                const parentBBox = nexusRef!.current.getBoundingClientRect();
                 let absolutesSplitPercentage;
                 if (direction === "column") {
                     absolutesSplitPercentage =
@@ -64,11 +72,19 @@ export default function Separator({
                         absolutesSplitPercentage,
                         direction
                     );
-                let layoutClone = structuredClone(layout);
+                const layoutClone = structuredClone(layout);
                 let currentLayout = layoutClone;
                 for (const index of path) {
-                    currentLayout = currentLayout[index];
+                    if (Array.isArray(currentLayout)) {
+                        break;
+                    }
+                    if (index === "first") {
+                        currentLayout = currentLayout.first;
+                    } else {
+                        currentLayout = currentLayout.second;
+                    }
                 }
+                if (Array.isArray(currentLayout)) return;
                 currentLayout.splitPercentage = Math.min(
                     Math.max(relativeSplitPercentage, minPanelSize),
                     100 - minPanelSize
@@ -78,13 +94,37 @@ export default function Separator({
         };
 
         // Add event listeners to document
-        document.addEventListener("mousemove", handleMouseMove);
-        document.addEventListener("mouseup", handleMouseUp);
+        document.addEventListener(
+            "mousemove",
+            handleMouseMove as unknown as (
+                this: Document,
+                ev: MouseEvent
+            ) => never
+        );
+        document.addEventListener(
+            "mouseup",
+            handleMouseUp as unknown as (
+                this: Document,
+                ev: MouseEvent
+            ) => never
+        );
 
         // Clean up event listeners when component unmounts
         return () => {
-            document.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mouseup", handleMouseUp);
+            document.removeEventListener(
+                "mousemove",
+                handleMouseMove as unknown as (
+                    this: Document,
+                    ev: MouseEvent
+                ) => never
+            );
+            document.removeEventListener(
+                "mouseup",
+                handleMouseUp as unknown as (
+                    this: Document,
+                    ev: MouseEvent
+                ) => never
+            );
         };
     }, [
         parentInset,
@@ -98,12 +138,12 @@ export default function Separator({
         nexusRef,
     ]);
 
-    const handleMouseUp = (event) => {
+    const handleMouseUp: MouseEventHandler<HTMLDivElement> = (event) => {
         event.preventDefault();
         setIsDragging(false);
     };
 
-    const handleMouseDown = (event) => {
+    const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
         event.preventDefault();
         setIsDragging(true);
     };

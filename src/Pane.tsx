@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 
-export default function Pane({paneId}) {
+export default function Pane({paneId}: {paneId: string}) {
     const [counter, setCounter] = useState(0);
 
     useEffect(() => {

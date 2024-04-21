@@ -1,19 +1,21 @@
+import {useAtomValue} from "jotai";
 import {separatorThickness, windowToolbarHeight} from "./constants";
-import {Inset} from "./Insets";
-import {useContext} from "react";
-import {LayoutContext} from "./Nexus";
-// import WindowDropTargets from "./WindowDropTargets";
+import {Inset} from "./Inset";
+import {nexusRefAtom, renderPaneAtom, selectedTabsAtom} from "./Nexus";
+import {NexusKey} from "./types";
 
-export default function Window({inset, tab}) {
-    const {renderPane, nexusRef, selectedTabIds} = useContext(LayoutContext);
+export default function Window({inset, tab}: {inset: Inset; tab: NexusKey}) {
+    const renderPane = useAtomValue(renderPaneAtom).fn;
+    const nexusRef = useAtomValue(nexusRefAtom);
+    const selectedTabs = useAtomValue(selectedTabsAtom);
 
     const adjustedInset = new Inset({
         ...inset,
         top:
             inset.top +
-            (nexusRef.current
+            (nexusRef
                 ? (100 * windowToolbarHeight) /
-                  nexusRef.current.getBoundingClientRect().height
+                  nexusRef.current!.getBoundingClientRect().height
                 : 0),
     });
 
@@ -28,14 +30,11 @@ export default function Window({inset, tab}) {
                     marginTop: 0,
                 }}
                 className={`rounded bg-zinc-800 overflow-hidden ${
-                    selectedTabIds.includes(tab) ? "visible" : "invisible"
+                    selectedTabs.includes(tab) ? "visible" : "invisible"
                 }`}
             >
                 {renderPane(tab)}
             </div>
-            {/* {selectedTabIds.includes(tab) && (
-                <WindowDropTargets inset={adjustedInset} />
-            )} */}
         </>
     );
 }
