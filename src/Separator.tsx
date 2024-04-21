@@ -16,43 +16,54 @@ export default function Separator({
     direction: NexusDirection;
     path: NexusPath;
 }) {
+    // Access global state using atoms
     const [layout, setLayout] = useAtom(layoutAtom);
     const nexusRef = useAtomValue(nexusRefAtom);
+    // State for when user is dragging the separator
     const [isDragging, setIsDragging] = useState(false);
-    const [newInset, setNewInset] = useState(new Inset({}));
 
+    // Calculate separator inset using parentInset
+    const newInset =
+        direction === "column"
+            ? new Inset({
+                  top:
+                      ((100 - parentInset.top - parentInset.bottom) *
+                          splitPercentage) /
+                          100 +
+                      parentInset.top,
+                  right: parentInset.right,
+                  bottom:
+                      100 -
+                      (((100 - parentInset.top - parentInset.bottom) *
+                          splitPercentage) /
+                          100 +
+                          parentInset.top),
+                  left: parentInset.left,
+              })
+            : new Inset({
+                  top: parentInset.top,
+                  right:
+                      100 -
+                      (((100 - parentInset.right - parentInset.left) *
+                          splitPercentage) /
+                          100 +
+                          parentInset.left),
+                  bottom: parentInset.bottom,
+                  left:
+                      ((100 - parentInset.right - parentInset.left) *
+                          splitPercentage) /
+                          100 +
+                      parentInset.left,
+              });
+
+    // Calculate minimum panel size to prevent toolbars from being cut off
     const minPanelSize = nexusRef!.current
         ? (100 * (windowToolbarHeight + separatorThickness)) /
           nexusRef!.current.getBoundingClientRect().height
         : 5;
 
+    // Add event listeners to let separator change layout when dragged
     useEffect(() => {
-        if (direction === "column") {
-            const height = 100 - parentInset.top - parentInset.bottom;
-            const newTop = (height * splitPercentage) / 100 + parentInset.top;
-            const newBottom = 100 - newTop;
-            setNewInset(
-                new Inset({
-                    top: newTop,
-                    right: parentInset.right,
-                    bottom: newBottom,
-                    left: parentInset.left,
-                })
-            );
-        } else if (direction === "row") {
-            const width = 100 - parentInset.right - parentInset.left;
-            const newLeft = (width * splitPercentage) / 100 + parentInset.left;
-            const newRight = 100 - newLeft;
-            setNewInset(
-                new Inset({
-                    top: parentInset.top,
-                    right: newRight,
-                    bottom: parentInset.bottom,
-                    left: newLeft,
-                })
-            );
-        }
-
         const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
             event.preventDefault();
             if (isDragging && nexusRef!.current) {
@@ -138,6 +149,7 @@ export default function Separator({
         nexusRef,
     ]);
 
+    // Toggle isDragging when holding separator
     const handleMouseUp: MouseEventHandler<HTMLDivElement> = (event) => {
         event.preventDefault();
         setIsDragging(false);

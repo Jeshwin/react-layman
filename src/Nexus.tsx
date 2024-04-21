@@ -6,11 +6,13 @@ import Separator from "./Separator";
 import {Inset} from "./Inset";
 import {NexusKey, NexusKeys, NexusLayout, NexusPath} from "./types";
 
+// Jotai atoms to store global layout state
 export const nexusRefAtom = atom<RefObject<HTMLDivElement> | null>(null);
 export const layoutAtom = atom<NexusLayout>([]);
 export const tabsAtom = atom<NexusKeys>([]);
 export const selectedTabsAtom = atom<NexusKeys>([]);
 
+// Complicated way to use atoms to store functions :(
 const derivedRenderPaneAtom = atom<{
     fn: (arg0: NexusKey) => JSX.Element;
 }>({fn: () => <></>});
@@ -31,15 +33,11 @@ export const renderTabAtom = atom(
     }
 );
 
-/**
- * @description Renders the main layout container of a Nexus application, providing context to child components for managing layouts and panes.
- * @component
- * @param {Object} props - Component props.
- * @param {Object|null} props.initialLayout - Initial layout state passed down from parent component.
- * @param {Function} props.renderPane - Function for rendering individual panes within the layout.
- * @param {Function} props.renderTab - Function for rendering tabs within the layout.
- * @return {JSX.Element} Rendered Nexus layout container with provided context.
- */
+// Entry point for Nexus Window Manager
+// Takes in an initial layout as a binary tree object
+// Uses two function to render the layout; one to convert a unique id to a pane,
+// and one to convert the same unique id to a tab name/component
+// Stores useful global state using Jotai atoms
 export default function Nexus({
     initialLayout,
     renderPane,
@@ -49,13 +47,17 @@ export default function Nexus({
     renderPane: (arg0: string) => JSX.Element;
     renderTab: (arg0: string) => string | JSX.Element;
 }) {
+    // Reference for parent div
     const nexusRef = useRef(null);
     const setNexusRef = useSetAtom(nexusRefAtom);
+
+    // Set all atoms based on props
     const [layout, setLayout] = useAtom(layoutAtom);
     const setRenderPane = useSetAtom(renderPaneAtom);
     const setRenderTab = useSetAtom(renderTabAtom);
     const setTabs = useSetAtom(tabsAtom);
 
+    // Use effects to set initial values for atoms
     useEffect(() => {
         setNexusRef(nexusRef);
     }, [setNexusRef]);
@@ -72,6 +74,7 @@ export default function Nexus({
         setRenderTab(renderTab);
     }, [renderTab, setRenderTab]);
 
+    // Get all tab ids from initial layout
     useEffect(() => {
         const tabs: NexusKeys = [];
 
@@ -88,6 +91,10 @@ export default function Nexus({
         setTabs(tabs);
     }, [layout, setTabs]);
 
+    // Flattens binary tree layout into three arrays
+    // First array => separators
+    // Second array => window toolbars
+    // Third array => panes
     const renderLayout = (layout: NexusLayout) => {
         const separators: JSX.Element[] = [];
         const toolbars: JSX.Element[] = [];

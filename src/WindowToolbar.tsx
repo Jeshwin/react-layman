@@ -33,24 +33,16 @@ export default function WindowToolbar({
     const renderTab = useAtomValue(renderTabAtom).fn;
     const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
-    /**
-     * Adds a new general window to the layout at the specified path.
-     * @param {string} direction - The direction of the split ('row' or 'column').
-     * @param {string} placement - Where to place the new window ('first' or 'second').
-     * @param {Array} newWindowTabs - Array of tabs for the new window.
-     * @param {Array} path - Path in the layout tree to the target window.
-     */
+    //Adds a new window to the layout at the specified path, on the specified placement.
     const addWindow = (
         direction: NexusDirection,
         placement: NexusBranch,
         newWindowTabs: NexusKeys,
         path: NexusPath
     ) => {
-        const layoutClone = structuredClone(layout); // Clone the current layout to avoid direct state mutation
-        let target: NexusLayout = layoutClone; // This will be used to drill down to the target window
-
         // Navigate to the parent of the target window
         const parentPath = path.slice(0, -1);
+        let target: NexusLayout = layout;
         for (const index of parentPath) {
             if (Array.isArray(target)) {
                 break;
@@ -81,8 +73,8 @@ export default function WindowToolbar({
         }
 
         // Update the layout in the state
-        console.log("Layout updated with new window:", layoutClone);
-        setLayout(layoutClone);
+        console.log("Layout updated with new window:", layout);
+        setLayout({...layout});
     };
 
     /**
@@ -91,8 +83,7 @@ export default function WindowToolbar({
      * @param {string} tabName - Name of the new tab to add.
      */
     const addTab = (path: NexusPath, tab: NexusKey) => {
-        const layoutClone = structuredClone(layout);
-        let layoutTabList: NexusLayout = layoutClone;
+        let layoutTabList: NexusLayout = layout;
         for (const index of path) {
             if (Array.isArray(layoutTabList)) {
                 break;
@@ -106,8 +97,8 @@ export default function WindowToolbar({
         if (Array.isArray(layoutTabList)) {
             layoutTabList.push(tab);
         }
-        console.log("Updated layout:", layoutClone);
-        setLayout(layoutClone);
+        console.log("Updated layout:", layout);
+        setLayout({...layout});
     };
 
     /**
@@ -116,8 +107,7 @@ export default function WindowToolbar({
      * @param {number} index - Index of the tab to be removed.
      */
     const removeTab = (path: NexusPath, index: number) => {
-        let layoutClone = structuredClone(layout);
-        let layoutTabList: NexusLayout = layoutClone;
+        let layoutTabList: NexusLayout = layout;
         for (const index of path) {
             if (Array.isArray(layoutTabList)) {
                 break;
@@ -135,7 +125,7 @@ export default function WindowToolbar({
         if (layoutTabList.length === 0) {
             // Navigate to the parent node
             const parentPath = path.slice(0, -1);
-            let parent: NexusLayout = layoutClone;
+            let parent: NexusLayout = layout;
             for (const idx of parentPath) {
                 if (Array.isArray(parent)) {
                     break;
@@ -156,7 +146,7 @@ export default function WindowToolbar({
             // Replace the parent node with the sibling node
             if (parentPath.length > 0) {
                 const grandParentPath = parentPath.slice(0, -1);
-                let grandParent: NexusLayout = layoutClone;
+                let grandParent: NexusLayout = layout;
                 for (const idx of grandParentPath) {
                     if (Array.isArray(grandParent)) {
                         break;
@@ -172,12 +162,14 @@ export default function WindowToolbar({
                 grandParent[parentSide] = sibling;
             } else {
                 // We're at the top level of layout
-                layoutClone = sibling;
+                console.log("Updated layout:", sibling);
+                setLayout({...sibling});
+                return;
             }
         }
 
-        console.log("Updated layout:", layoutClone);
-        setLayout(layoutClone);
+        console.log("Updated layout:", layout);
+        setLayout({...layout});
     };
 
     const createUniqueTabId = (tabId: string) => {
@@ -200,11 +192,10 @@ export default function WindowToolbar({
     }, [tabs, selectedTabs]);
 
     useEffect(() => {
-        setSelectedTabs((prevSelectedTabIds: NexusKeys) =>
-            !prevSelectedTabIds.includes(tabs[currentTabIndex])
-                ? [...prevSelectedTabIds, tabs[currentTabIndex]]
-                : prevSelectedTabIds
-        );
+        setSelectedTabs((prevSelectedTabIds: NexusKeys) => [
+            ...prevSelectedTabIds,
+            tabs[currentTabIndex],
+        ]);
     }, [currentTabIndex, setSelectedTabs, tabs]);
 
     const addBlankTab = () => {
@@ -212,6 +203,7 @@ export default function WindowToolbar({
     };
 
     const removeTabAtIndex = (index: number) => {
+        console.log(`Removing tab #${index} from window ${path.join(":")}`);
         removeTab(path, index);
 
         // Remove tab from list of selected tabs, since it doesn't exist anymore
@@ -221,7 +213,11 @@ export default function WindowToolbar({
 
         // Edge cases: Deleted tab left of selected tab
         if (index == currentTabIndex) {
-            setCurrentTabIndex(Math.max(0, index - 1));
+            if (index == 0) {
+                setCurrentTabIndex(0);
+            } else {
+                setCurrentTabIndex(index - 1);
+            }
         } else if (index < currentTabIndex) {
             setCurrentTabIndex(currentTabIndex - 1);
         } else {
