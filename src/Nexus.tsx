@@ -1,34 +1,44 @@
-import {RefObject, useEffect, useRef} from "react";
+import {RefObject, useEffect, useMemo, useRef, useState} from "react";
 import {atom, useAtom, useSetAtom} from "jotai";
 import WindowToolbar from "./WindowToolbar";
 import Window from "./Window";
 import Separator from "./Separator";
 import {Inset} from "./Inset";
-import {NexusKey, NexusKeys, NexusLayout, NexusPath} from "./types";
+import {
+    NexusDirection,
+    NexusKey,
+    NexusKeys,
+    NexusLayout,
+    NexusPath,
+    PaneRenderer,
+    TabRenderer,
+} from "./types";
+import {atomWithStorage} from "jotai/utils";
 
 // Jotai atoms to store global layout state
 export const nexusRefAtom = atom<RefObject<HTMLDivElement> | null>(null);
-export const layoutAtom = atom<NexusLayout>([]);
+export const layoutAtom = atomWithStorage<NexusLayout>("nexusLayout", []);
 export const tabsAtom = atom<NexusKeys>([]);
 export const selectedTabsAtom = atom<NexusKeys>([]);
 
 // Complicated way to use atoms to store functions :(
+// See this => https://stackoverflow.com/questions/73449599/storing-function-as-jotai-atom
 const derivedRenderPaneAtom = atom<{
-    fn: (arg0: NexusKey) => JSX.Element;
+    fn: PaneRenderer;
 }>({fn: () => <></>});
 export const renderPaneAtom = atom(
     (get) => get(derivedRenderPaneAtom),
-    (_get, set, newFn: (arg0: NexusKey) => JSX.Element) => {
+    (_get, set, newFn: PaneRenderer) => {
         set(derivedRenderPaneAtom, {fn: newFn});
     }
 );
 
 const derivedRenderTabAtom = atom<{
-    fn: (arg0: NexusKey) => string | JSX.Element;
+    fn: TabRenderer;
 }>({fn: () => <></>});
 export const renderTabAtom = atom(
     (get) => get(derivedRenderTabAtom),
-    (_get, set, newFn: (arg0: NexusKey) => string | JSX.Element) => {
+    (_get, set, newFn: TabRenderer) => {
         set(derivedRenderTabAtom, {fn: newFn});
     }
 );
@@ -91,14 +101,32 @@ export default function Nexus({
         setTabs(tabs);
     }, [layout, setTabs]);
 
-    // Flattens binary tree layout into three arrays
-    // First array => separators
-    // Second array => window toolbars
-    // Third array => panes
-    const renderLayout = (layout: NexusLayout) => {
-        const separators: JSX.Element[] = [];
-        const toolbars: JSX.Element[] = [];
-        const panes: JSX.Element[] = [];
+    // Local state for component lists
+    type SeparatorProps = {
+        key: string;
+        parentInset: Inset;
+        splitPercentage: number;
+        direction: NexusDirection;
+        path: NexusPath;
+    };
+    type ToolBarProps = {
+        key: string;
+        inset: Inset;
+        path: NexusPath;
+        tabs: NexusKeys;
+    };
+    type PaneProps = {inset: Inset; tab: NexusKey};
+
+    const [separators, setSeparators] = useState<SeparatorProps[]>([]);
+    const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
+    const [panes, setPanes] = useState<PaneProps[]>([]);
+
+    // Calculate component lists whenever layout changes
+    // useMemo caches values if they don't change
+    useMemo(() => {
+        const calculatedSeparators: SeparatorProps[] = [];
+        const calculatedToolbars: ToolBarProps[] = [];
+        const calculatedPanes: PaneProps[] = [];
 
         function traverseLayout(
             layout: NexusLayout,
@@ -106,34 +134,27 @@ export default function Nexus({
             path: NexusPath
         ) {
             if (Array.isArray(layout)) {
-                toolbars.push(
-                    <WindowToolbar
-                        key={path.join(":")}
-                        inset={inset}
-                        path={path}
-                        tabs={layout}
-                    />
-                );
+                calculatedToolbars.push({
+                    key: path.join(":"),
+                    inset,
+                    path,
+                    tabs: layout,
+                });
                 layout.map((tab) =>
-                    panes.push(
-                        <Window
-                            key={path.join(":") + ":" + tab}
-                            inset={inset}
-                            tab={tab}
-                        />
-                    )
+                    calculatedPanes.push({
+                        inset,
+                        tab: tab as NexusKey,
+                    })
                 );
             } else {
                 if (!layout) return;
-                separators.push(
-                    <Separator
-                        key={path.length != 0 ? path.join(":") : "root"}
-                        parentInset={inset}
-                        splitPercentage={layout.splitPercentage ?? 50}
-                        direction={layout.direction}
-                        path={path}
-                    />
-                );
+                calculatedSeparators.push({
+                    key: path.length != 0 ? path.join(":") : "root",
+                    parentInset: inset,
+                    splitPercentage: layout.splitPercentage ?? 50,
+                    direction: layout.direction,
+                    path,
+                });
                 const {firstInset, secondInset} = inset.newInsets(
                     layout.splitPercentage ?? 50,
                     layout.direction
@@ -152,12 +173,33 @@ export default function Nexus({
         }
 
         traverseLayout(layout, new Inset({}), []);
-        return [separators, toolbars, panes];
-    };
+        setSeparators(calculatedSeparators);
+        setToolbars(calculatedToolbars);
+        setPanes(calculatedPanes);
+    }, [layout]);
 
     return (
         <div ref={nexusRef} className="w-full h-full relative overflow-hidden">
-            {renderLayout(layout)}
+            {separators.map((props) => (
+                <Separator
+                    key={props.key}
+                    parentInset={props.parentInset}
+                    splitPercentage={props.splitPercentage}
+                    direction={props.direction}
+                    path={props.path}
+                />
+            ))}
+            {toolbars.map((props) => (
+                <WindowToolbar
+                    key={props.key}
+                    inset={props.inset}
+                    path={props.path}
+                    tabs={props.tabs}
+                />
+            ))}
+            {panes.map((props) => (
+                <Window key={props.tab} inset={props.inset} tab={props.tab} />
+            ))}
         </div>
     );
 }

@@ -17,6 +17,7 @@ import {
     NexusPath,
 } from "./types";
 import {Inset} from "./Inset";
+import _ from "lodash";
 
 export default function WindowToolbar({
     path,
@@ -61,136 +62,54 @@ export default function WindowToolbar({
         newWindowTabs: NexusKeys,
         path: NexusPath
     ) => {
-        // Navigate to the parent of the target window
-        const parentPath = path.slice(0, -1);
-        let target: NexusLayout = layout;
-        for (const index of parentPath) {
-            if (Array.isArray(target)) {
-                break;
-            }
-            if (index === "first") {
-                target = target.first;
-            } else {
-                target = target.second;
-            }
+        // Edge case: One window, turn layout from an array into an object
+        if (_.isArray(layout)) {
+            const newLayout = {
+                direction: direction,
+                first: placement === "first" ? newWindowTabs : layout,
+                second: placement === "second" ? newWindowTabs : layout,
+            };
+            console.log("Layout updated with new window:", newLayout);
+            setLayout(newLayout);
+            return;
         }
+        // Create the updater function based on the placement
+        const updater =
+            placement === "first"
+                ? (value: NexusLayout) => ({
+                      direction: direction,
+                      first: newWindowTabs,
+                      second: value,
+                  })
+                : (value: NexusLayout) => ({
+                      direction: direction,
+                      first: value,
+                      second: newWindowTabs,
+                  });
 
-        // Identify the target window within its parent
-        const targetWindowKey: NexusBranch = path[path.length - 1];
-        const originalWindow: NexusLayout = !Array.isArray(target)
-            ? target[targetWindowKey]
-            : [];
-
-        // Create a new division at this level
-        const newDivision: NexusLayout = {
-            direction: direction,
-            first: placement === "first" ? newWindowTabs : originalWindow,
-            second: placement === "second" ? newWindowTabs : originalWindow,
-        };
-
-        // Replace the original window with the new division
-        if (!Array.isArray(target)) {
-            target[targetWindowKey] = newDivision;
-        }
+        // Update the layout in the state using _.update
+        const newLayout = _.update(layout, path.join("."), updater);
 
         // Update the layout in the state
-        console.log("Layout updated with new window:", layout);
-        setLayout({...layout});
+        console.log("Updated layout:", newLayout);
+        setLayout({...newLayout});
     };
 
-    /**
-     * Adds a new tab at the specified path within the layout.
-     * @param {Array} path - Path to the tab list within the layout where the new tab should be added.
-     * @param {string} tabName - Name of the new tab to add.
-     */
+    //Adds a new tab at the specified path within the layout.
     const addTab = (path: NexusPath, tab: NexusKey) => {
-        let layoutTabList: NexusLayout = layout;
-        for (const index of path) {
-            if (Array.isArray(layoutTabList)) {
-                break;
-            }
-            if (index === "first") {
-                layoutTabList = layoutTabList.first;
-            } else {
-                layoutTabList = layoutTabList.second;
-            }
+        // Edge case: One window, layout is just an array
+        if (_.isArray(layout)) {
+            layout.push(tab);
+            console.log("Updated layout:", layout);
+            setLayout([...layout]);
+            return;
         }
-        if (Array.isArray(layoutTabList)) {
+        const layoutTabList: NexusLayout = _.get(layout, path.join("."), []);
+        if (_.isArray(layoutTabList)) {
             layoutTabList.push(tab);
+            console.log("Updated layout:", layout);
+            setLayout({...layout});
         }
-        console.log("Updated layout:", layout);
-        setLayout({...layout});
-    };
-
-    /**
-     * Removes a tab at the specified index and path. If the last tab is removed, it collapses the parent container.
-     * @param {Array} path - Path to the tab list within the layout where the tab should be removed.
-     * @param {number} index - Index of the tab to be removed.
-     */
-    const removeTab = (path: NexusPath, index: number) => {
-        let layoutTabList: NexusLayout = layout;
-        for (const index of path) {
-            if (Array.isArray(layoutTabList)) {
-                break;
-            }
-            if (index === "first") {
-                layoutTabList = layoutTabList.first;
-            } else {
-                layoutTabList = layoutTabList.second;
-            }
-        }
-
-        if (!Array.isArray(layoutTabList)) return;
-
-        layoutTabList.splice(index, 1); // Reomve tab and index
-        if (layoutTabList.length === 0) {
-            // Navigate to the parent node
-            const parentPath = path.slice(0, -1);
-            let parent: NexusLayout = layout;
-            for (const idx of parentPath) {
-                if (Array.isArray(parent)) {
-                    break;
-                }
-                if (idx === "first") {
-                    parent = parent.first;
-                } else {
-                    parent = parent.second;
-                }
-            }
-
-            if (Array.isArray(parent)) return;
-
-            // Determine which side this node was on and its sibling
-            const side = path[path.length - 1];
-            const sibling = side === "first" ? parent.second : parent.first;
-
-            // Replace the parent node with the sibling node
-            if (parentPath.length > 0) {
-                const grandParentPath = parentPath.slice(0, -1);
-                let grandParent: NexusLayout = layout;
-                for (const idx of grandParentPath) {
-                    if (Array.isArray(grandParent)) {
-                        break;
-                    }
-                    if (idx === "first") {
-                        grandParent = grandParent.first;
-                    } else {
-                        grandParent = grandParent.second;
-                    }
-                }
-                const parentSide = parentPath[parentPath.length - 1];
-                if (Array.isArray(grandParent)) return;
-                grandParent[parentSide] = sibling;
-            } else {
-                // We're at the top level of layout
-                console.log("Updated layout:", sibling);
-                setLayout({...sibling});
-                return;
-            }
-        }
-
-        console.log("Updated layout:", layout);
-        setLayout({...layout});
     };
 
     const createUniqueTabId = (tabId: string) => {
@@ -210,9 +129,71 @@ export default function WindowToolbar({
         addTab(path, createUniqueTabId("blank"));
     };
 
+    // Removes a tab at the specified index and path. If the last tab is removed, it collapses the parent container.
+    const removeTab = (index: number) => {
+        // Edge case: One window, remove tab directly from layout array
+        if (_.isArray(layout)) {
+            console.log("Updated layout:", _.without(layout, tabs[index]));
+            setLayout(_.without(layout, tabs[index]));
+            return;
+        }
+        // Get the tab list within the layout based on the path
+        const layoutTabList: NexusLayout = _.get(layout, path.join("."), []);
+
+        // If layoutTabList is not an array, return
+        if (!Array.isArray(layoutTabList)) return;
+
+        // Reomve tab at specified index
+        layoutTabList.splice(index, 1);
+
+        // Check if the tab list is empty
+        if (layoutTabList.length === 0) {
+            // Get the parent node
+            const parentPath = _.dropRight(path);
+            const parent: NexusLayout = _.get(layout, parentPath);
+
+            if (!parent) {
+                // Make TypeScript happy about the layout not being an array
+                if (_.isArray(layout)) return;
+                // Simply set layout to first window's tabs
+                console.log(
+                    "Updated layout:",
+                    path[0] === "first" ? layout.second : layout.first
+                );
+                setLayout(path[0] === "first" ? layout.second : layout.first);
+                return;
+            }
+
+            // If parent is not an object, return
+            if (Array.isArray(parent)) return;
+
+            // Determine the side of the removed tab
+            const side: NexusBranch =
+                _.last(path) === "first" ? "second" : "first";
+
+            // Get the sibling of the removed tab
+            const sibling = side === "first" ? parent.first : parent.second;
+
+            // If sibling is not defined, return
+            if (!sibling) return;
+
+            // Replace parent with sibling
+            if (parentPath.length > 0) {
+                _.set(layout, parentPath, sibling);
+            } else {
+                // Update the layout with sibling if parent is at top level
+                console.log("Updated layout:", sibling);
+                setLayout({...sibling});
+                return;
+            }
+        }
+
+        console.log("Updated layout:", layout);
+        setLayout({...layout});
+    };
+
     const removeTabAtIndex = (index: number) => {
-        console.log(`Removing tab #${index} from window ${path.join(":")}`);
-        removeTab(path, index);
+        removeTab(index);
 
         // Remove tab from list of selected tabs, since it doesn't exist anymore
         setSelectedTabs((prevSelectedTabIds: NexusKeys) =>
