@@ -51,8 +51,21 @@ export default function App() {
     };
 
     return (
-        <div className="bg-zinc-950 grid place-content-center">
-            <div className="w-screen h-screen p-10 text-white">
+        <div
+            style={{
+                display: "grid",
+                placeContent: "center",
+                backgroundColor: "#09090b",
+            }}
+        >
+            <div
+                style={{
+                    padding: "20px",
+                    color: "white",
+                    width: "100vw",
+                    height: "100vh",
+                }}
+            >
                 <Nexus
                     initialLayout={initialLayout}
                     renderPane={renderPane}

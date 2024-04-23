@@ -26,12 +26,15 @@ export default function Window({inset, tab}: {inset: Inset; tab: NexusKey}) {
                 style={{
                     inset: adjustedInset.toString(),
                     position: "absolute",
+                    overflow: "hidden",
                     margin: `${separatorThickness / 2}px`,
                     marginTop: 0,
+                    borderRadius: 4,
+                    backgroundColor: "#27272a",
+                    visibility: selectedTabs.includes(tab)
+                        ? "visible"
+                        : "hidden",
                 }}
-                className={`rounded bg-zinc-800 overflow-hidden ${
-                    selectedTabs.includes(tab) ? "visible" : "invisible"
-                }`}
             >
                 {renderPane(tab)}
             </div>

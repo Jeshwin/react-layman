@@ -1,5 +1,6 @@
 import {MouseEventHandler, useEffect, useState} from "react";
 import {useAtom, useAtomValue} from "jotai";
+import _ from "lodash";
 import {windowToolbarHeight, separatorThickness} from "./constants";
 import {Inset} from "./Inset";
 import {layoutAtom, nexusRefAtom} from "./Nexus";
@@ -21,6 +22,10 @@ export default function Separator({
     const nexusRef = useAtomValue(nexusRefAtom);
     // State for when user is dragging the separator
     const [isDragging, setIsDragging] = useState(false);
+    const [isHovering, setIsHovering] = useState(false);
+
+    // Get name of hover cursor based on direction
+    const cursorName = direction === "column" ? "ns-resize" : "ew-resize";
 
     // Calculate separator inset using parentInset
     const newInset =
@@ -83,24 +88,22 @@ export default function Separator({
                         absolutesSplitPercentage,
                         direction
                     );
-                const layoutClone = structuredClone(layout);
-                let currentLayout = layoutClone;
-                for (const index of path) {
-                    if (Array.isArray(currentLayout)) {
-                        break;
-                    }
-                    if (index === "first") {
-                        currentLayout = currentLayout.first;
-                    } else {
-                        currentLayout = currentLayout.second;
-                    }
-                }
-                if (Array.isArray(currentLayout)) return;
-                currentLayout.splitPercentage = Math.min(
+                const newSplitPercentage = Math.min(
                     Math.max(relativeSplitPercentage, minPanelSize),
                     100 - minPanelSize
                 );
-                setLayout(layoutClone);
+                // Edge case: first separator has no path
+                if (path.length == 0) {
+                    setLayout({
+                        ...layout,
+                        splitPercentage: newSplitPercentage,
+                    });
+                    return;
+                }
+                let currentLayout = _.get(layout, path.join("."));
+                if (Array.isArray(currentLayout)) return;
+                currentLayout.splitPercentage = newSplitPercentage;
+                setLayout({...layout});
             }
         };
 
@@ -159,30 +162,47 @@ export default function Separator({
         setIsDragging(true);
     };
 
+    const handleMouseEnter: MouseEventHandler<HTMLDivElement> = (event) => {
+        event.preventDefault();
+        setIsHovering(true);
+    };
+
+    const handleMouseLeave: MouseEventHandler<HTMLDivElement> = (event) => {
+        event.preventDefault();
+        setIsHovering(true);
+    };
+
     return (
         <div
             style={{
                 inset: newInset.toString(),
                 position: "absolute",
+                height: direction === "column" ? separatorThickness : "auto",
+                width: direction === "row" ? separatorThickness : "auto",
+                display: "grid",
+                placeContent: "center",
                 marginTop: `${
                     direction === "column" ? separatorThickness / -2 : 0
                 }px`,
                 marginLeft: `${
                     direction === "row" ? separatorThickness / -2 : 0
                 }px`,
+                cursor: isHovering ? cursorName : "auto",
+                overflow: "hidden",
+                zIndex: 10,
             }}
-            className={`${direction === "column" ? "h-2" : "w-2"} ${
-                direction === "column"
-                    ? "hover:cursor-ns-resize"
-                    : "hover:cursor-ew-resize"
-            } z-10 grid place-content-center overflow-hidden`}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
         >
             <div
-                className={`${direction === "column" ? "h-0.5" : "w-0.5"} ${
-                    direction === "column" ? "w-6" : "h-6"
-                } rounded-full bg-zinc-50`}
+                style={{
+                    borderRadius: 9999,
+                    backgroundColor: "#FFFFFF",
+                    height: direction === "column" ? 2 : 24,
+                    width: direction === "row" ? 2 : 24,
+                }}
             ></div>
         </div>
     );

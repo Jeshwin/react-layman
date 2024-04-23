@@ -224,12 +224,38 @@ export default function WindowToolbar({
 
     const SelectedTab = ({tab, index}: {tab: NexusKey; index: number}) => {
         return (
-            <div className="first:rounded-tl w-fit relative flex  items-center bg-zinc-800">
+            <div
+                className="first:rounded-tl"
+                style={{
+                    display: "flex",
+                    position: "relative",
+                    alignItems: "center",
+                    width: "fit-content",
+                    backgroundColor: "#27272a",
+                }}
+            >
                 {/** Add selection border at top */}
-                <div className="absolute top-0 left-0 right-0 h-px bg-orange-500"></div>
-                <button className="p-2 text-sm">{renderTab(tab)}</button>
+                <div
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        left: 0,
+                        height: 1,
+                        backgroundColor: "#f97316",
+                    }}
+                ></div>
+                <button style={{padding: 8, fontSize: 14, lineHeight: 20}}>
+                    {renderTab(tab)}
+                </button>
                 <button
-                    className="h-8 w-6 hover:bg-red-500 hover:bg-opacity-50 grid place-content-center"
+                    style={{
+                        display: "grid",
+                        placeContent: "center",
+                        width: 24,
+                        height: 32,
+                    }}
+                    className="hover:bg-red-500 hover:bg-opacity-50"
                     onClick={() => removeTabAtIndex(index)}
                 >
                     <VscClose />

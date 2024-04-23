@@ -179,7 +179,15 @@ export default function Nexus({
     }, [layout]);
 
     return (
-        <div ref={nexusRef} className="w-full h-full relative overflow-hidden">
+        <div
+            ref={nexusRef}
+            style={{
+                overflow: "hidden",
+                position: "relative",
+                width: "100%",
+                height: "100%",
+            }}
+        >
             {separators.map((props) => (
                 <Separator
                     key={props.key}
