@@ -22,10 +22,6 @@ export default function Separator({
     const nexusRef = useAtomValue(nexusRefAtom);
     // State for when user is dragging the separator
     const [isDragging, setIsDragging] = useState(false);
-    const [isHovering, setIsHovering] = useState(false);
-
-    // Get name of hover cursor based on direction
-    const cursorName = direction === "column" ? "ns-resize" : "ew-resize";
 
     // Calculate separator inset using parentInset
     const newInset =
@@ -162,48 +158,20 @@ export default function Separator({
         setIsDragging(true);
     };
 
-    const handleMouseEnter: MouseEventHandler<HTMLElement> = (event) => {
-        event.preventDefault();
-        setIsHovering(true);
-    };
-
-    const handleMouseLeave: MouseEventHandler<HTMLElement> = (event) => {
-        event.preventDefault();
-        setIsHovering(false);
-    };
-
     return (
         <div
             style={{
                 inset: newInset.toString(),
-                position: "absolute",
-                height: direction === "column" ? separatorThickness : "auto",
-                width: direction === "row" ? separatorThickness : "auto",
-                display: "grid",
-                placeContent: "center",
-                marginTop: `${
-                    direction === "column" ? separatorThickness / -2 : 0
-                }px`,
-                marginLeft: `${
-                    direction === "row" ? separatorThickness / -2 : 0
-                }px`,
-                cursor: isHovering ? cursorName : "auto",
-                overflow: "hidden",
-                zIndex: 10,
             }}
+            className={`nexus-separator ${
+                direction === "column"
+                    ? "nexus-col-separator"
+                    : "nexus-row-separator"
+            }`}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
         >
-            <div
-                style={{
-                    borderRadius: 9999,
-                    backgroundColor: "#FFFFFF",
-                    height: direction === "column" ? 2 : 24,
-                    width: direction === "row" ? 2 : 24,
-                }}
-            ></div>
+            <div></div>
         </div>
     );
 }

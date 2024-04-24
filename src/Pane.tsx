@@ -15,30 +15,8 @@ export default function Pane({paneId}: {paneId: string}) {
     }, []);
 
     return (
-        <div
-            id={paneId}
-            style={{
-                width: "100%",
-                height: "100%",
-                position: "relative",
-                display: "grid",
-                placeContent: "center",
-                margin: 8,
-                textAlign: "center",
-                fontSize: 16,
-                lineHeight: "20px",
-            }}
-        >
-            <div
-                style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    margin: 8,
-                    fontFamily: `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`,
-                    color: "#d4d4d8",
-                }}
-            >
+        <div id={paneId} className="pane">
+            <div className="debug-timer">
                 {/** Display alive time as xx.x seconds */}
                 Counter: {(counter / 10).toFixed(1)}s
             </div>

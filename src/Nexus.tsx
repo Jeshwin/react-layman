@@ -43,6 +43,22 @@ export const renderTabAtom = atom(
     }
 );
 
+// Types for local state arrays
+type SeparatorProps = {
+    key: string;
+    parentInset: Inset;
+    splitPercentage: number;
+    direction: NexusDirection;
+    path: NexusPath;
+};
+type ToolBarProps = {
+    key: string;
+    inset: Inset;
+    path: NexusPath;
+    tabs: NexusKeys;
+};
+type PaneProps = {inset: Inset; tab: NexusKey};
+
 // Entry point for Nexus Window Manager
 // Takes in an initial layout as a binary tree object
 // Uses two function to render the layout; one to convert a unique id to a pane,
@@ -102,21 +118,6 @@ export default function Nexus({
     }, [layout, setTabs]);
 
     // Local state for component lists
-    type SeparatorProps = {
-        key: string;
-        parentInset: Inset;
-        splitPercentage: number;
-        direction: NexusDirection;
-        path: NexusPath;
-    };
-    type ToolBarProps = {
-        key: string;
-        inset: Inset;
-        path: NexusPath;
-        tabs: NexusKeys;
-    };
-    type PaneProps = {inset: Inset; tab: NexusKey};
-
     const [separators, setSeparators] = useState<SeparatorProps[]>([]);
     const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
     const [panes, setPanes] = useState<PaneProps[]>([]);
@@ -179,15 +180,7 @@ export default function Nexus({
     }, [layout]);
 
     return (
-        <div
-            ref={nexusRef}
-            style={{
-                overflow: "hidden",
-                position: "relative",
-                width: "100%",
-                height: "100%",
-            }}
-        >
+        <div ref={nexusRef} className="nexus-root">
             {separators.map((props) => (
                 <Separator
                     key={props.key}

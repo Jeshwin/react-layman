@@ -1,5 +1,5 @@
 import {useAtomValue} from "jotai";
-import {separatorThickness, windowToolbarHeight} from "./constants";
+import {windowToolbarHeight} from "./constants";
 import {Inset} from "./Inset";
 import {nexusRefAtom, renderPaneAtom, selectedTabsAtom} from "./Nexus";
 import {NexusKey} from "./types";
@@ -25,16 +25,10 @@ export default function Window({inset, tab}: {inset: Inset; tab: NexusKey}) {
                 id={tab}
                 style={{
                     inset: adjustedInset.toString(),
-                    position: "absolute",
-                    overflow: "hidden",
-                    margin: `${separatorThickness / 2}px`,
-                    marginTop: 0,
-                    borderRadius: 4,
-                    backgroundColor: "#27272a",
-                    visibility: selectedTabs.includes(tab)
-                        ? "visible"
-                        : "hidden",
                 }}
+                className={`nexus-window ${
+                    selectedTabs.includes(tab) ? "selected" : "unselected"
+                }`}
             >
                 {renderPane(tab)}
             </div>

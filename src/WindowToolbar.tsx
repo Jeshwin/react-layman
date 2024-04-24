@@ -1,14 +1,13 @@
 import {useEffect, useState} from "react";
 import {useAtom, useAtomValue} from "jotai";
-import {VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {separatorThickness, windowToolbarHeight} from "./constants";
+import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
 import {layoutAtom, selectedTabsAtom, tabsAtom} from "./Nexus";
 import {NexusKey, NexusKeys, NexusPath} from "./types";
 import {Inset} from "./Inset";
 import _ from "lodash";
 import {NormalTab, SelectedTab} from "./WindowTabs";
 import {addTab, addWindow, createUniqueTabId, removeTab} from "./NexusAPI";
-import {NewTabButton, ToolbarButton} from "./WindowButtons";
+import {ToolbarButton} from "./WindowButton";
 
 export default function WindowToolbar({
     path,
@@ -75,26 +74,11 @@ export default function WindowToolbar({
             id={path.join(":")}
             style={{
                 inset: inset.toString(),
-                position: "absolute",
-                margin: `${separatorThickness / 2}px`,
-                marginBottom: 0,
-                display: "flex",
-                height: windowToolbarHeight,
-                zIndex: 10,
-                backgroundColor: "#18181b",
-                borderTopLeftRadius: 4,
-                borderTopRightRadius: 4,
             }}
+            className="nexus-toolbar"
         >
             {/** Render each tab */}
-            <div
-                style={{
-                    display: "flex",
-                    overflowX: "scroll",
-                    overflowY: "clip",
-                    borderTopLeftRadius: 4,
-                }}
-            >
+            <div className="tab-container">
                 {tabs.map((tab: NexusKey, index: number) => {
                     if (index == currentTabIndex) {
                         return (
@@ -118,19 +102,15 @@ export default function WindowToolbar({
                 })}
             </div>
             {/** Button to add a new blank menu */}
-            <NewTabButton onClick={() => addBlankTab()} />
+            <ToolbarButton
+                icon={<VscAdd color="white" />}
+                onClick={() => addBlankTab()}
+            />
             {/** Draggable area to move window */}
-            <div
-                draggable
-                style={{
-                    flex: "1 1 0%",
-                    minWidth: 16,
-                    cursor: "grab",
-                }}
-            ></div>
+            <div draggable className="drag-area"></div>
             {/** Buttons to add convert window to a row or column */}
             <ToolbarButton
-                icon={<VscSplitVertical />}
+                icon={<VscSplitVertical color="white" />}
                 onClick={() =>
                     addWindow(
                         layout,
@@ -143,7 +123,7 @@ export default function WindowToolbar({
                 }
             />
             <ToolbarButton
-                icon={<VscSplitHorizontal />}
+                icon={<VscSplitHorizontal color="white" />}
                 onClick={() =>
                     addWindow(
                         layout,

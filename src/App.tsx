@@ -60,7 +60,6 @@ export default function App() {
         >
             <div
                 style={{
-                    padding: "20px",
                     color: "white",
                     width: "100vw",
                     height: "100vh",
