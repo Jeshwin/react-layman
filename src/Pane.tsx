@@ -17,13 +17,39 @@ export default function Pane({paneId}: {paneId: string}) {
     return (
         <div
             id={paneId}
-            className="w-full h-full m-2 grid place-content-center text-center text-xl relative"
+            style={{
+                width: "100%",
+                height: "100%",
+                position: "relative",
+                display: "grid",
+                placeContent: "center",
+                margin: 8,
+                textAlign: "center",
+                fontSize: 16,
+                lineHeight: "20px",
+            }}
         >
-            <div className="absolute top-0 left-0 m-2 text-sm font-mono text-zinc-400">
+            <div
+                style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    margin: 8,
+                    fontFamily: `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`,
+                    color: "#d4d4d8",
+                }}
+            >
                 {/** Display alive time as xx.x seconds */}
                 Counter: {(counter / 10).toFixed(1)}s
             </div>
-            <span className="text-3xl">{paneId}</span>
+            <span
+                style={{
+                    fontSize: 30,
+                    lineHeight: "36px",
+                }}
+            >
+                {paneId}
+            </span>
             This is a {paneId.split(":")[0]} pane!
         </div>
     );

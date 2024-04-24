@@ -152,24 +152,24 @@ export default function Separator({
     ]);
 
     // Toggle isDragging when holding separator
-    const handleMouseUp: MouseEventHandler<HTMLDivElement> = (event) => {
+    const handleMouseUp: MouseEventHandler<HTMLElement> = (event) => {
         event.preventDefault();
         setIsDragging(false);
     };
 
-    const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
+    const handleMouseDown: MouseEventHandler<HTMLElement> = (event) => {
         event.preventDefault();
         setIsDragging(true);
     };
 
-    const handleMouseEnter: MouseEventHandler<HTMLDivElement> = (event) => {
+    const handleMouseEnter: MouseEventHandler<HTMLElement> = (event) => {
         event.preventDefault();
         setIsHovering(true);
     };
 
-    const handleMouseLeave: MouseEventHandler<HTMLDivElement> = (event) => {
+    const handleMouseLeave: MouseEventHandler<HTMLElement> = (event) => {
         event.preventDefault();
-        setIsHovering(true);
+        setIsHovering(false);
     };
 
     return (
