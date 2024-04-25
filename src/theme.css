@@ -1,0 +1,16 @@
+:root {
+    --separator-thickness: 8px;
+    --separator-handle-color: #ffffff;
+    --separator-handle-length: 36px;
+    --border-radius: 8px;
+    --window-bg-color: #1e293b;
+    --toolbar-height: 32px;
+    --toolbar-bg-color: #0f172a;
+    --toolbar-hover-bg-color: #334155;
+    --indicator-thickness: 1px;
+    --indicator-color: #ff7f11;
+    --close-tab-color: #ef444488;
+    --tab-text-color: #ffffff;
+    --tab-font-size: 14px;
+    --toolbar-button-hover-bg-color: #334155;
+}

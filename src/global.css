@@ -26,32 +26,32 @@ button {
     cursor: auto;
     &.nexus-row-separator {
         height: auto;
-        width: 8px;
+        width: var(--separator-thickness, 8px);
         margin-top: 0px;
-        margin-left: -4px;
+        margin-left: calc(var(--separator-thickness, 8px) / -2);
         &:hover {
             cursor: ew-resize;
         }
         div {
             border-radius: 9999px;
-            background-color: #ffffff;
-            height: 24px;
-            width: 2px;
+            background-color: var(--separator-handle-color, #ffffff);
+            height: var(--separator-handle-length, 24px);
+            width: calc(var(--separator-thickness, 8px) / 4);
         }
     }
     &.nexus-col-separator {
-        height: 8px;
+        height: var(--separator-thickness, 8px);
         width: auto;
-        margin-top: -4px;
+        margin-top: calc(var(--separator-thickness, 8px) / -2);
         margin-left: 0px;
         &:hover {
             cursor: ns-resize;
         }
         div {
             border-radius: 9999px;
-            background-color: #ffffff;
-            height: 2px;
-            width: 24px;
+            background-color: var(--separator-handle-color, #ffffff);
+            height: calc(var(--separator-thickness, 8px) / 4);
+            width: var(--separator-handle-length, 24px);
         }
     }
 }
@@ -59,10 +59,10 @@ button {
 .nexus-window {
     position: absolute;
     overflow: hidden;
-    margin: 4px;
+    margin: calc(var(--separator-thickness, 8px) / 2);
     margin-top: 0px;
-    border-radius: 4px;
-    background-color: #27272a;
+    border-radius: var(--border-radius, 4px);
+    background-color: var(--window-bg-color, #27272a);
     &.selected {
         visibility: visible;
     }
@@ -73,65 +73,62 @@ button {
 
 .nexus-toolbar {
     position: absolute;
-    margin: 4px;
+    margin: calc(var(--separator-thickness, 8px) / 2);
     margin-bottom: 0px;
     display: flex;
-    height: 32px;
+    height: var(--toolbar-height, 32px);
     z-index: 10;
-    background-color: #18181b;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+    background-color: var(--toolbar-bg-color, #18181b);
+    border-top-left-radius: var(--border-radius, 4px);
+    border-top-right-radius: var(--border-radius, 4px);
     .tab-container {
         display: flex;
         overflow-x: scroll;
         overflow-y: clip;
-        border-top-left-radius: 4px;
+        border-top-left-radius: var(--border-radius, 4px);
         .tab {
             display: flex;
             align-items: center;
             width: fit-content;
-            background-color: #18181b;
+            background-color: var(--toolbar-bg-color, #18181b);
             &:hover {
-                background-color: #3f3f46;
+                background-color: var(--toolbar-hover-bg-color, #3f3f46);
             }
             &.selected {
                 position: relative;
-                background-color: #27272a;
-                &:hover {
-                    background-color: #27272a;
-                }
+                background-color: var(--window-bg-color, #27272a);
                 .indicator {
                     position: absolute;
                     top: 0px;
                     right: 0px;
                     left: 0px;
-                    height: 1px;
-                    background-color: #f97316;
+                    height: var(--indicator-thickness, 1px);
+                    background-color: var(--indicator-color, #f97316);
                 }
                 .close-tab {
                     display: grid;
                     place-content: center;
-                    width: 24px;
-                    height: 32px;
+                    width: calc(var(--toolbar-height, 32px) * 0.75);
+                    height: var(--toolbar-height, 32px);
                     opacity: 1;
                     background-color: transparent;
                     &:hover {
-                        background-color: #ef444488;
+                        background-color: var(--close-tab-color, #ef444488);
                     }
                 }
             }
             .tab-selector {
-                padding: 8px;
+                padding: calc(var(--toolbar-height, 32px) / 4);
                 background-color: inherit;
-                color: #ffffff;
-                font-size: 14px;
-                line-height: 20px;
+                color: var(--tab-text-color, #ffffff);
+                font-size: var(--tab-font-size, 14px);
+                line-height: calc(var(--tab-font-size, 14px) * 1.2);
             }
             .close-tab {
                 display: grid;
                 place-content: center;
-                width: 24px;
-                height: 32px;
+                width: calc(var(--toolbar-height, 32px) * 0.75);
+                height: var(--toolbar-height, 32px);
                 background-color: inherit;
                 opacity: 0;
                 &:hover {
@@ -142,21 +139,21 @@ button {
     }
     .drag-area {
         flex: 1 1 0%;
-        min-width: 16px;
+        min-width: calc(var(--toolbar-height, 32px) / 2);
         cursor: grab;
         &:active {
             cursor: grabbing;
         }
     }
     button.toolbar-button {
-        width: 32px;
-        height: 32px;
+        width: var(--toolbar-height, 32px);
+        height: var(--toolbar-height, 32px);
         display: grid;
         place-content: center;
         background-color: transparent;
         &:hover {
             cursor: pointer;
-            background-color: #27272a;
+            background-color: var(--toolbar-button-hover-bg-color, #27272a);
         }
     }
 }

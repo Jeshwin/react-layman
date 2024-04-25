@@ -15,7 +15,7 @@ export const NormalTab = ({
     const renderTab = useAtomValue(renderTabAtom).fn;
     return (
         <div className="tab">
-            <button className="tab-selector" onClick={onClick}>
+            <button className="tab-selector" onMouseDown={onClick}>
                 {renderTab(tab)}
             </button>
             <button className="close-tab" onClick={onDelete}>
@@ -38,7 +38,7 @@ export const SelectedTab = ({
     return (
         <div className="tab selected">
             <div className="indicator"></div>
-            <button className="tab-selector" onClick={onClick}>
+            <button className="tab-selector" onMouseDown={onClick}>
                 {renderTab(tab)}
             </button>
             <button className="close-tab" onClick={onDelete}>
