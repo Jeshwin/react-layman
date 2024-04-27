@@ -1,16 +1,47 @@
 :root {
-    --separator-thickness: 8px;
+    /*** Separators ***/
+    /* Color of the handle on the separator */
     --separator-handle-color: #ffffff;
+
+    /* Thickness of the separator between windows */
+    --separator-thickness: 8px;
+
+    /* Length of the separator handle */
     --separator-handle-length: 36px;
-    --border-radius: 8px;
+
+    /*** Windows ***/
+    /* Background color of the window */
     --window-bg-color: #1e293b;
-    --toolbar-height: 32px;
+
+    /* Border radius for window corners */
+    --border-radius: 8px;
+
+    /*** Window Toolbars ***/
+    /* Background color of the toolbar */
     --toolbar-bg-color: #0f172a;
+
+    /* Background color of the toolbar on hover */
     --toolbar-hover-bg-color: #334155;
-    --indicator-thickness: 1px;
-    --indicator-color: #ff7f11;
-    --close-tab-color: #ef444488;
-    --tab-text-color: #ffffff;
-    --tab-font-size: 14px;
+
+    /* Background color for toolbar buttons on hover */
     --toolbar-button-hover-bg-color: #334155;
+
+    /* Height of the toolbar at the top of each window */
+    --toolbar-height: 32px;
+
+    /*** Tabs ***/
+    /* Text color of tab titles */
+    --tab-text-color: #ffffff;
+
+    /* Color of the 'close' icon in tabs, with opacity */
+    --close-tab-color: #ef444488;
+
+    /* Color of indicators (e.g., focus indicator) */
+    --indicator-color: #ff7f11;
+
+    /* Thickness of indicators (e.g., focus indicator) */
+    --indicator-thickness: 1px;
+
+    /* Font size for text in tabs */
+    --tab-font-size: 14px;
 }

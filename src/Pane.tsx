@@ -29,6 +29,17 @@ export default function Pane({paneId}: {paneId: string}) {
                 {paneId}
             </span>
             This is a {paneId.split(":")[0]} pane!
+            <button
+                onClick={() => setCounter(0)}
+                style={{
+                    width: "fit-content",
+                    padding: 8,
+                    borderRadius: 8,
+                    backgroundColor: "#ef4444",
+                }}
+            >
+                Reset
+            </button>
         </div>
     );
 }
