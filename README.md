@@ -48,4 +48,4 @@ You can play around with Layman through [this demo](https://github.com/Jeshwin/r
 
 ## License
 
-This repository is licensed under the [___ license](/LICENSE)
+This repository is published under the [MIT license](/LICENSE)
