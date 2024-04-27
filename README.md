@@ -1,8 +1,3 @@
-<p align="center">
-  <a href="" rel="noopener">
- <img width=256 height=256px src="Layman Logo.png" alt="Layman Logo"></a>
-</p>
-
 # react-layman
 
 <div align="center">
@@ -11,6 +6,7 @@
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/Jeshwin/react-layman)](https://github.com/Jeshwin/react-layman)
 [![GitHub Repo stars](https://img.shields.io/github/stars/Jeshwin/react-layman)](https://github.com/Jeshwin/react-layman)
 [![GitHub issues](https://img.shields.io/github/issues/Jeshwin/react-layman)](https://github.com/Jeshwin/react-layman/issues)
+![NPM Version](https://img.shields.io/npm/v/react-layman)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
 </div>
