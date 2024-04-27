@@ -61,8 +61,8 @@ export default function App() {
             <div
                 style={{
                     color: "white",
-                    width: "100vw",
-                    height: "100vh",
+                    width: "calc(100vw - 16px)",
+                    height: "calc(100vh - 16px)",
                 }}
             >
                 <Nexus
