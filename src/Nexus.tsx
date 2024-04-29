@@ -1,5 +1,7 @@
 import {RefObject, useEffect, useMemo, useRef, useState} from "react";
 import {atom, useAtom, useSetAtom} from "jotai";
+import {DndProvider} from "react-dnd";
+import {HTML5Backend} from "react-dnd-html5-backend";
 import WindowToolbar from "./WindowToolbar";
 import Window from "./Window";
 import Separator from "./Separator";
@@ -70,8 +72,8 @@ export default function Nexus({
     renderTab,
 }: {
     initialLayout: NexusLayout;
-    renderPane: (arg0: string) => JSX.Element;
-    renderTab: (arg0: string) => string | JSX.Element;
+    renderPane: PaneRenderer;
+    renderTab: TabRenderer;
 }) {
     // Reference for parent div
     const nexusRef = useRef(null);
@@ -180,27 +182,33 @@ export default function Nexus({
     }, [layout]);
 
     return (
-        <div ref={nexusRef} className="nexus-root">
-            {separators.map((props) => (
-                <Separator
-                    key={props.key}
-                    parentInset={props.parentInset}
-                    splitPercentage={props.splitPercentage}
-                    direction={props.direction}
-                    path={props.path}
-                />
-            ))}
-            {toolbars.map((props) => (
-                <WindowToolbar
-                    key={props.key}
-                    inset={props.inset}
-                    path={props.path}
-                    tabs={props.tabs}
-                />
-            ))}
-            {panes.map((props) => (
-                <Window key={props.tab} inset={props.inset} tab={props.tab} />
-            ))}
-        </div>
+        <DndProvider backend={HTML5Backend}>
+            <div ref={nexusRef} className="nexus-root">
+                {separators.map((props) => (
+                    <Separator
+                        key={props.key}
+                        parentInset={props.parentInset}
+                        splitPercentage={props.splitPercentage}
+                        direction={props.direction}
+                        path={props.path}
+                    />
+                ))}
+                {toolbars.map((props) => (
+                    <WindowToolbar
+                        key={props.key}
+                        inset={props.inset}
+                        path={props.path}
+                        tabs={props.tabs}
+                    />
+                ))}
+                {panes.map((props) => (
+                    <Window
+                        key={props.tab}
+                        inset={props.inset}
+                        tab={props.tab}
+                    />
+                ))}
+            </div>
+        </DndProvider>
     );
 }
