@@ -1,19 +1,48 @@
-export type NexusKey = string;
-export type NexusKeys = NexusKey[];
+import {Dispatch, SetStateAction} from "react";
 
-export type NexusDirection = "column" | "row";
+export type LaymanKey = string;
+export type LaymanKeys = LaymanKey[];
 
-export type NexusBranch = "first" | "second";
-export type NexusPath = NexusBranch[];
+export type LaymanDirection = "column" | "row";
 
-export type NexusLayout =
-    | NexusKeys
+export type LaymanBranch = "first" | "second";
+export type LaymanPath = LaymanBranch[];
+
+export type LaymanLayout =
+    | LaymanKeys
     | {
-          direction: NexusDirection;
-          first: NexusLayout;
-          second: NexusLayout;
+          direction: LaymanDirection;
+          first: LaymanLayout;
+          second: LaymanLayout;
           splitPercentage?: number;
       };
 
-export type PaneRenderer = (arg0: NexusKey) => JSX.Element;
-export type TabRenderer = (arg0: NexusKey) => string | JSX.Element;
+export type PaneRenderer = (arg0: LaymanKey) => JSX.Element;
+export type TabRenderer = (arg0: LaymanKey) => string | JSX.Element;
+
+export interface LaymanContextType {
+    laymanRef: React.RefObject<HTMLElement> | null;
+    setLaymanRef: Dispatch<SetStateAction<React.RefObject<HTMLElement> | null>>;
+    layout: LaymanLayout;
+    setLayout: Dispatch<SetStateAction<LaymanLayout>>;
+    addWindow: (
+        direction: LaymanDirection,
+        placement: LaymanBranch,
+        newWindowTabs: LaymanKeys,
+        path: LaymanPath
+    ) => void;
+    globalTabs: LaymanKeys;
+    addTab: (path: LaymanPath, tab: LaymanKey) => void;
+    removeTab: (
+        path: LaymanPath,
+        tabs: LaymanKeys,
+        index: number,
+        currentTabIndex: number,
+        setCurrentTabIndex: Dispatch<SetStateAction<number>>
+    ) => void;
+    createUniqueTabId: (tabId: LaymanKey) => string;
+    selectedTabs: LaymanKeys;
+    setSelectedTabs: Dispatch<SetStateAction<LaymanKeys>>;
+    renderPane: PaneRenderer;
+    renderTab: TabRenderer;
+}

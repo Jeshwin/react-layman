@@ -1,4 +1,4 @@
-import { NexusDirection } from './types';
+import {LaymanDirection} from "./types";
 
 interface InsetsInput {
     top?: number;
@@ -50,7 +50,7 @@ export class Inset {
      * Converts the inset to an object format.
      * @returns An object representing the inset percentages.
      */
-    toObject(): { top: number; right: number; bottom: number; left: number } {
+    toObject(): {top: number; right: number; bottom: number; left: number} {
         return {
             top: this.top,
             right: this.right,
@@ -66,7 +66,10 @@ export class Inset {
      * @returns The absolute percentage position from the start of the element.
      * @throws Will throw an error if an invalid direction is provided.
      */
-    absoluteSplitPercentage(relativeSplitPercentage: number, direction: NexusDirection): number {
+    absoluteSplitPercentage(
+        relativeSplitPercentage: number,
+        direction: LaymanDirection
+    ): number {
         if (direction === "column") {
             const height = 100 - this.top - this.bottom;
             return (height * relativeSplitPercentage) / 100 + this.top;
@@ -85,7 +88,10 @@ export class Inset {
      * @returns The percentage relative to the current free space.
      * @throws Will throw an error if an invalid direction is provided.
      */
-    relativeSplitPercentage(absoluteSplitPercentage: number, direction: NexusDirection): number {
+    relativeSplitPercentage(
+        absoluteSplitPercentage: number,
+        direction: LaymanDirection
+    ): number {
         if (direction === "column") {
             const height = 100 - this.top - this.bottom;
             return ((absoluteSplitPercentage - this.top) / height) * 100;
@@ -104,7 +110,10 @@ export class Inset {
      * @returns Two new Insets as a result of the split.
      * @throws Will throw an error if an invalid direction is provided.
      */
-    newInsets(splitPercentage: number, direction: NexusDirection): { firstInset: Inset; secondInset: Inset } {
+    newInsets(
+        splitPercentage: number,
+        direction: LaymanDirection
+    ): {firstInset: Inset; secondInset: Inset} {
         if (direction === "column") {
             const height = 100 - this.top - this.bottom;
             const newInsetValue = (height * splitPercentage) / 100 + this.top;

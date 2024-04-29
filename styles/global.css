@@ -1,4 +1,4 @@
-.nexus-root {
+.layman-root {
     overflow: hidden;
     position: relative;
     width: 100%;
@@ -11,14 +11,14 @@
     }
 }
 
-.nexus-separator {
+.layman-separator {
     z-index: 10;
     position: absolute;
     display: grid;
     place-content: center;
     overflow: hidden;
     cursor: auto;
-    &.nexus-row-separator {
+    &.layman-row-separator {
         height: auto;
         width: var(--separator-thickness, 8px);
         margin-top: 0px;
@@ -33,7 +33,7 @@
             width: calc(var(--separator-thickness, 8px) / 4);
         }
     }
-    &.nexus-col-separator {
+    &.layman-col-separator {
         height: var(--separator-thickness, 8px);
         width: auto;
         margin-top: calc(var(--separator-thickness, 8px) / -2);
@@ -50,7 +50,7 @@
     }
 }
 
-.nexus-window {
+.layman-window {
     position: absolute;
     overflow: hidden;
     margin: calc(var(--separator-thickness, 8px) / 2);
@@ -65,7 +65,7 @@
     }
 }
 
-.nexus-toolbar {
+.layman-toolbar {
     position: absolute;
     margin: calc(var(--separator-thickness, 8px) / 2);
     margin-bottom: 0px;

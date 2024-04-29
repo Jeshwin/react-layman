@@ -1,20 +1,19 @@
 import {useContext, useEffect, useState} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {NexusKey, NexusKeys, NexusPath} from "./types";
+import {LaymanKey, LaymanKeys, LaymanPath} from "./types";
 import {Inset} from "./Inset";
-import _ from "lodash";
 import {NormalTab, SelectedTab} from "./WindowTabs";
-import {ToolbarButton} from "./WindowButton";
+import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
 
-export default function WindowToolbar({
+export function WindowToolbar({
     path,
     inset,
     tabs,
 }: {
-    path: NexusPath;
+    path: LaymanPath;
     inset: Inset;
-    tabs: NexusKeys;
+    tabs: LaymanKeys;
 }) {
     const laymanContext = useContext(LaymanContext);
     const [currentTabIndex, setCurrentTabIndex] = useState(0);
@@ -29,16 +28,16 @@ export default function WindowToolbar({
                 }
             }
         }
-    }, [tabs]);
+    }, [tabs, laymanContext]);
 
     // Add currently selected tab to selected tab list if not already there
     useEffect(() => {
-        laymanContext!.setSelectedTabs((prevSelectedTabs: NexusKeys) =>
+        laymanContext!.setSelectedTabs((prevSelectedTabs: LaymanKeys) =>
             prevSelectedTabs.includes(tabs[currentTabIndex])
                 ? prevSelectedTabs
                 : [...prevSelectedTabs, tabs[currentTabIndex]]
         );
-    }, [currentTabIndex, tabs]);
+    }, [currentTabIndex, tabs, laymanContext]);
 
     const addBlankTab = () => {
         laymanContext!.addTab(path, laymanContext!.createUniqueTabId("blank"));
@@ -56,7 +55,7 @@ export default function WindowToolbar({
 
     const handleClickTab = (index: number) => {
         // Remove previously selected tab from selected tabs
-        laymanContext!.setSelectedTabs((prevSelectedTabIds: NexusKeys) =>
+        laymanContext!.setSelectedTabs((prevSelectedTabIds: LaymanKeys) =>
             prevSelectedTabIds.filter((tab) => tab !== tabs[currentTabIndex])
         );
         setCurrentTabIndex(index);
@@ -68,11 +67,11 @@ export default function WindowToolbar({
             style={{
                 inset: inset.toString(),
             }}
-            className="nexus-toolbar"
+            className="layman-toolbar"
         >
             {/** Render each tab */}
             <div className="tab-container">
-                {tabs.map((tab: NexusKey, index: number) => {
+                {tabs.map((tab: LaymanKey, index: number) => {
                     if (index == currentTabIndex) {
                         return (
                             <SelectedTab

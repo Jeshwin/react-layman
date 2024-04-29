@@ -1,10 +1,10 @@
 import {windowToolbarHeight} from "./constants";
 import {Inset} from "./Inset";
-import {NexusKey} from "./types";
+import {LaymanKey} from "./types";
 import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
 
-export default function Window({inset, tab}: {inset: Inset; tab: NexusKey}) {
+export function Window({inset, tab}: {inset: Inset; tab: LaymanKey}) {
     const laymanContext = useContext(LaymanContext);
 
     const adjustedInset = new Inset({
@@ -25,7 +25,7 @@ export default function Window({inset, tab}: {inset: Inset; tab: NexusKey}) {
                 style={{
                     inset: adjustedInset.toString(),
                 }}
-                className={`nexus-window ${
+                className={`layman-window ${
                     laymanContext!.selectedTabs.includes(tab)
                         ? "selected"
                         : "unselected"

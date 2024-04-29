@@ -1,16 +1,16 @@
 import {useContext, useEffect, useMemo, useRef, useState} from "react";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
-import WindowToolbar from "./WindowToolbar";
-import Window from "./Window";
-import Separator from "./Separator";
+import {WindowToolbar} from "./WindowToolbar";
+import {Window} from "./Window";
+import {Separator} from "./Separator";
 import {Inset} from "./Inset";
 import {
-    NexusDirection,
-    NexusKey,
-    NexusKeys,
-    NexusLayout,
-    NexusPath,
+    LaymanDirection,
+    LaymanKey,
+    LaymanKeys,
+    LaymanLayout,
+    LaymanPath,
 } from "./types";
 import {LaymanContext} from "./LaymanContext";
 
@@ -19,23 +19,23 @@ type SeparatorProps = {
     key: string;
     parentInset: Inset;
     splitPercentage: number;
-    direction: NexusDirection;
-    path: NexusPath;
+    direction: LaymanDirection;
+    path: LaymanPath;
 };
 type ToolBarProps = {
     key: string;
     inset: Inset;
-    path: NexusPath;
-    tabs: NexusKeys;
+    path: LaymanPath;
+    tabs: LaymanKeys;
 };
-type PaneProps = {inset: Inset; tab: NexusKey};
+type PaneProps = {inset: Inset; tab: LaymanKey};
 
-// Entry point for Nexus Window Manager
+// Entry point for Layman Window Manager
 // Takes in an initial layout as a binary tree object
 // Uses two function to render the layout; one to convert a unique id to a pane,
 // and one to convert the same unique id to a tab name/component
 // Stores useful global state using Jotai atoms
-export default function Nexus() {
+export function Layman() {
     const laymanContext = useContext(LaymanContext);
     // Local state for component lists
     const [separators, setSeparators] = useState<SeparatorProps[]>([]);
@@ -51,15 +51,15 @@ export default function Nexus() {
     // Calculate component lists whenever layout changes
     // useMemo caches values if they don't change
     useMemo(() => {
-        let layout = laymanContext!.layout;
+        const layout = laymanContext!.layout;
         const calculatedSeparators: SeparatorProps[] = [];
         const calculatedToolbars: ToolBarProps[] = [];
         const calculatedPanes: PaneProps[] = [];
 
         function traverseLayout(
-            layout: NexusLayout,
+            layout: LaymanLayout,
             inset: Inset,
-            path: NexusPath
+            path: LaymanPath
         ) {
             if (Array.isArray(layout)) {
                 calculatedToolbars.push({
@@ -71,7 +71,7 @@ export default function Nexus() {
                 layout.map((tab) =>
                     calculatedPanes.push({
                         inset,
-                        tab: tab as NexusKey,
+                        tab: tab as LaymanKey,
                     })
                 );
             } else {
@@ -108,7 +108,7 @@ export default function Nexus() {
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <div ref={laymanRef} className="nexus-root">
+            <div ref={laymanRef} className="layman-root">
                 {separators.map((props) => (
                     <Separator
                         key={props.key}

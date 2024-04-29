@@ -1,16 +1,14 @@
-import {LaymanProvider} from "./LaymanContext";
-import Nexus from "./Nexus";
+import {LaymanProvider, LaymanLayout, Layman} from "../src";
 import Pane from "./Pane";
-import {NexusLayout} from "./types";
 
 /**
  * @function App
- * @description The main functional component of the application, rendering the Nexus layout manager
+ * @description The main functional component of the application, rendering the Layman layout manager
  * with the provided initial data and custom renderers for tabs and panes.
  * @returns {JSX.Element} The React component tree structure representing the entire application.
  */
 export default function App() {
-    const initialLayout: NexusLayout = {
+    const initialLayout: LaymanLayout = {
         direction: "row",
         first: ["explorer"],
         second: {
@@ -71,7 +69,7 @@ export default function App() {
                         height: "calc(100vh - 16px)",
                     }}
                 >
-                    <Nexus />
+                    <Layman />
                 </div>
             </div>
         </LaymanProvider>

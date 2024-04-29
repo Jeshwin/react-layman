@@ -1,48 +1,22 @@
 import {
+    Dispatch,
+    SetStateAction,
     createContext,
     useEffect,
     useState,
-    Dispatch,
-    SetStateAction,
 } from "react";
 import {
-    NexusBranch,
-    NexusDirection,
-    NexusKey,
-    NexusKeys,
-    NexusLayout,
-    NexusPath,
+    LaymanBranch,
+    LaymanContextType,
+    LaymanDirection,
+    LaymanKey,
+    LaymanKeys,
+    LaymanLayout,
+    LaymanPath,
     PaneRenderer,
     TabRenderer,
 } from "./types";
 import _ from "lodash";
-
-interface LaymanContextType {
-    laymanRef: React.RefObject<HTMLElement> | null;
-    setLaymanRef: Dispatch<SetStateAction<React.RefObject<HTMLElement> | null>>;
-    layout: NexusLayout;
-    setLayout: Dispatch<SetStateAction<NexusLayout>>;
-    addWindow: (
-        direction: NexusDirection,
-        placement: NexusBranch,
-        newWindowTabs: NexusKeys,
-        path: NexusPath
-    ) => void;
-    globalTabs: NexusKeys;
-    addTab: (path: NexusPath, tab: NexusKey) => void;
-    removeTab: (
-        path: NexusPath,
-        tabs: NexusKeys,
-        index: number,
-        currentTabIndex: number,
-        setCurrentTabIndex: Dispatch<SetStateAction<number>>
-    ) => void;
-    createUniqueTabId: (tabId: NexusKey) => string;
-    selectedTabs: NexusKeys;
-    setSelectedTabs: Dispatch<SetStateAction<NexusKeys>>;
-    renderPane: PaneRenderer;
-    renderTab: TabRenderer;
-}
 
 export const LaymanContext = createContext<LaymanContextType | null>(null);
 
@@ -52,22 +26,22 @@ export const LaymanProvider = ({
     renderTab,
     children,
 }: {
-    initialLayout: NexusLayout;
+    initialLayout: LaymanLayout;
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
     children: React.ReactNode;
 }) => {
-    const [layout, setLayout] = useState<NexusLayout>(initialLayout);
-    const [globalTabs, setGlobalTabs] = useState<NexusKeys>([]);
-    const [selectedTabs, setSelectedTabs] = useState<NexusKeys>([]);
+    const [layout, setLayout] = useState<LaymanLayout>(initialLayout);
+    const [globalTabs, setGlobalTabs] = useState<LaymanKeys>([]);
+    const [selectedTabs, setSelectedTabs] = useState<LaymanKeys>([]);
     const [laymanRef, setLaymanRef] =
         useState<React.RefObject<HTMLElement> | null>(null);
 
     // Get all tab ids from initial layout
     useEffect(() => {
-        const tabs: NexusKeys = [];
+        const tabs: LaymanKeys = [];
 
-        const traverseLayout = (layout: NexusLayout) => {
+        const traverseLayout = (layout: LaymanLayout) => {
             if (Array.isArray(layout)) {
                 layout.forEach((tab) => tabs.push(tab));
             } else {
@@ -80,7 +54,7 @@ export const LaymanProvider = ({
         setGlobalTabs(tabs);
     }, [layout, setGlobalTabs]);
 
-    const createUniqueTabId = (tabId: NexusKey) => {
+    const createUniqueTabId = (tabId: LaymanKey) => {
         let count = 0;
         for (const existingTab of globalTabs) {
             const existingTabParts = existingTab.split(":");
@@ -95,10 +69,10 @@ export const LaymanProvider = ({
 
     //Adds a new window to the layout at the specified path, on the specified placement.s
     const addWindow = (
-        direction: NexusDirection,
-        placement: NexusBranch,
-        newWindowTabs: NexusKeys,
-        path: NexusPath
+        direction: LaymanDirection,
+        placement: LaymanBranch,
+        newWindowTabs: LaymanKeys,
+        path: LaymanPath
     ) => {
         // Edge case: One window, turn layout from an array into an object
         if (_.isArray(layout)) {
@@ -114,12 +88,12 @@ export const LaymanProvider = ({
         // Create the updater function based on the placement
         const updater =
             placement === "first"
-                ? (value: NexusLayout) => ({
+                ? (value: LaymanLayout) => ({
                       direction: direction,
                       first: newWindowTabs,
                       second: value,
                   })
-                : (value: NexusLayout) => ({
+                : (value: LaymanLayout) => ({
                       direction: direction,
                       first: value,
                       second: newWindowTabs,
@@ -134,7 +108,7 @@ export const LaymanProvider = ({
     };
 
     //Adds a new tab at the specified path within the layout.
-    const addTab = (path: NexusPath, tab: NexusKey) => {
+    const addTab = (path: LaymanPath, tab: LaymanKey) => {
         // Edge case: One window, layout is just an array
         if (_.isArray(layout)) {
             layout.push(tab);
@@ -142,7 +116,7 @@ export const LaymanProvider = ({
             setLayout([...layout]);
             return;
         }
-        const layoutTabList: NexusLayout = _.get(layout, path.join("."), []);
+        const layoutTabList: LaymanLayout = _.get(layout, path.join("."), []);
         if (_.isArray(layoutTabList)) {
             layoutTabList.push(tab);
             console.log("Updated layout:", layout);
@@ -152,11 +126,11 @@ export const LaymanProvider = ({
 
     // Removes a tab at the specified index and path. If the last tab is removed, it collapses the parent container.
     const removeTab = (
-        path: NexusPath,
-        tabs: NexusKeys,
+        path: LaymanPath,
+        tabs: LaymanKeys,
         index: number,
         currentTabIndex: number,
-        setCurrentTabIndex: any
+        setCurrentTabIndex: Dispatch<SetStateAction<number>>
     ) => {
         // Edge case: One window, remove tab directly from layout array
         if (_.isArray(layout)) {
@@ -165,7 +139,7 @@ export const LaymanProvider = ({
             return;
         }
         // Get the tab list within the layout based on the path
-        const layoutTabList: NexusLayout = _.get(layout, path.join("."), []);
+        const layoutTabList: LaymanLayout = _.get(layout, path.join("."), []);
 
         // If layoutTabList is not an array, return
         if (!Array.isArray(layoutTabList)) return;
@@ -177,7 +151,7 @@ export const LaymanProvider = ({
         if (layoutTabList.length === 0) {
             // Get the parent node
             const parentPath = _.dropRight(path);
-            const parent: NexusLayout = _.get(layout, parentPath);
+            const parent: LaymanLayout = _.get(layout, parentPath);
 
             if (!parent) {
                 // Make TypeScript happy about the layout not being an array
@@ -195,7 +169,7 @@ export const LaymanProvider = ({
             if (Array.isArray(parent)) return;
 
             // Determine the side of the removed tab
-            const side: NexusBranch =
+            const side: LaymanBranch =
                 _.last(path) === "first" ? "second" : "first";
 
             // Get the sibling of the removed tab
@@ -220,7 +194,7 @@ export const LaymanProvider = ({
 
         // Handle change in selectedTab
         // Remove tab from list of selected tabs, since it doesn't exist anymore
-        setSelectedTabs((prevSelectedTabIds: NexusKeys) =>
+        setSelectedTabs((prevSelectedTabIds: LaymanKeys) =>
             prevSelectedTabIds.filter((tab) => tab !== tabs[index])
         );
 

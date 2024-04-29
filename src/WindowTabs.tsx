@@ -1,5 +1,5 @@
 import {VscClose} from "react-icons/vsc";
-import {NexusKey} from "./types";
+import {LaymanKey} from "./types";
 import {useDrag} from "react-dnd";
 import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
@@ -9,7 +9,7 @@ export const NormalTab = ({
     onClick,
     onDelete,
 }: {
-    tab: NexusKey;
+    tab: LaymanKey;
     onClick: React.MouseEventHandler<HTMLButtonElement>;
     onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }) => {
@@ -45,7 +45,7 @@ export const SelectedTab = ({
     onClick,
     onDelete,
 }: {
-    tab: NexusKey;
+    tab: LaymanKey;
     onClick: React.MouseEventHandler<HTMLButtonElement>;
     onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }) => {

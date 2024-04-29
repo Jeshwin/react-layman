@@ -2,10 +2,10 @@ import {MouseEventHandler, useContext, useEffect, useState} from "react";
 import _ from "lodash";
 import {windowToolbarHeight, separatorThickness} from "./constants";
 import {Inset} from "./Inset";
-import {NexusDirection, NexusPath} from "./types";
+import {LaymanDirection, LaymanPath} from "./types";
 import {LaymanContext} from "./LaymanContext";
 
-export default function Separator({
+export function Separator({
     parentInset,
     splitPercentage,
     direction,
@@ -13,8 +13,8 @@ export default function Separator({
 }: {
     parentInset: Inset;
     splitPercentage: number;
-    direction: NexusDirection;
-    path: NexusPath;
+    direction: LaymanDirection;
+    path: LaymanPath;
 }) {
     const laymanContext = useContext(LaymanContext);
     // State for when user is dragging the separator
@@ -94,7 +94,7 @@ export default function Separator({
                     });
                     return;
                 }
-                let currentLayout = _.get(
+                const currentLayout = _.get(
                     laymanContext!.layout,
                     path.join(".")
                 );
@@ -137,7 +137,7 @@ export default function Separator({
                 ) => never
             );
         };
-    }, [direction, isDragging, minPanelSize, parentInset, path]);
+    }, [direction, isDragging, minPanelSize, parentInset, path, laymanContext]);
 
     // Toggle isDragging when holding separator
     const handleMouseUp: MouseEventHandler<HTMLElement> = (event) => {
@@ -155,10 +155,10 @@ export default function Separator({
             style={{
                 inset: newInset.toString(),
             }}
-            className={`nexus-separator ${
+            className={`layman-separator ${
                 direction === "column"
-                    ? "nexus-col-separator"
-                    : "nexus-row-separator"
+                    ? "layman-col-separator"
+                    : "layman-row-separator"
             }`}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
