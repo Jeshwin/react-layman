@@ -1,21 +1,20 @@
-import {useAtomValue} from "jotai";
 import {windowToolbarHeight} from "./constants";
 import {Inset} from "./Inset";
-import {nexusRefAtom, renderPaneAtom, selectedTabsAtom} from "./Nexus";
 import {NexusKey} from "./types";
+import {useContext} from "react";
+import {LaymanContext} from "./LaymanContext";
 
 export default function Window({inset, tab}: {inset: Inset; tab: NexusKey}) {
-    const renderPane = useAtomValue(renderPaneAtom).fn;
-    const nexusRef = useAtomValue(nexusRefAtom);
-    const selectedTabs = useAtomValue(selectedTabsAtom);
+    const laymanContext = useContext(LaymanContext);
 
     const adjustedInset = new Inset({
         ...inset,
         top:
             inset.top +
-            (nexusRef
+            (laymanContext!.laymanRef
                 ? (100 * windowToolbarHeight) /
-                  nexusRef.current!.getBoundingClientRect().height
+                  laymanContext!.laymanRef.current!.getBoundingClientRect()
+                      .height
                 : 0),
     });
 
@@ -27,10 +26,12 @@ export default function Window({inset, tab}: {inset: Inset; tab: NexusKey}) {
                     inset: adjustedInset.toString(),
                 }}
                 className={`nexus-window ${
-                    selectedTabs.includes(tab) ? "selected" : "unselected"
+                    laymanContext!.selectedTabs.includes(tab)
+                        ? "selected"
+                        : "unselected"
                 }`}
             >
-                {renderPane(tab)}
+                {laymanContext!.renderPane(tab)}
             </div>
         </>
     );

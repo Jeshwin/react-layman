@@ -1,3 +1,4 @@
+import {LaymanProvider} from "./LaymanContext";
 import Nexus from "./Nexus";
 import Pane from "./Pane";
 import {NexusLayout} from "./types";
@@ -51,26 +52,28 @@ export default function App() {
     };
 
     return (
-        <div
-            style={{
-                display: "grid",
-                placeContent: "center",
-                backgroundColor: "#09090b",
-            }}
+        <LaymanProvider
+            initialLayout={initialLayout}
+            renderPane={renderPane}
+            renderTab={renderTab}
         >
             <div
                 style={{
-                    color: "white",
-                    width: "calc(100vw - 16px)",
-                    height: "calc(100vh - 16px)",
+                    display: "grid",
+                    placeContent: "center",
+                    backgroundColor: "#09090b",
                 }}
             >
-                <Nexus
-                    initialLayout={initialLayout}
-                    renderPane={renderPane}
-                    renderTab={renderTab}
-                />
+                <div
+                    style={{
+                        color: "white",
+                        width: "calc(100vw - 16px)",
+                        height: "calc(100vh - 16px)",
+                    }}
+                >
+                    <Nexus />
+                </div>
             </div>
-        </div>
+        </LaymanProvider>
     );
 }

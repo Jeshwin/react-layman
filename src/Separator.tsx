@@ -1,10 +1,9 @@
-import {MouseEventHandler, useEffect, useState} from "react";
-import {useAtom, useAtomValue} from "jotai";
+import {MouseEventHandler, useContext, useEffect, useState} from "react";
 import _ from "lodash";
 import {windowToolbarHeight, separatorThickness} from "./constants";
 import {Inset} from "./Inset";
-import {layoutAtom, nexusRefAtom} from "./Nexus";
 import {NexusDirection, NexusPath} from "./types";
+import {LaymanContext} from "./LaymanContext";
 
 export default function Separator({
     parentInset,
@@ -17,9 +16,7 @@ export default function Separator({
     direction: NexusDirection;
     path: NexusPath;
 }) {
-    // Access global state using atoms
-    const [layout, setLayout] = useAtom(layoutAtom);
-    const nexusRef = useAtomValue(nexusRefAtom);
+    const laymanContext = useContext(LaymanContext);
     // State for when user is dragging the separator
     const [isDragging, setIsDragging] = useState(false);
 
@@ -58,17 +55,18 @@ export default function Separator({
               });
 
     // Calculate minimum panel size to prevent toolbars from being cut off
-    const minPanelSize = nexusRef!.current
+    const minPanelSize = laymanContext!.laymanRef
         ? (100 * (windowToolbarHeight + separatorThickness)) /
-          nexusRef!.current.getBoundingClientRect().height
+          laymanContext!.laymanRef!.current!.getBoundingClientRect().height
         : 5;
 
     // Add event listeners to let separator change layout when dragged
     useEffect(() => {
         const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
             event.preventDefault();
-            if (isDragging && nexusRef!.current) {
-                const parentBBox = nexusRef!.current.getBoundingClientRect();
+            if (isDragging && laymanContext!.laymanRef!.current) {
+                const parentBBox =
+                    laymanContext!.laymanRef!.current.getBoundingClientRect();
                 let absolutesSplitPercentage;
                 if (direction === "column") {
                     absolutesSplitPercentage =
@@ -90,16 +88,19 @@ export default function Separator({
                 );
                 // Edge case: first separator has no path
                 if (path.length == 0) {
-                    setLayout({
-                        ...layout,
+                    laymanContext!.setLayout({
+                        ...laymanContext!.layout,
                         splitPercentage: newSplitPercentage,
                     });
                     return;
                 }
-                let currentLayout = _.get(layout, path.join("."));
+                let currentLayout = _.get(
+                    laymanContext!.layout,
+                    path.join(".")
+                );
                 if (Array.isArray(currentLayout)) return;
                 currentLayout.splitPercentage = newSplitPercentage;
-                setLayout({...layout});
+                laymanContext!.setLayout({...laymanContext!.layout});
             }
         };
 
@@ -136,16 +137,7 @@ export default function Separator({
                 ) => never
             );
         };
-    }, [
-        direction,
-        isDragging,
-        layout,
-        minPanelSize,
-        nexusRef,
-        parentInset,
-        path,
-        setLayout,
-    ]);
+    }, [direction, isDragging, minPanelSize, parentInset, path]);
 
     // Toggle isDragging when holding separator
     const handleMouseUp: MouseEventHandler<HTMLElement> = (event) => {

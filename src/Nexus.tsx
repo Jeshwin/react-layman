@@ -1,5 +1,4 @@
-import {RefObject, useEffect, useMemo, useRef, useState} from "react";
-import {atom, useAtom, useSetAtom} from "jotai";
+import {useContext, useEffect, useMemo, useRef, useState} from "react";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
 import WindowToolbar from "./WindowToolbar";
@@ -12,38 +11,8 @@ import {
     NexusKeys,
     NexusLayout,
     NexusPath,
-    PaneRenderer,
-    TabRenderer,
 } from "./types";
-import {atomWithStorage} from "jotai/utils";
-
-// Jotai atoms to store global layout state
-export const nexusRefAtom = atom<RefObject<HTMLDivElement> | null>(null);
-export const layoutAtom = atomWithStorage<NexusLayout>("nexusLayout", []);
-export const tabsAtom = atom<NexusKeys>([]);
-export const selectedTabsAtom = atom<NexusKeys>([]);
-
-// Complicated way to use atoms to store functions :(
-// See this => https://stackoverflow.com/questions/73449599/storing-function-as-jotai-atom
-const derivedRenderPaneAtom = atom<{
-    fn: PaneRenderer;
-}>({fn: () => <></>});
-export const renderPaneAtom = atom(
-    (get) => get(derivedRenderPaneAtom),
-    (_get, set, newFn: PaneRenderer) => {
-        set(derivedRenderPaneAtom, {fn: newFn});
-    }
-);
-
-const derivedRenderTabAtom = atom<{
-    fn: TabRenderer;
-}>({fn: () => <></>});
-export const renderTabAtom = atom(
-    (get) => get(derivedRenderTabAtom),
-    (_get, set, newFn: TabRenderer) => {
-        set(derivedRenderTabAtom, {fn: newFn});
-    }
-);
+import {LaymanContext} from "./LaymanContext";
 
 // Types for local state arrays
 type SeparatorProps = {
@@ -66,67 +35,23 @@ type PaneProps = {inset: Inset; tab: NexusKey};
 // Uses two function to render the layout; one to convert a unique id to a pane,
 // and one to convert the same unique id to a tab name/component
 // Stores useful global state using Jotai atoms
-export default function Nexus({
-    initialLayout,
-    renderPane,
-    renderTab,
-}: {
-    initialLayout: NexusLayout;
-    renderPane: PaneRenderer;
-    renderTab: TabRenderer;
-}) {
-    // Reference for parent div
-    const nexusRef = useRef(null);
-    const setNexusRef = useSetAtom(nexusRefAtom);
-
-    // Set all atoms based on props
-    const [layout, setLayout] = useAtom(layoutAtom);
-    const setRenderPane = useSetAtom(renderPaneAtom);
-    const setRenderTab = useSetAtom(renderTabAtom);
-    const setTabs = useSetAtom(tabsAtom);
-
-    // Use effects to set initial values for atoms
-    useEffect(() => {
-        setNexusRef(nexusRef);
-    }, [setNexusRef]);
-
-    useEffect(() => {
-        setLayout(initialLayout);
-    }, [initialLayout, setLayout]);
-
-    useEffect(() => {
-        setRenderPane(renderPane);
-    }, [renderPane, setRenderPane]);
-
-    useEffect(() => {
-        setRenderTab(renderTab);
-    }, [renderTab, setRenderTab]);
-
-    // Get all tab ids from initial layout
-    useEffect(() => {
-        const tabs: NexusKeys = [];
-
-        const traverseLayout = (layout: NexusLayout) => {
-            if (Array.isArray(layout)) {
-                layout.forEach((tab) => tabs.push(tab));
-            } else {
-                traverseLayout(layout!.first);
-                traverseLayout(layout!.second);
-            }
-        };
-        traverseLayout(layout);
-
-        setTabs(tabs);
-    }, [layout, setTabs]);
-
+export default function Nexus() {
+    const laymanContext = useContext(LaymanContext);
     // Local state for component lists
     const [separators, setSeparators] = useState<SeparatorProps[]>([]);
     const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
     const [panes, setPanes] = useState<PaneProps[]>([]);
+    // Reference for parent div
+    const laymanRef = useRef(null);
+
+    useEffect(() => {
+        laymanContext!.setLaymanRef(laymanRef);
+    });
 
     // Calculate component lists whenever layout changes
     // useMemo caches values if they don't change
     useMemo(() => {
+        let layout = laymanContext!.layout;
         const calculatedSeparators: SeparatorProps[] = [];
         const calculatedToolbars: ToolBarProps[] = [];
         const calculatedPanes: PaneProps[] = [];
@@ -179,11 +104,11 @@ export default function Nexus({
         setSeparators(calculatedSeparators);
         setToolbars(calculatedToolbars);
         setPanes(calculatedPanes);
-    }, [layout]);
+    }, [laymanContext]);
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <div ref={nexusRef} className="nexus-root">
+            <div ref={laymanRef} className="nexus-root">
                 {separators.map((props) => (
                     <Separator
                         key={props.key}
