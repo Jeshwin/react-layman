@@ -101,28 +101,30 @@ export function WindowToolbar({
             {/** Draggable area to move window */}
             <div draggable className="drag-area"></div>
             {/** Buttons to add convert window to a row or column */}
-            <ToolbarButton
-                icon={<VscSplitVertical color="white" />}
-                onClick={() =>
-                    laymanContext!.addWindow(
-                        "column",
-                        "second",
-                        [laymanContext!.createUniqueTabId("blank")],
-                        path
-                    )
-                }
-            />
-            <ToolbarButton
-                icon={<VscSplitHorizontal color="white" />}
-                onClick={() =>
-                    laymanContext!.addWindow(
-                        "row",
-                        "second",
-                        [laymanContext!.createUniqueTabId("blank")],
-                        path
-                    )
-                }
-            />
+            <div className="toolbar-button-container">
+                <ToolbarButton
+                    icon={<VscSplitVertical color="white" />}
+                    onClick={() =>
+                        laymanContext!.addWindow(
+                            "column",
+                            "second",
+                            [laymanContext!.createUniqueTabId("blank")],
+                            path
+                        )
+                    }
+                />
+                <ToolbarButton
+                    icon={<VscSplitHorizontal color="white" />}
+                    onClick={() =>
+                        laymanContext!.addWindow(
+                            "row",
+                            "second",
+                            [laymanContext!.createUniqueTabId("blank")],
+                            path
+                        )
+                    }
+                />
+            </div>
         </div>
     );
 }

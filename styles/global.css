@@ -55,7 +55,8 @@
     overflow: hidden;
     margin: calc(var(--separator-thickness, 8px) / 2);
     margin-top: 0px;
-    border-radius: var(--border-radius, 4px);
+    border-bottom-left-radius: var(--border-radius, 4px);
+    border-bottom-right-radius: var(--border-radius, 4px);
     background-color: var(--window-bg-color, #27272a);
     &.selected {
         visibility: visible;
@@ -139,6 +140,7 @@
             cursor: grabbing;
         }
     }
+
     button.toolbar-button {
         width: var(--toolbar-height, 32px);
         height: var(--toolbar-height, 32px);
@@ -149,6 +151,13 @@
             cursor: pointer;
             background-color: var(--toolbar-button-hover-bg-color, #27272a);
         }
+    }
+
+    .toolbar-button-container {
+        display: flex;
+        overflow-x: scroll;
+        overflow-y: clip;
+        border-top-right-radius: var(--border-radius, 4px);
     }
 }
 
