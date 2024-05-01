@@ -36,6 +36,8 @@ export const LaymanProvider = ({
     const [selectedTabs, setSelectedTabs] = useState<LaymanKeys>([]);
     const [laymanRef, setLaymanRef] =
         useState<React.RefObject<HTMLElement> | null>(null);
+    const [separatorThickness, setSeparatorThickness] = useState(0);
+    const [windowToolbarHeight, setWindowToolbarHeight] = useState(0);
 
     // Get all tab ids from initial layout
     useEffect(() => {
@@ -53,6 +55,26 @@ export const LaymanProvider = ({
 
         setGlobalTabs(tabs);
     }, [layout, setGlobalTabs]);
+
+    // Get separatorWidth and windowToolbarHeight from CSS variables
+    useEffect(() => {
+        setSeparatorThickness(
+            parseInt(
+                getComputedStyle(document.documentElement)
+                    .getPropertyValue("--separator-thickness")
+                    .trim(),
+                10
+            ) ?? 16
+        );
+        setWindowToolbarHeight(
+            parseInt(
+                getComputedStyle(document.documentElement)
+                    .getPropertyValue("--toolbar-height")
+                    .trim(),
+                10
+            ) ?? 64
+        );
+    }, []);
 
     const createUniqueTabId = (tabId: LaymanKey) => {
         let count = 0;
@@ -228,6 +250,8 @@ export const LaymanProvider = ({
                 setSelectedTabs,
                 renderPane,
                 renderTab,
+                separatorThickness,
+                windowToolbarHeight,
             }}
         >
             {children}

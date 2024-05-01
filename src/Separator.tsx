@@ -1,6 +1,5 @@
 import {MouseEventHandler, useContext, useEffect, useState} from "react";
 import _ from "lodash";
-import {windowToolbarHeight, separatorThickness} from "./constants";
 import {Inset} from "./Inset";
 import {LaymanDirection, LaymanPath} from "./types";
 import {LaymanContext} from "./LaymanContext";
@@ -56,7 +55,9 @@ export function Separator({
 
     // Calculate minimum panel size to prevent toolbars from being cut off
     const minPanelSize = laymanContext!.laymanRef
-        ? (100 * (windowToolbarHeight + separatorThickness)) /
+        ? (100 *
+              (laymanContext!.windowToolbarHeight +
+                  laymanContext!.separatorThickness)) /
           laymanContext!.laymanRef!.current!.getBoundingClientRect().height
         : 5;
 

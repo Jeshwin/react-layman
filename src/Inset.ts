@@ -1,6 +1,6 @@
 import {LaymanDirection} from "./types";
 
-interface InsetsInput {
+export interface InsetInput {
     top?: number;
     right?: number;
     bottom?: number;
@@ -18,7 +18,7 @@ export class Inset {
      * Each margin defaults to 0 if not provided.
      * @param params Object containing the top, right, bottom, and left values.
      */
-    constructor(params: InsetsInput) {
+    constructor(params: InsetInput) {
         this.top = this.validateValue(params.top ?? 0);
         this.right = this.validateValue(params.right ?? 0);
         this.bottom = this.validateValue(params.bottom ?? 0);

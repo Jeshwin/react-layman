@@ -45,4 +45,6 @@ export interface LaymanContextType {
     setSelectedTabs: Dispatch<SetStateAction<LaymanKeys>>;
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
+    separatorThickness: number;
+    windowToolbarHeight: number;
 }

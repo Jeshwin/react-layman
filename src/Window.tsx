@@ -1,4 +1,3 @@
-import {windowToolbarHeight} from "./constants";
 import {Inset} from "./Inset";
 import {LaymanKey} from "./types";
 import {useContext} from "react";
@@ -12,7 +11,7 @@ export function Window({inset, tab}: {inset: Inset; tab: LaymanKey}) {
         top:
             inset.top +
             (laymanContext!.laymanRef
-                ? (100 * windowToolbarHeight) /
+                ? (100 * laymanContext!.windowToolbarHeight) /
                   laymanContext!.laymanRef.current!.getBoundingClientRect()
                       .height
                 : 0),
