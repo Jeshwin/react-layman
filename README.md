@@ -13,7 +13,7 @@
 
 ## About <a name = "about"></a>
 
-React Layman is a fully-featured, dynamic layout manager made for React. It is written in Typescript and provides typing, but may also be used with regular Javascript. Layman is inspired by [Replit](https://replit.com)'s IDE, [LeetCode](https://leetcode.com)'s new UI, and the pre-existing [React Mosaic](https://github.com/nomcopter/react-mosaic) project. Under the hood, Layman uses [Jotai](https://jotai.org/) to manage the layout state and APi functions.
+React Layman is a fully-featured, dynamic layout manager made for React. It is written in Typescript and provides typing, but may also be used with regular Javascript. Layman is inspired by [Replit](https://replit.com)'s IDE, [LeetCode](https://leetcode.com)'s new UI, and the pre-existing [React Mosaic](https://github.com/nomcopter/react-mosaic) project.
 
 You can play around with Layman through [this demo](https://github.com/Jeshwin/react-layman).
 
@@ -25,9 +25,8 @@ You can play around with Layman through [this demo](https://github.com/Jeshwin/r
     -   [ ] Drag and drop
     -   [x] Delete windows
     -   [x] Tabbed windows
-- [ ] Extra features
+-   [ ] Extra features
     -   [ ] Auto Arrange
-    -   [ ] API functions using Jotai atoms
     -   [ ] "Add to corner" hueristic
 
 ## Usage
@@ -38,7 +37,7 @@ You can play around with Layman through [this demo](https://github.com/Jeshwin/r
 
 ### Themes
 
-## API 
+## API
 
 !TODO
 
