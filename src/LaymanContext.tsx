@@ -17,6 +17,14 @@ import {
     TabRenderer,
 } from "./types";
 import _ from "lodash";
+import {
+    DndContext,
+    DragOverlay,
+    DragEndEvent,
+    DragStartEvent,
+    UniqueIdentifier,
+} from "@dnd-kit/core";
+import DraggedTab from "./dnd/DraggedTab";
 
 export const LaymanContext = createContext<LaymanContextType | null>(null);
 
@@ -38,6 +46,7 @@ export const LaymanProvider = ({
         useState<React.RefObject<HTMLElement> | null>(null);
     const [separatorThickness, setSeparatorThickness] = useState(0);
     const [windowToolbarHeight, setWindowToolbarHeight] = useState(0);
+    const [draggedTab, setDraggedTab] = useState<UniqueIdentifier | null>(null);
 
     // Get all tab ids from initial layout
     useEffect(() => {
@@ -234,6 +243,17 @@ export const LaymanProvider = ({
         }
     };
 
+    const handleDragStart = (event: DragStartEvent) => {
+        setDraggedTab(event.active.id);
+    };
+
+    // Handler for dragging tabs to new positions
+    // Behavior based on event.over.id, which specifies where the element was dropped
+    const handleDragEnd = (event: DragEndEvent) => {
+        console.log(`Dragged ${event.active.id} over ${event.over!.id}`);
+        setDraggedTab(null);
+    };
+
     return (
         <LaymanContext.Provider
             value={{
@@ -254,7 +274,12 @@ export const LaymanProvider = ({
                 windowToolbarHeight,
             }}
         >
-            {children}
+            <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+                <DragOverlay>
+                    <DraggedTab tab={draggedTab} />
+                </DragOverlay>
+                {children}
+            </DndContext>
         </LaymanContext.Provider>
     );
 };

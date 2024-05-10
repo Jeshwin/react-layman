@@ -2,6 +2,7 @@ import {Inset} from "./Inset";
 import {LaymanKey} from "./types";
 import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
+import Droppable from "./dnd/Droppable";
 
 export function Window({inset, tab}: {inset: Inset; tab: LaymanKey}) {
     const laymanContext = useContext(LaymanContext);
@@ -18,20 +19,18 @@ export function Window({inset, tab}: {inset: Inset; tab: LaymanKey}) {
     });
 
     return (
-        <>
-            <div
-                id={tab}
-                style={{
-                    inset: adjustedInset.toString(),
-                }}
-                className={`layman-window ${
-                    laymanContext!.selectedTabs.includes(tab)
-                        ? "selected"
-                        : "unselected"
-                }`}
-            >
-                {laymanContext!.renderPane(tab)}
-            </div>
-        </>
+        <div
+            id={tab}
+            style={{
+                inset: adjustedInset.toString(),
+            }}
+            className={`layman-window ${
+                laymanContext!.selectedTabs.includes(tab)
+                    ? "selected"
+                    : "unselected"
+            }`}
+        >
+            <Droppable id={tab}>{laymanContext!.renderPane(tab)}</Droppable>
+        </div>
     );
 }

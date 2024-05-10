@@ -57,6 +57,8 @@ export default function App() {
         >
             <div
                 style={{
+                    width: "100%",
+                    height: "100%",
                     display: "grid",
                     placeContent: "center",
                     backgroundColor: "#09090b",

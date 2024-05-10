@@ -20,6 +20,13 @@ export type LaymanLayout =
 export type PaneRenderer = (arg0: LaymanKey) => JSX.Element;
 export type TabRenderer = (arg0: LaymanKey) => string | JSX.Element;
 
+export interface InsetInput {
+    top?: number;
+    right?: number;
+    bottom?: number;
+    left?: number;
+}
+
 export interface LaymanContextType {
     laymanRef: React.RefObject<HTMLElement> | null;
     setLaymanRef: Dispatch<SetStateAction<React.RefObject<HTMLElement> | null>>;

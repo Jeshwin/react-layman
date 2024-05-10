@@ -1,8 +1,8 @@
 import {VscClose} from "react-icons/vsc";
 import {LaymanKey} from "./types";
-import {useDrag} from "react-dnd";
 import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
+import Draggable from "./dnd/Draggable";
 
 export const NormalTab = ({
     tab,
@@ -14,29 +14,15 @@ export const NormalTab = ({
     onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }) => {
     const laymanContext = useContext(LaymanContext);
-
-    const [{isDragging}, drag] = useDrag(() => ({
-        type: "tab",
-        collect: (monitor) => ({
-            isDragging: !!monitor.isDragging(),
-        }),
-    }));
     return (
-        <div
-            className="tab"
-            draggable
-            ref={drag}
-            style={{
-                display: isDragging ? "none" : "flex",
-            }}
-        >
+        <Draggable id={tab} className="tab">
             <button className="tab-selector" onClick={onClick}>
                 {laymanContext!.renderTab(tab)}
             </button>
             <button className="close-tab" onClick={onDelete}>
-                <VscClose style={{fill: "#FFFFFF"}} />
+                <VscClose color="white" />
             </button>
-        </div>
+        </Draggable>
     );
 };
 
@@ -52,7 +38,7 @@ export const SelectedTab = ({
     const laymanContext = useContext(LaymanContext);
 
     return (
-        <div className="tab selected">
+        <Draggable id={tab} className="tab selected">
             <div className="indicator"></div>
             <button className="tab-selector" onClick={onClick}>
                 {laymanContext!.renderTab(tab)}
@@ -60,6 +46,6 @@ export const SelectedTab = ({
             <button className="close-tab" onClick={onDelete}>
                 <VscClose color="white" />
             </button>
-        </div>
+        </Draggable>
     );
 };

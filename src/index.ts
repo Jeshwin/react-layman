@@ -7,8 +7,10 @@ export type {
     LaymanLayout,
     PaneRenderer,
     TabRenderer,
+    InsetInput,
+    LaymanContextType,
 } from "./types";
-export type {InsetInput} from "./Inset";
+
 export {Inset} from "./Inset";
 export {LaymanContext, LaymanProvider} from "./LaymanContext";
 

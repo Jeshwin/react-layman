@@ -1,11 +1,4 @@
-import {LaymanDirection} from "./types";
-
-export interface InsetInput {
-    top?: number;
-    right?: number;
-    bottom?: number;
-    left?: number;
-}
+import {InsetInput, LaymanDirection} from "./types";
 
 export class Inset {
     top: number;
