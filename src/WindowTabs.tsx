@@ -1,51 +1,52 @@
 import {VscClose} from "react-icons/vsc";
-import {LaymanKey} from "./types";
 import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
-import Draggable from "./dnd/Draggable";
+import {useDraggable} from "@dnd-kit/core";
+import {TabData} from "./TabData";
 
 export const NormalTab = ({
     tab,
     onClick,
     onDelete,
 }: {
-    tab: LaymanKey;
+    tab: TabData;
     onClick: React.MouseEventHandler<HTMLButtonElement>;
     onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }) => {
-    const laymanContext = useContext(LaymanContext);
+    const {renderTab} = useContext(LaymanContext);
     return (
-        <Draggable id={tab} className="tab">
-            <button className="tab-selector" onClick={onClick}>
-                {laymanContext!.renderTab(tab)}
+        <div className="tab">
+            <button className="tab-selector" onMouseDown={onClick}>
+                {renderTab(tab)}
             </button>
             <button className="close-tab" onClick={onDelete}>
                 <VscClose color="white" />
             </button>
-        </Draggable>
+        </div>
     );
 };
 
 export const SelectedTab = ({
     tab,
-    onClick,
     onDelete,
 }: {
-    tab: LaymanKey;
-    onClick: React.MouseEventHandler<HTMLButtonElement>;
+    tab: TabData;
     onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }) => {
-    const laymanContext = useContext(LaymanContext);
+    const {renderTab} = useContext(LaymanContext);
+    const {attributes, listeners, setNodeRef} = useDraggable({
+        id: tab.id,
+    });
 
     return (
-        <Draggable id={tab} className="tab selected">
+        <div ref={setNodeRef} className="tab selected">
             <div className="indicator"></div>
-            <button className="tab-selector" onClick={onClick}>
-                {laymanContext!.renderTab(tab)}
+            <button {...listeners} {...attributes} className="tab-selector">
+                {renderTab(tab)}
             </button>
             <button className="close-tab" onClick={onDelete}>
                 <VscClose color="white" />
             </button>
-        </Draggable>
+        </div>
     );
 };

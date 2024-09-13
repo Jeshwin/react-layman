@@ -1,17 +1,17 @@
 export type {
-    LaymanKey,
-    LaymanKeys,
+    LaymanTab,
+    LaymanTabs,
     LaymanDirection,
     LaymanBranch,
     LaymanPath,
     LaymanLayout,
     PaneRenderer,
     TabRenderer,
-    InsetInput,
     LaymanContextType,
 } from "./types";
 
 export {Inset} from "./Inset";
+export type {InsetInput} from "./Inset";
 export {LaymanContext, LaymanProvider} from "./LaymanContext";
 
 export {Layman} from "./Layman";

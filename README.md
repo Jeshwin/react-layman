@@ -22,9 +22,10 @@ You can play around with Layman through [this demo](https://github.com/Jeshwin/r
 -   [ ] Dynamic Layout
     -   [x] Rows and columns
     -   [x] Adjustable windows
-    -   [ ] Drag and drop
+    -   [ ] Drag and drop windows
     -   [x] Delete windows
     -   [x] Tabbed windows
+        -   [ ] Draggable tabs
 -   [ ] Extra features
     -   [ ] Auto Arrange
     -   [ ] "Add to corner" hueristic

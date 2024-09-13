@@ -1,7 +1,8 @@
 import {Dispatch, SetStateAction} from "react";
+import {Inset} from "./Inset";
+import {TabData} from "./TabData";
 
-export type LaymanKey = string;
-export type LaymanKeys = LaymanKey[];
+export type LaymanTabs = TabData[];
 
 export type LaymanDirection = "column" | "row";
 
@@ -9,7 +10,7 @@ export type LaymanBranch = "first" | "second";
 export type LaymanPath = LaymanBranch[];
 
 export type LaymanLayout =
-    | LaymanKeys
+    | LaymanTabs
     | {
           direction: LaymanDirection;
           first: LaymanLayout;
@@ -17,14 +18,24 @@ export type LaymanLayout =
           splitPercentage?: number;
       };
 
-export type PaneRenderer = (arg0: LaymanKey) => JSX.Element;
-export type TabRenderer = (arg0: LaymanKey) => string | JSX.Element;
+export type PaneRenderer = (arg0: TabData) => JSX.Element;
+export type TabRenderer = (arg0: TabData) => string | JSX.Element;
 
-export interface InsetInput {
-    top?: number;
-    right?: number;
-    bottom?: number;
-    left?: number;
+// Types for component props
+export interface SeparatorProps {
+    parentInset: Inset;
+    splitPercentage: number;
+    direction: LaymanDirection;
+    path: LaymanPath;
+}
+export interface ToolBarProps {
+    inset: Inset;
+    path: LaymanPath;
+    tabs: LaymanTabs;
+}
+export interface PaneProps {
+    inset: Inset;
+    tab: TabData;
 }
 
 export interface LaymanContextType {
@@ -35,21 +46,19 @@ export interface LaymanContextType {
     addWindow: (
         direction: LaymanDirection,
         placement: LaymanBranch,
-        newWindowTabs: LaymanKeys,
+        newWindowTabs: LaymanTabs,
         path: LaymanPath
     ) => void;
-    globalTabs: LaymanKeys;
-    addTab: (path: LaymanPath, tab: LaymanKey) => void;
+    globalTabs: LaymanTabs;
+    setGlobalTabs: Dispatch<SetStateAction<LaymanTabs>>;
+    addTab: (path: LaymanPath, tab: TabData) => void;
     removeTab: (
         path: LaymanPath,
-        tabs: LaymanKeys,
+        tabs: LaymanTabs,
         index: number,
         currentTabIndex: number,
         setCurrentTabIndex: Dispatch<SetStateAction<number>>
     ) => void;
-    createUniqueTabId: (tabId: LaymanKey) => string;
-    selectedTabs: LaymanKeys;
-    setSelectedTabs: Dispatch<SetStateAction<LaymanKeys>>;
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
     separatorThickness: number;

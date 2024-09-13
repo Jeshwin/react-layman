@@ -1,10 +1,11 @@
 import {useContext, useEffect, useState} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {LaymanKey, LaymanKeys, LaymanPath} from "./types";
+import {LaymanTabs, LaymanPath} from "./types";
 import {Inset} from "./Inset";
 import {NormalTab, SelectedTab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
+import {TabData} from "./TabData";
 
 export function WindowToolbar({
     path,
@@ -13,50 +14,43 @@ export function WindowToolbar({
 }: {
     path: LaymanPath;
     inset: Inset;
-    tabs: LaymanKeys;
+    tabs: LaymanTabs;
 }) {
-    const laymanContext = useContext(LaymanContext);
-    const [currentTabIndex, setCurrentTabIndex] = useState(0);
-
-    // Set current tab to first already selected tab
-    useEffect(() => {
-        for (let i = 0; i < tabs.length; i++) {
-            for (const selectedTab of laymanContext!.selectedTabs) {
-                if (tabs[i] === selectedTab) {
-                    setCurrentTabIndex(i);
-                    break;
-                }
-            }
-        }
-    }, [tabs, laymanContext]);
+    const {setGlobalTabs, addTab, removeTab, addWindow} =
+        useContext(LaymanContext);
+    const [currentTabIndex, setCurrentTabIndex] = useState<number>(0);
 
     // Add currently selected tab to selected tab list if not already there
     useEffect(() => {
-        laymanContext!.setSelectedTabs((prevSelectedTabs: LaymanKeys) =>
-            prevSelectedTabs.includes(tabs[currentTabIndex])
-                ? prevSelectedTabs
-                : [...prevSelectedTabs, tabs[currentTabIndex]]
+        setGlobalTabs((prevTabs) =>
+            prevTabs.map((tab) => {
+                if (tab.id === tabs[currentTabIndex].id) {
+                    // Update the isSelected property directly
+                    tab.isSelected = true;
+                }
+                return tab;
+            })
         );
-    }, [currentTabIndex, tabs, laymanContext]);
+    }, [currentTabIndex, setGlobalTabs, tabs]);
 
     const addBlankTab = () => {
-        laymanContext!.addTab(path, laymanContext!.createUniqueTabId("blank"));
+        addTab(path, new TabData("blank"));
     };
 
     const removeTabAtIndex = (index: number) => {
-        laymanContext!.removeTab(
-            path,
-            tabs,
-            index,
-            currentTabIndex,
-            setCurrentTabIndex
-        );
+        removeTab(path, tabs, index, currentTabIndex, setCurrentTabIndex);
     };
 
     const handleClickTab = (index: number) => {
         // Remove previously selected tab from selected tabs
-        laymanContext!.setSelectedTabs((prevSelectedTabIds: LaymanKeys) =>
-            prevSelectedTabIds.filter((tab) => tab !== tabs[currentTabIndex])
+        setGlobalTabs((prevTabs) =>
+            prevTabs.map((tab) => {
+                if (tab.id === tabs[currentTabIndex].id) {
+                    // Update the isSelected property directly
+                    tab.isSelected = false;
+                }
+                return tab;
+            })
         );
         setCurrentTabIndex(index);
     };
@@ -71,13 +65,12 @@ export function WindowToolbar({
         >
             {/** Render each tab */}
             <div className="tab-container">
-                {tabs.map((tab: LaymanKey, index: number) => {
+                {tabs.map((tab: TabData, index: number) => {
                     if (index == currentTabIndex) {
                         return (
                             <SelectedTab
                                 key={index}
                                 tab={tab}
-                                onClick={() => handleClickTab(index)}
                                 onDelete={() => removeTabAtIndex(index)}
                             />
                         );
@@ -105,10 +98,10 @@ export function WindowToolbar({
                 <ToolbarButton
                     icon={<VscSplitVertical color="white" />}
                     onClick={() =>
-                        laymanContext!.addWindow(
+                        addWindow(
                             "column",
                             "second",
-                            [laymanContext!.createUniqueTabId("blank")],
+                            [new TabData("blank")],
                             path
                         )
                     }
@@ -116,12 +109,7 @@ export function WindowToolbar({
                 <ToolbarButton
                     icon={<VscSplitHorizontal color="white" />}
                     onClick={() =>
-                        laymanContext!.addWindow(
-                            "row",
-                            "second",
-                            [laymanContext!.createUniqueTabId("blank")],
-                            path
-                        )
+                        addWindow("row", "second", [new TabData("blank")], path)
                     }
                 />
             </div>

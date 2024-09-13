@@ -1,4 +1,5 @@
 import {LaymanProvider, LaymanLayout, Layman} from "../src";
+import {TabData} from "../src/TabData";
 import Pane from "./Pane";
 
 /**
@@ -10,15 +11,19 @@ import Pane from "./Pane";
 export default function App() {
     const initialLayout: LaymanLayout = {
         direction: "row",
-        first: ["explorer"],
+        first: [new TabData("explorer")],
         second: {
             direction: "column",
             first: [
-                "file:main.py",
-                "file:utils/rref.py",
-                "file:api/auth/passwd.py",
+                new TabData("file:main.py"),
+                new TabData("file:utils/rref.py"),
+                new TabData("file:api/auth/passwd.py"),
             ],
-            second: ["console", "shell:0", "shell:1"],
+            second: [
+                new TabData("console"),
+                new TabData("shell:0"),
+                new TabData("shell:1"),
+            ],
             splitPercentage: 80,
         },
         splitPercentage: 20,
@@ -26,28 +31,14 @@ export default function App() {
     /**
      * @function renderPane
      * @description Transforms a given pane ID to its corresponding window component
-     * @param {string} id - The unique identifier of the pane.
-     * @return {ReactJSX.Element} The window component based on the given pane ID.
      */
-    const renderPane = (id: string) => <Pane paneId={id} />;
+    const renderPane = (tab: TabData): JSX.Element => <Pane paneId={tab.id} />;
 
     /**
      * @function renderTab
      * @description Transforms a given pane ID to its corresponding tab name for display purposes.
-     * @param {string} id - The unique identifier of the pane.
-     * @return {string} The tab name based on the given pane ID.
      */
-    const renderTab = (id: string) => {
-        const idParts = id.split(":");
-        const paneType = idParts[0];
-        if (paneType === "file") {
-            const filePathParts = idParts[idParts.length - 1].split("/");
-            const fileName = filePathParts[filePathParts.length - 1];
-            return fileName;
-        } else {
-            return paneType.charAt(0).toUpperCase() + paneType.slice(1);
-        }
-    };
+    const renderTab = (tab: TabData) => tab.name;
 
     return (
         <LaymanProvider

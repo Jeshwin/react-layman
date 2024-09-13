@@ -16,30 +16,23 @@ export default function Pane({paneId}: {paneId: string}) {
 
     return (
         <div id={paneId} className="pane">
-            <div className="debug-timer">
-                {/** Display alive time as xx.x seconds */}
-                Counter: {(counter / 10).toFixed(1)}s
-            </div>
-            <span
+            <div
                 style={{
                     fontSize: 30,
                     lineHeight: "36px",
                 }}
             >
                 {paneId}
-            </span>
-            This is a {paneId.split(":")[0]} pane!
-            <button
-                onClick={() => setCounter(0)}
+            </div>
+            <div
                 style={{
-                    width: "fit-content",
-                    padding: 8,
-                    borderRadius: 8,
-                    backgroundColor: "#ef4444",
+                    paddingTop: 16,
+                    fontSize: 24,
+                    color: "#d4d4d8",
                 }}
             >
-                Reset
-            </button>
+                Counter: {(counter / 10).toFixed(1)}s
+            </div>
         </div>
     );
 }

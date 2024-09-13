@@ -9,8 +9,7 @@ import {
     LaymanBranch,
     LaymanContextType,
     LaymanDirection,
-    LaymanKey,
-    LaymanKeys,
+    LaymanTabs,
     LaymanLayout,
     LaymanPath,
     PaneRenderer,
@@ -25,32 +24,52 @@ import {
     UniqueIdentifier,
 } from "@dnd-kit/core";
 import DraggedTab from "./dnd/DraggedTab";
+import {TabData} from "./TabData";
 
-export const LaymanContext = createContext<LaymanContextType | null>(null);
+// Define default values for the context
+const defaultContextValue: LaymanContextType = {
+    laymanRef: null,
+    setLaymanRef: () => {},
+    layout: [],
+    setLayout: () => {},
+    addWindow: () => {},
+    globalTabs: [],
+    setGlobalTabs: () => {},
+    addTab: () => {},
+    removeTab: () => {},
+    renderPane: () => <></>,
+    renderTab: () => <></>,
+    separatorThickness: 0,
+    windowToolbarHeight: 0,
+};
+
+export const LaymanContext =
+    createContext<LaymanContextType>(defaultContextValue);
+
+type LaymanProviderProps = {
+    initialLayout: LaymanLayout;
+    renderPane: PaneRenderer;
+    renderTab: TabRenderer;
+    children: React.ReactNode;
+};
 
 export const LaymanProvider = ({
     initialLayout,
     renderPane,
     renderTab,
     children,
-}: {
-    initialLayout: LaymanLayout;
-    renderPane: PaneRenderer;
-    renderTab: TabRenderer;
-    children: React.ReactNode;
-}) => {
+}: LaymanProviderProps) => {
     const [layout, setLayout] = useState<LaymanLayout>(initialLayout);
-    const [globalTabs, setGlobalTabs] = useState<LaymanKeys>([]);
-    const [selectedTabs, setSelectedTabs] = useState<LaymanKeys>([]);
+    const [globalTabs, setGlobalTabs] = useState<LaymanTabs>([]);
     const [laymanRef, setLaymanRef] =
         useState<React.RefObject<HTMLElement> | null>(null);
     const [separatorThickness, setSeparatorThickness] = useState(0);
     const [windowToolbarHeight, setWindowToolbarHeight] = useState(0);
     const [draggedTab, setDraggedTab] = useState<UniqueIdentifier | null>(null);
 
-    // Get all tab ids from initial layout
+    // Get all tabs from initial layout
     useEffect(() => {
-        const tabs: LaymanKeys = [];
+        const tabs: LaymanTabs = [];
 
         const traverseLayout = (layout: LaymanLayout) => {
             if (Array.isArray(layout)) {
@@ -63,7 +82,7 @@ export const LaymanProvider = ({
         traverseLayout(layout);
 
         setGlobalTabs(tabs);
-    }, [layout, setGlobalTabs]);
+    }, [layout]);
 
     // Get separatorWidth and windowToolbarHeight from CSS variables
     useEffect(() => {
@@ -85,24 +104,11 @@ export const LaymanProvider = ({
         );
     }, []);
 
-    const createUniqueTabId = (tabId: LaymanKey) => {
-        let count = 0;
-        for (const existingTab of globalTabs) {
-            const existingTabParts = existingTab.split(":");
-            if (existingTabParts[0] === tabId) {
-                const existingTabNumber =
-                    parseInt(existingTabParts[1], 10) || 0;
-                count = Math.max(existingTabNumber + 1, count + 1);
-            }
-        }
-        return `${tabId}:${count}`;
-    };
-
-    //Adds a new window to the layout at the specified path, on the specified placement.s
+    /** Adds a new window to the layout at the specified path, on the specified placement. */
     const addWindow = (
         direction: LaymanDirection,
         placement: LaymanBranch,
-        newWindowTabs: LaymanKeys,
+        newWindowTabs: LaymanTabs,
         path: LaymanPath
     ) => {
         // Edge case: One window, turn layout from an array into an object
@@ -138,8 +144,8 @@ export const LaymanProvider = ({
         setLayout({...newLayout});
     };
 
-    //Adds a new tab at the specified path within the layout.
-    const addTab = (path: LaymanPath, tab: LaymanKey) => {
+    /** Adds a new tab at the specified path within the layout. */
+    const addTab = (path: LaymanPath, tab: TabData) => {
         // Edge case: One window, layout is just an array
         if (_.isArray(layout)) {
             layout.push(tab);
@@ -155,10 +161,12 @@ export const LaymanProvider = ({
         }
     };
 
-    // Removes a tab at the specified index and path. If the last tab is removed, it collapses the parent container.
+    /** Removes a tab at the specified index and path.
+     * If the last tab is removed, it collapses the parent container.
+     */
     const removeTab = (
         path: LaymanPath,
-        tabs: LaymanKeys,
+        tabs: LaymanTabs,
         index: number,
         currentTabIndex: number,
         setCurrentTabIndex: Dispatch<SetStateAction<number>>
@@ -223,10 +231,9 @@ export const LaymanProvider = ({
         console.log("Updated layout:", layout);
         setLayout({...layout});
 
-        // Handle change in selectedTab
-        // Remove tab from list of selected tabs, since it doesn't exist anymore
-        setSelectedTabs((prevSelectedTabIds: LaymanKeys) =>
-            prevSelectedTabIds.filter((tab) => tab !== tabs[index])
+        // Remove tab from global tab list
+        setGlobalTabs((prevTabs) =>
+            prevTabs.filter((tab) => tab.id !== tabs[index].id)
         );
 
         // Edge cases: Deleted tab left of selected tab
@@ -247,8 +254,6 @@ export const LaymanProvider = ({
         setDraggedTab(event.active.id);
     };
 
-    // Handler for dragging tabs to new positions
-    // Behavior based on event.over.id, which specifies where the element was dropped
     const handleDragEnd = (event: DragEndEvent) => {
         console.log(`Dragged ${event.active.id} over ${event.over!.id}`);
         setDraggedTab(null);
@@ -263,11 +268,9 @@ export const LaymanProvider = ({
                 setLayout,
                 addWindow,
                 globalTabs,
+                setGlobalTabs,
                 addTab,
                 removeTab,
-                createUniqueTabId,
-                selectedTabs,
-                setSelectedTabs,
                 renderPane,
                 renderTab,
                 separatorThickness,

@@ -15,7 +15,13 @@ export function Separator({
     direction: LaymanDirection;
     path: LaymanPath;
 }) {
-    const laymanContext = useContext(LaymanContext);
+    const {
+        layout,
+        setLayout,
+        laymanRef,
+        windowToolbarHeight,
+        separatorThickness,
+    } = useContext(LaymanContext);
     // State for when user is dragging the separator
     const [isDragging, setIsDragging] = useState(false);
 
@@ -54,20 +60,17 @@ export function Separator({
               });
 
     // Calculate minimum panel size to prevent toolbars from being cut off
-    const minPanelSize = laymanContext!.laymanRef
-        ? (100 *
-              (laymanContext!.windowToolbarHeight +
-                  laymanContext!.separatorThickness)) /
-          laymanContext!.laymanRef!.current!.getBoundingClientRect().height
+    const minPanelSize = laymanRef
+        ? (100 * (windowToolbarHeight + separatorThickness)) /
+          laymanRef!.current!.getBoundingClientRect().height
         : 5;
 
     // Add event listeners to let separator change layout when dragged
     useEffect(() => {
         const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
             event.preventDefault();
-            if (isDragging && laymanContext!.laymanRef!.current) {
-                const parentBBox =
-                    laymanContext!.laymanRef!.current.getBoundingClientRect();
+            if (isDragging && laymanRef!.current) {
+                const parentBBox = laymanRef!.current.getBoundingClientRect();
                 let absolutesSplitPercentage;
                 if (direction === "column") {
                     absolutesSplitPercentage =
@@ -89,19 +92,16 @@ export function Separator({
                 );
                 // Edge case: first separator has no path
                 if (path.length == 0) {
-                    laymanContext!.setLayout({
-                        ...laymanContext!.layout,
+                    setLayout({
+                        ...layout,
                         splitPercentage: newSplitPercentage,
                     });
                     return;
                 }
-                const currentLayout = _.get(
-                    laymanContext!.layout,
-                    path.join(".")
-                );
+                const currentLayout = _.get(layout, path.join("."));
                 if (Array.isArray(currentLayout)) return;
                 currentLayout.splitPercentage = newSplitPercentage;
-                laymanContext!.setLayout({...laymanContext!.layout});
+                setLayout({...layout});
             }
         };
 
@@ -138,7 +138,16 @@ export function Separator({
                 ) => never
             );
         };
-    }, [direction, isDragging, minPanelSize, parentInset, path, laymanContext]);
+    }, [
+        direction,
+        isDragging,
+        minPanelSize,
+        parentInset,
+        path,
+        laymanRef,
+        layout,
+        setLayout,
+    ]);
 
     // Toggle isDragging when holding separator
     const handleMouseUp: MouseEventHandler<HTMLElement> = (event) => {

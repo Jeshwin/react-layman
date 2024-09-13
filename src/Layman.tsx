@@ -4,29 +4,13 @@ import {Window} from "./Window";
 import {Separator} from "./Separator";
 import {Inset} from "./Inset";
 import {
-    LaymanDirection,
-    LaymanKey,
-    LaymanKeys,
     LaymanLayout,
     LaymanPath,
+    SeparatorProps,
+    ToolBarProps,
+    PaneProps,
 } from "./types";
 import {LaymanContext} from "./LaymanContext";
-
-// Types for local state arrays
-type SeparatorProps = {
-    key: string;
-    parentInset: Inset;
-    splitPercentage: number;
-    direction: LaymanDirection;
-    path: LaymanPath;
-};
-type ToolBarProps = {
-    key: string;
-    inset: Inset;
-    path: LaymanPath;
-    tabs: LaymanKeys;
-};
-type PaneProps = {inset: Inset; tab: LaymanKey};
 
 // Entry point for Layman Window Manager
 // Takes in an initial layout as a binary tree object
@@ -34,7 +18,7 @@ type PaneProps = {inset: Inset; tab: LaymanKey};
 // and one to convert the same unique id to a tab name/component
 // Stores useful global state using Jotai atoms
 export function Layman() {
-    const laymanContext = useContext(LaymanContext);
+    const {setLaymanRef, layout} = useContext(LaymanContext);
     // Local state for component lists
     const [separators, setSeparators] = useState<SeparatorProps[]>([]);
     const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
@@ -43,13 +27,12 @@ export function Layman() {
     const laymanRef = useRef(null);
 
     useEffect(() => {
-        laymanContext!.setLaymanRef(laymanRef);
+        setLaymanRef(laymanRef);
     });
 
     // Calculate component lists whenever layout changes
     // useMemo caches values if they don't change
     useMemo(() => {
-        const layout = laymanContext!.layout;
         const calculatedSeparators: SeparatorProps[] = [];
         const calculatedToolbars: ToolBarProps[] = [];
         const calculatedPanes: PaneProps[] = [];
@@ -61,7 +44,6 @@ export function Layman() {
         ) {
             if (Array.isArray(layout)) {
                 calculatedToolbars.push({
-                    key: path.join(":"),
                     inset,
                     path,
                     tabs: layout,
@@ -69,13 +51,12 @@ export function Layman() {
                 layout.map((tab) =>
                     calculatedPanes.push({
                         inset,
-                        tab: tab as LaymanKey,
+                        tab: tab,
                     })
                 );
             } else {
                 if (!layout) return;
                 calculatedSeparators.push({
-                    key: path.length != 0 ? path.join(":") : "root",
                     parentInset: inset,
                     splitPercentage: layout.splitPercentage ?? 50,
                     direction: layout.direction,
@@ -102,13 +83,13 @@ export function Layman() {
         setSeparators(calculatedSeparators);
         setToolbars(calculatedToolbars);
         setPanes(calculatedPanes);
-    }, [laymanContext]);
+    }, [layout]);
 
     return (
         <div ref={laymanRef} className="layman-root">
             {separators.map((props) => (
                 <Separator
-                    key={props.key}
+                    key={props.path.join(":")}
                     parentInset={props.parentInset}
                     splitPercentage={props.splitPercentage}
                     direction={props.direction}
@@ -117,14 +98,18 @@ export function Layman() {
             ))}
             {toolbars.map((props) => (
                 <WindowToolbar
-                    key={props.key}
+                    key={props.path.length != 0 ? props.path.join(":") : "root"}
                     inset={props.inset}
                     path={props.path}
                     tabs={props.tabs}
                 />
             ))}
             {panes.map((props) => (
-                <Window key={props.tab} inset={props.inset} tab={props.tab} />
+                <Window
+                    key={props.tab.id}
+                    inset={props.inset}
+                    tab={props.tab}
+                />
             ))}
         </div>
     );
