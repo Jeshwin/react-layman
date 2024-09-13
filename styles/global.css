@@ -162,16 +162,3 @@
         border-top-right-radius: var(--border-radius, 4px);
     }
 }
-
-.dragged-tab {
-    display: flex;
-    align-items: center;
-    width: fit-content;
-    background-color: var(--toolbar-bg-color, #18181b);
-    border-radius: var(--border-radius, 4px);
-    padding: calc(var(--toolbar-height, 32px) / 4);
-    color: var(--tab-text-color, #ffffff);
-    font-size: var(--tab-font-size, 14px);
-    line-height: calc(var(--tab-font-size, 14px) * 1.2);
-    user-select: none;
-}

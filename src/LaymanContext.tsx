@@ -16,15 +16,9 @@ import {
     TabRenderer,
 } from "./types";
 import _ from "lodash";
-import {
-    DndContext,
-    DragOverlay,
-    DragEndEvent,
-    DragStartEvent,
-    UniqueIdentifier,
-} from "@dnd-kit/core";
-import DraggedTab from "./dnd/DraggedTab";
 import {TabData} from "./TabData";
+import {DndProvider} from "react-dnd";
+import {HTML5Backend} from "react-dnd-html5-backend";
 
 // Define default values for the context
 const defaultContextValue: LaymanContextType = {
@@ -65,7 +59,6 @@ export const LaymanProvider = ({
         useState<React.RefObject<HTMLElement> | null>(null);
     const [separatorThickness, setSeparatorThickness] = useState(0);
     const [windowToolbarHeight, setWindowToolbarHeight] = useState(0);
-    const [draggedTab, setDraggedTab] = useState<UniqueIdentifier | null>(null);
 
     // Get all tabs from initial layout
     useEffect(() => {
@@ -250,15 +243,6 @@ export const LaymanProvider = ({
         }
     };
 
-    const handleDragStart = (event: DragStartEvent) => {
-        setDraggedTab(event.active.id);
-    };
-
-    const handleDragEnd = (event: DragEndEvent) => {
-        console.log(`Dragged ${event.active.id} over ${event.over!.id}`);
-        setDraggedTab(null);
-    };
-
     return (
         <LaymanContext.Provider
             value={{
@@ -277,12 +261,7 @@ export const LaymanProvider = ({
                 windowToolbarHeight,
             }}
         >
-            <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-                <DragOverlay>
-                    <DraggedTab tab={draggedTab} />
-                </DragOverlay>
-                {children}
-            </DndContext>
+            <DndProvider backend={HTML5Backend}>{children}</DndProvider>
         </LaymanContext.Provider>
     );
 };

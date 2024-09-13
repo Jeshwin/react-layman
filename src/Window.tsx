@@ -1,12 +1,22 @@
 import {Inset} from "./Inset";
 import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
-import Droppable from "./dnd/Droppable";
 import {TabData} from "./TabData";
+import {useDrop} from "react-dnd";
+
+// Define a type for the draggable item
+const TabType = "TAB";
 
 export function Window({inset, tab}: {inset: Inset; tab: TabData}) {
     const {laymanRef, windowToolbarHeight, renderPane} =
         useContext(LaymanContext);
+    const [, drop] = useDrop(() => ({
+        accept: TabType,
+        drop: (item: TabData) => {
+            console.log(`Dropped ${item.id} onto ${tab.id}`);
+            console.dir(item);
+        },
+    }));
 
     const adjustedInset = new Inset({
         ...inset,
@@ -21,6 +31,7 @@ export function Window({inset, tab}: {inset: Inset; tab: TabData}) {
     return (
         <div
             id={tab.id}
+            ref={drop}
             style={{
                 inset: adjustedInset.toString(),
             }}
@@ -28,7 +39,7 @@ export function Window({inset, tab}: {inset: Inset; tab: TabData}) {
                 tab.isSelected ? "selected" : "unselected"
             }`}
         >
-            <Droppable id={tab.id}>{renderPane(tab)}</Droppable>
+            {renderPane(tab)}
         </div>
     );
 }
