@@ -79,7 +79,11 @@ export function Layman() {
             }
         }
 
-        traverseLayout(layout, new Inset({}), []);
+        traverseLayout(
+            layout,
+            new Inset({top: 0, left: 0, bottom: 0, right: 0}),
+            []
+        );
         setSeparators(calculatedSeparators);
         setToolbars(calculatedToolbars);
         setPanes(calculatedPanes);
@@ -89,7 +93,7 @@ export function Layman() {
         <div ref={laymanRef} className="layman-root">
             {separators.map((props) => (
                 <Separator
-                    key={props.path.join(":")}
+                    key={props.path.length != 0 ? props.path.join(":") : "root"}
                     parentInset={props.parentInset}
                     splitPercentage={props.splitPercentage}
                     direction={props.direction}

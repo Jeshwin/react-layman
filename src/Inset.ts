@@ -1,10 +1,10 @@
 import {LaymanDirection} from "./types";
 
 export interface InsetInput {
-    top?: number;
-    right?: number;
-    bottom?: number;
-    left?: number;
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
 }
 
 export class Inset {
@@ -19,10 +19,10 @@ export class Inset {
      * @param params Object containing the top, right, bottom, and left values.
      */
     constructor(params: InsetInput) {
-        this.top = this.validateValue(params.top ?? 0);
-        this.right = this.validateValue(params.right ?? 0);
-        this.bottom = this.validateValue(params.bottom ?? 0);
-        this.left = this.validateValue(params.left ?? 0);
+        this.top = this.validateValue(params.top);
+        this.right = this.validateValue(params.right);
+        this.bottom = this.validateValue(params.bottom);
+        this.left = this.validateValue(params.left);
     }
 
     /**
