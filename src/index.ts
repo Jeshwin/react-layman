@@ -1,8 +1,5 @@
 export type {
-    LaymanTab,
-    LaymanTabs,
     LaymanDirection,
-    LaymanBranch,
     LaymanPath,
     LaymanLayout,
     PaneRenderer,
@@ -10,8 +7,6 @@ export type {
     LaymanContextType,
 } from "./types";
 
-export {Inset} from "./Inset";
-export type {InsetInput} from "./Inset";
 export {LaymanContext, LaymanProvider} from "./LaymanContext";
 
 export {Layman} from "./Layman";

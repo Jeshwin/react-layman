@@ -1,7 +1,6 @@
 import {useContext, useEffect} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {LaymanTabs, LaymanPath} from "./types";
-import {Inset} from "./Inset";
+import {LaymanPath, Position} from "./types";
 import {NormalTab, SelectedTab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
@@ -9,14 +8,28 @@ import {TabData} from "./TabData";
 
 export function WindowToolbar({
     path,
-    inset,
+    position,
     tabs,
 }: {
     path: LaymanPath;
-    inset: Inset;
-    tabs: LaymanTabs;
+    position: Position;
+    tabs: TabData[];
 }) {
     const {layoutDispatch} = useContext(LaymanContext);
+    const windowToolbarHeight =
+        parseInt(
+            getComputedStyle(document.documentElement)
+                .getPropertyValue("--toolbar-height")
+                .trim(),
+            10
+        ) ?? 64;
+    const separatorThickness =
+        parseInt(
+            getComputedStyle(document.documentElement)
+                .getPropertyValue("--separator-thickness")
+                .trim(),
+            10
+        ) ?? 8;
 
     // If none of the tabs are selected, set the first tab to be selected
     useEffect(() => {
@@ -68,7 +81,9 @@ export function WindowToolbar({
         <div
             id={path.join(":")}
             style={{
-                inset: inset.toString(),
+                ...position,
+                width: position.width - separatorThickness,
+                height: windowToolbarHeight,
             }}
             className="layman-toolbar"
         >

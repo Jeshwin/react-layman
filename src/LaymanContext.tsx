@@ -1,6 +1,5 @@
 import {createContext, useReducer, useState} from "react";
 import {
-    LaymanBranch,
     LaymanContextType,
     LaymanLayout,
     PaneRenderer,
@@ -16,7 +15,7 @@ import React from "react";
 const defaultContextValue: LaymanContextType = {
     laymanRef: undefined,
     setLaymanRef: () => {},
-    layout: [],
+    layout: {},
     layoutDispatch: () => {},
     renderPane: () => <></>,
     renderTab: () => <></>,

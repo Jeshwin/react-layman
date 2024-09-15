@@ -11,22 +11,49 @@ import Pane from "./Pane";
 export default function App() {
     const initialLayout: LaymanLayout = {
         direction: "row",
-        first: [new TabData("explorer")],
-        second: {
-            direction: "column",
-            first: [
-                new TabData("file:main.py"),
-                new TabData("file:utils/rref.py"),
-                new TabData("file:api/auth/passwd.py"),
-            ],
-            second: [
-                new TabData("console"),
-                new TabData("shell:0"),
-                new TabData("shell:1"),
-            ],
-            splitPercentage: 80,
-        },
-        splitPercentage: 20,
+        children: [
+            {
+                direction: "column",
+                children: [
+                    {
+                        tabs: [
+                            new TabData("Home", {icon: "home-icon"}),
+                            new TabData("Settings", {icon: "settings-icon"}),
+                        ],
+                        selectedIndex: 0,
+                    },
+                    {
+                        tabs: [
+                            new TabData("Profile", {icon: "profile-icon"}),
+                            new TabData("Messages", {icon: "messages-icon"}),
+                        ],
+                        selectedIndex: 1,
+                    },
+                    {
+                        tabs: [
+                            new TabData("Inbox", {icon: "mail-icon"}),
+                            new TabData("Ratings", {icon: "heart-icon"}),
+                        ],
+                        selectedIndex: 1,
+                    },
+                ],
+            },
+            {
+                direction: "column",
+                children: [
+                    {
+                        tabs: [
+                            new TabData("Dashboard", {icon: "dashboard-icon"}),
+                        ],
+                        selectedIndex: 0,
+                    },
+                    {
+                        tabs: [new TabData("Reports", {icon: "reports-icon"})],
+                        selectedIndex: 0,
+                    },
+                ],
+            },
+        ],
     };
     /**
      * @function renderPane
@@ -58,7 +85,7 @@ export default function App() {
                 <div
                     style={{
                         color: "white",
-                        width: "calc(100vw - 16px)",
+                        width: "calc(100vw - 16px",
                         height: "calc(100vh - 16px)",
                     }}
                 >

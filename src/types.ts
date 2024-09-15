@@ -1,53 +1,67 @@
 import {Dispatch, SetStateAction} from "react";
-import {Inset} from "./Inset";
 import {TabData} from "./TabData";
 
-// Define a type for the draggable item
+// Credit: https://blog.replit.com/leaky-uis
+// This is a utility type, a dynamically sized tuple
+// that requires at least 2 elements be present. This
+// guarantees flatness, i.e. no awkward [[[[A]]]] case
+type Children<T> = [T, T, ...T[]];
+
 export const TabType = "TAB";
-export type LaymanTabs = TabData[];
 
 export type LaymanDirection = "column" | "row";
+export type LaymanPath = number[];
 
-export type LaymanBranch = "first" | "second";
-export type LaymanPath = LaymanBranch[];
+export interface LaymanWindow {
+    viewPercent?: number;
+    tabs: TabData[];
+    selectedIndex: number;
+}
 
 export type LaymanLayout =
-    | LaymanTabs
+    | LaymanWindow
     | {
           direction: LaymanDirection;
-          first: LaymanLayout;
-          second: LaymanLayout;
-          splitPercentage?: number;
+          viewPercent?: number;
+          children: Children<LaymanLayout>;
       };
 
 export interface LaymanLayoutAction {
     type: string;
     path: LaymanPath;
-    tab?: TabData;
-    direction?: LaymanDirection;
-    placement?: LaymanBranch;
-    newSplitPercentage?: number;
+    // tab?: TabData;
+    // direction?: LaymanDirection;
+    // placement?: LaymanBranch;
+    // newSplitPercentage?: number;
+    [key: string]: unknown;
 }
 
-export type PaneRenderer = (arg0: TabData) => JSX.Element;
-export type TabRenderer = (arg0: TabData) => string | JSX.Element;
+export interface Position {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+}
 
 // Types for component props
 export interface SeparatorProps {
-    parentInset: Inset;
+    parentPosition: Position;
     splitPercentage: number;
     direction: LaymanDirection;
     path: LaymanPath;
 }
 export interface ToolBarProps {
-    inset: Inset;
+    position: Position;
     path: LaymanPath;
-    tabs: LaymanTabs;
+    tabs: TabData[];
 }
 export interface PaneProps {
-    inset: Inset;
+    position: Position;
     tab: TabData;
 }
+
+export type PaneRenderer = (arg0: TabData) => JSX.Element;
+export type TabRenderer = (arg0: TabData) => string | JSX.Element;
 
 export interface LaymanContextType {
     laymanRef: React.RefObject<HTMLElement> | undefined;

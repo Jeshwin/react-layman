@@ -60,10 +60,12 @@
     background-color: var(--window-bg-color, #27272a);
     &.selected {
         visibility: visible;
+        opacity: 1;
         z-index: 5;
     }
     &.unselected {
         visibility: hidden;
+        opacity: 0;
         z-index: 3;
     }
 }

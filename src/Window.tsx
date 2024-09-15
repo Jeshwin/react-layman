@@ -1,12 +1,11 @@
-import {Inset} from "./Inset";
 import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {useDrop} from "react-dnd";
-import {TabType} from "./types";
+import {Position, TabType} from "./types";
 
-export function Window({inset, tab}: {inset: Inset; tab: TabData}) {
-    const {laymanRef, renderPane} = useContext(LaymanContext);
+export function Window({position, tab}: {position: Position; tab: TabData}) {
+    const {renderPane} = useContext(LaymanContext);
     const [, drop] = useDrop(() => ({
         accept: TabType,
         drop: (item: TabData) => {
@@ -14,6 +13,13 @@ export function Window({inset, tab}: {inset: Inset; tab: TabData}) {
             console.dir(item);
         },
     }));
+    const separatorThickness =
+        parseInt(
+            getComputedStyle(document.documentElement)
+                .getPropertyValue("--separator-thickness")
+                .trim(),
+            10
+        ) ?? 8;
 
     const windowToolbarHeight =
         parseInt(
@@ -23,26 +29,20 @@ export function Window({inset, tab}: {inset: Inset; tab: TabData}) {
             10
         ) ?? 64;
 
-    const adjustedInset = new Inset({
-        ...inset,
-        top:
-            inset.top +
-            (laymanRef
-                ? (100 * windowToolbarHeight) /
-                  laymanRef.current!.getBoundingClientRect().height
-                : 0),
-    });
-
     return (
         <div
             id={tab.id}
             ref={drop}
             style={{
-                inset: adjustedInset.toString(),
+                top: position.top + windowToolbarHeight,
+                left: position.left,
+                width: position.width - separatorThickness,
+                height:
+                    position.height -
+                    windowToolbarHeight -
+                    separatorThickness / 2,
             }}
-            className={`layman-window ${
-                tab.isSelected ? "selected" : "unselected"
-            }`}
+            className={`layman-window selected`}
         >
             {renderPane(tab)}
         </div>
