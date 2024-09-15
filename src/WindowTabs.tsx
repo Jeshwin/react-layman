@@ -3,9 +3,7 @@ import {useContext} from "react";
 import {useDrag} from "react-dnd";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
-
-// Define a type for the draggable item
-const TabType = "TAB";
+import {TabType} from "./types";
 
 interface NormalTabProps {
     tab: TabData;

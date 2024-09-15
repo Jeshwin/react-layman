@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useContext, useEffect} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
 import {LaymanTabs, LaymanPath} from "./types";
 import {Inset} from "./Inset";
@@ -16,43 +16,52 @@ export function WindowToolbar({
     inset: Inset;
     tabs: LaymanTabs;
 }) {
-    const {setGlobalTabs, addTab, removeTab, addWindow} =
-        useContext(LaymanContext);
-    const [currentTabIndex, setCurrentTabIndex] = useState<number>(0);
+    const {layoutDispatch} = useContext(LaymanContext);
 
-    // Add currently selected tab to selected tab list if not already there
+    // If none of the tabs are selected, set the first tab to be selected
     useEffect(() => {
-        setGlobalTabs((prevTabs) =>
-            prevTabs.map((tab) => {
-                if (tab.id === tabs[currentTabIndex].id) {
-                    // Update the isSelected property directly
-                    tab.isSelected = true;
-                }
-                return tab;
-            })
-        );
-    }, [currentTabIndex, setGlobalTabs, tabs]);
+        let selectedTabExists = false;
+        tabs.forEach((tab) => {
+            if (tab.isSelected) {
+                selectedTabExists = true;
+            }
+        });
+        if (!selectedTabExists) {
+            layoutDispatch({
+                type: "selectTab",
+                path: path,
+                tab: tabs[0],
+            });
+        }
+    }, [layoutDispatch, path, tabs]);
 
     const addBlankTab = () => {
-        addTab(path, new TabData("blank"));
+        layoutDispatch({
+            type: "addTab",
+            path: path,
+            tab: new TabData("blank"),
+        });
     };
 
     const removeTabAtIndex = (index: number) => {
-        removeTab(path, tabs, index, currentTabIndex, setCurrentTabIndex);
+        // Deleted tab left of selected tab
+        if (tabs[index].isSelected) {
+            tabs[Math.max(0, index - 1)].isSelected = true;
+        }
+
+        layoutDispatch({
+            type: "removeTab",
+            path: path,
+            tab: tabs[index],
+        });
     };
 
     const handleClickTab = (index: number) => {
-        // Remove previously selected tab from selected tabs
-        setGlobalTabs((prevTabs) =>
-            prevTabs.map((tab) => {
-                if (tab.id === tabs[currentTabIndex].id) {
-                    // Update the isSelected property directly
-                    tab.isSelected = false;
-                }
-                return tab;
-            })
-        );
-        setCurrentTabIndex(index);
+        layoutDispatch({
+            type: "selectTab",
+            path: path,
+            tab: tabs[index],
+        });
     };
 
     return (
@@ -66,7 +75,7 @@ export function WindowToolbar({
             {/** Render each tab */}
             <div className="tab-container">
                 {tabs.map((tab: TabData, index: number) => {
-                    if (index == currentTabIndex) {
+                    if (tab.isSelected) {
                         return (
                             <SelectedTab
                                 key={index}
@@ -98,18 +107,25 @@ export function WindowToolbar({
                 <ToolbarButton
                     icon={<VscSplitVertical color="white" />}
                     onClick={() =>
-                        addWindow(
-                            "column",
-                            "second",
-                            [new TabData("blank")],
-                            path
-                        )
+                        layoutDispatch({
+                            type: "addWindow",
+                            path: path,
+                            tab: new TabData("blank"),
+                            direction: "column",
+                            placement: "second",
+                        })
                     }
                 />
                 <ToolbarButton
                     icon={<VscSplitHorizontal color="white" />}
                     onClick={() =>
-                        addWindow("row", "second", [new TabData("blank")], path)
+                        layoutDispatch({
+                            type: "addWindow",
+                            path: path,
+                            tab: new TabData("blank"),
+                            direction: "row",
+                            placement: "second",
+                        })
                     }
                 />
             </div>

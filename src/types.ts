@@ -2,6 +2,8 @@ import {Dispatch, SetStateAction} from "react";
 import {Inset} from "./Inset";
 import {TabData} from "./TabData";
 
+// Define a type for the draggable item
+export const TabType = "TAB";
 export type LaymanTabs = TabData[];
 
 export type LaymanDirection = "column" | "row";
@@ -17,6 +19,15 @@ export type LaymanLayout =
           second: LaymanLayout;
           splitPercentage?: number;
       };
+
+export interface LaymanLayoutAction {
+    type: string;
+    path: LaymanPath;
+    tab?: TabData;
+    direction?: LaymanDirection;
+    placement?: LaymanBranch;
+    newSplitPercentage?: number;
+}
 
 export type PaneRenderer = (arg0: TabData) => JSX.Element;
 export type TabRenderer = (arg0: TabData) => string | JSX.Element;
@@ -39,28 +50,12 @@ export interface PaneProps {
 }
 
 export interface LaymanContextType {
-    laymanRef: React.RefObject<HTMLElement> | null;
-    setLaymanRef: Dispatch<SetStateAction<React.RefObject<HTMLElement> | null>>;
+    laymanRef: React.RefObject<HTMLElement> | undefined;
+    setLaymanRef: Dispatch<
+        SetStateAction<React.RefObject<HTMLElement> | undefined>
+    >;
     layout: LaymanLayout;
-    setLayout: Dispatch<SetStateAction<LaymanLayout>>;
-    addWindow: (
-        direction: LaymanDirection,
-        placement: LaymanBranch,
-        newWindowTabs: LaymanTabs,
-        path: LaymanPath
-    ) => void;
-    globalTabs: LaymanTabs;
-    setGlobalTabs: Dispatch<SetStateAction<LaymanTabs>>;
-    addTab: (path: LaymanPath, tab: TabData) => void;
-    removeTab: (
-        path: LaymanPath,
-        tabs: LaymanTabs,
-        index: number,
-        currentTabIndex: number,
-        setCurrentTabIndex: Dispatch<SetStateAction<number>>
-    ) => void;
+    layoutDispatch: React.Dispatch<LaymanLayoutAction>;
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
-    separatorThickness: number;
-    windowToolbarHeight: number;
 }

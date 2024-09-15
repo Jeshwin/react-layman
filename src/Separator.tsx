@@ -1,5 +1,4 @@
 import {MouseEventHandler, useContext, useEffect, useState} from "react";
-import _ from "lodash";
 import {Inset} from "./Inset";
 import {LaymanDirection, LaymanPath} from "./types";
 import {LaymanContext} from "./LaymanContext";
@@ -15,14 +14,7 @@ export function Separator({
     direction: LaymanDirection;
     path: LaymanPath;
 }) {
-    const {
-        layout,
-        setLayout,
-        laymanRef,
-        windowToolbarHeight,
-        separatorThickness,
-    } = useContext(LaymanContext);
-    // State for when user is dragging the separator
+    const {layout, layoutDispatch, laymanRef} = useContext(LaymanContext);
     const [isDragging, setIsDragging] = useState(false);
 
     // Calculate separator inset using parentInset
@@ -59,50 +51,34 @@ export function Separator({
                       parentInset.left,
               });
 
-    // Calculate minimum panel size to prevent toolbars from being cut off
-    const minPanelSize = laymanRef
-        ? (100 * (windowToolbarHeight + separatorThickness)) /
-          laymanRef!.current!.getBoundingClientRect().height
-        : 5;
+    const minSplitPercentage = 20;
+    const maxSplitPercentage = 100 - minSplitPercentage;
 
     // Add event listeners to let separator change layout when dragged
     useEffect(() => {
         const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
             event.preventDefault();
-            if (isDragging && laymanRef!.current) {
-                const parentBBox = laymanRef!.current.getBoundingClientRect();
-                let absolutesSplitPercentage;
-                if (direction === "column") {
-                    absolutesSplitPercentage =
-                        ((event.clientY - parentBBox.top) / parentBBox.height) *
-                        100.0;
-                } else {
-                    absolutesSplitPercentage =
-                        ((event.clientX - parentBBox.left) / parentBBox.width) *
-                        100.0;
-                }
-                const relativeSplitPercentage =
-                    parentInset.relativeSplitPercentage(
-                        absolutesSplitPercentage,
-                        direction
-                    );
-                const newSplitPercentage = Math.min(
-                    Math.max(relativeSplitPercentage, minPanelSize),
-                    100 - minPanelSize
-                );
-                // Edge case: first separator has no path
-                if (path.length == 0) {
-                    setLayout({
-                        ...layout,
-                        splitPercentage: newSplitPercentage,
-                    });
-                    return;
-                }
-                const currentLayout = _.get(layout, path.join("."));
-                if (Array.isArray(currentLayout)) return;
-                currentLayout.splitPercentage = newSplitPercentage;
-                setLayout({...layout});
-            }
+            if (!isDragging || !laymanRef!.current) return;
+            const parentBBox = laymanRef!.current.getBoundingClientRect();
+            const absoluteSplitPercentage =
+                direction === "column"
+                    ? ((event.clientY - parentBBox.top) / parentBBox.height) *
+                      100.0
+                    : ((event.clientX - parentBBox.left) / parentBBox.width) *
+                      100.0;
+            const relativeSplitPercentage = parentInset.relativeSplitPercentage(
+                absoluteSplitPercentage,
+                direction
+            );
+            const newSplitPercentage = Math.min(
+                Math.max(relativeSplitPercentage, minSplitPercentage),
+                maxSplitPercentage
+            );
+            layoutDispatch({
+                type: "moveSeparator",
+                path: path,
+                newSplitPercentage: newSplitPercentage,
+            });
         };
 
         // Add event listeners to document
@@ -141,12 +117,13 @@ export function Separator({
     }, [
         direction,
         isDragging,
-        minPanelSize,
         parentInset,
         path,
         laymanRef,
         layout,
-        setLayout,
+        layoutDispatch,
+        minSplitPercentage,
+        maxSplitPercentage,
     ]);
 
     // Toggle isDragging when holding separator

@@ -3,13 +3,10 @@ import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {useDrop} from "react-dnd";
-
-// Define a type for the draggable item
-const TabType = "TAB";
+import {TabType} from "./types";
 
 export function Window({inset, tab}: {inset: Inset; tab: TabData}) {
-    const {laymanRef, windowToolbarHeight, renderPane} =
-        useContext(LaymanContext);
+    const {laymanRef, renderPane} = useContext(LaymanContext);
     const [, drop] = useDrop(() => ({
         accept: TabType,
         drop: (item: TabData) => {
@@ -17,6 +14,14 @@ export function Window({inset, tab}: {inset: Inset; tab: TabData}) {
             console.dir(item);
         },
     }));
+
+    const windowToolbarHeight =
+        parseInt(
+            getComputedStyle(document.documentElement)
+                .getPropertyValue("--toolbar-height")
+                .trim(),
+            10
+        ) ?? 64;
 
     const adjustedInset = new Inset({
         ...inset,
