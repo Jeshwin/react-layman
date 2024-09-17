@@ -52,7 +52,6 @@ const LayoutReducer = (
 
         case "removeTab": {
             const lodashPath = "children." + action.path.join(".children.");
-
             const window: LaymanLayout = _.get(layout, lodashPath);
             if (!window || !("tabs" in window)) return layout;
 
@@ -92,10 +91,7 @@ const LayoutReducer = (
 
         case "selectTab": {
             const lodashPath = "children." + action.path.join(".children.");
-
             const window: LaymanLayout = _.get(layout, lodashPath);
-
-            // Ensure it's a window with tabs
             if (!window || !("tabs" in window)) return layout;
 
             // Update selectedIndex in the window
@@ -105,6 +101,43 @@ const LayoutReducer = (
 
             // Return the updated layout
             return _.set(_.cloneDeep(layout), lodashPath, window);
+        }
+
+        case "moveTab": {
+            console.log(
+                `Dropped ${action.tab.id} onto ${action.newPath.join(".")}.${
+                    action.placement
+                }`
+            );
+            console.dir(action);
+
+            const lodashPath = "children." + action.path.join(".children.");
+            const window: LaymanLayout = _.get(layout, lodashPath);
+            if (!window || !("tabs" in window)) return layout;
+
+            const removeTabLayout = LayoutReducer(layout, {
+                type: "removeTab",
+                path: action.path,
+                tab: action.tab,
+            });
+
+            if (action.placement === "center") {
+                return LayoutReducer(removeTabLayout, {
+                    type: "addTab",
+                    path: action.newPath,
+                    tab: action.tab,
+                });
+            } else {
+                return LayoutReducer(removeTabLayout, {
+                    type: "addWindow",
+                    path: action.newPath,
+                    window: {
+                        tabs: [action.tab],
+                        selectedIndex: 0,
+                    },
+                    placement: action.placement,
+                });
+            }
         }
 
         case "addWindow": {

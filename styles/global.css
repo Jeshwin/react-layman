@@ -60,17 +60,20 @@
     background-color: var(--window-bg-color, #27272a);
     &.selected {
         visibility: visible;
+        pointer-events: auto;
         opacity: 1;
         z-index: 5;
     }
     &.unselected {
         visibility: hidden;
+        pointer-events: none;
         opacity: 0;
         z-index: 3;
     }
 }
 
 .layman-toolbar {
+    transition: width 150ms ease-in-out, height 150ms ease-in-out;
     position: absolute;
     margin: calc(var(--separator-thickness, 8px) / 2);
     margin-bottom: 0px;
@@ -162,5 +165,45 @@
     .toolbar-button-container {
         display: flex;
         border-top-right-radius: var(--border-radius, 4px);
+    }
+}
+
+.layman-window-drop-target {
+    position: absolute;
+    border-radius: var(--border-radius, 4px);
+    &.top {
+        top: 0;
+        bottom: 75%;
+        left: 0;
+        right: 0;
+        background-color: #eab308;
+    }
+    &.left {
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 75%;
+        background-color: #22c55e;
+    }
+    &.bottom {
+        top: 75%;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #6366f1;
+    }
+    &.right {
+        top: 0;
+        bottom: 0;
+        left: 75%;
+        right: 0;
+        background-color: #ef4444;
+    }
+    &.center {
+        top: 25%;
+        bottom: 25%;
+        left: 25%;
+        right: 25%;
+        background-color: #737373;
     }
 }

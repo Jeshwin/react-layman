@@ -3,20 +3,30 @@ import {useContext} from "react";
 import {useDrag} from "react-dnd";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
-import {TabType} from "./types";
+import {LaymanPath, TabType} from "./types";
 
 interface TabProps {
     tab: TabData;
+    path: LaymanPath;
     isSelected: boolean;
     onMouseDown: React.MouseEventHandler<HTMLButtonElement>;
     onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-export const Tab = ({tab, isSelected, onDelete, onMouseDown}: TabProps) => {
+export const Tab = ({
+    tab,
+    path,
+    isSelected,
+    onDelete,
+    onMouseDown,
+}: TabProps) => {
     const {renderTab} = useContext(LaymanContext);
     const [{isDragging}, drag] = useDrag({
         type: TabType,
-        item: tab,
+        item: {
+            path,
+            tab,
+        },
         collect: (monitor) => ({
             isDragging: monitor.isDragging(),
         }),

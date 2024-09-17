@@ -5,6 +5,7 @@ import {Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
+import {WindowDropTarget} from "./WindowDropTarget";
 
 function usePrevious(value: number) {
     const ref = useRef(0);
@@ -88,64 +89,91 @@ export function WindowToolbar({
     };
 
     return (
-        <div
-            id={path.join(":")}
-            style={{
-                ...position,
-                width: position.width - separatorThickness,
-                height: windowToolbarHeight,
-            }}
-            className="layman-toolbar"
-        >
-            {/** Render each tab */}
-            <div ref={tabContainerRef} className="tab-container">
-                {tabs.map((tab: TabData, index: number) => {
-                    return (
-                        <Tab
-                            key={index}
-                            tab={tab}
-                            isSelected={index == selectedIndex}
-                            onDelete={() => removeTabAtIndex(index)}
-                            onMouseDown={() => handleClickTab(index)}
-                        />
-                    );
-                })}
-            </div>
-            {/** Button to add a new blank menu */}
-            <ToolbarButton icon={<VscAdd />} onClick={() => addBlankTab()} />
-            {/** Draggable area to move window */}
-            <div draggable className="drag-area"></div>
-            {/** Buttons to add convert window to a row or column */}
-            <div className="toolbar-button-container">
+        <>
+            <div
+                id={path.join(":")}
+                style={{
+                    ...position,
+                    width: position.width - separatorThickness,
+                    height: windowToolbarHeight,
+                }}
+                className="layman-toolbar"
+            >
+                {/** Render each tab */}
+                <div ref={tabContainerRef} className="tab-container">
+                    {tabs.map((tab: TabData, index: number) => {
+                        return (
+                            <Tab
+                                key={index}
+                                path={path}
+                                tab={tab}
+                                isSelected={index == selectedIndex}
+                                onDelete={() => removeTabAtIndex(index)}
+                                onMouseDown={() => handleClickTab(index)}
+                            />
+                        );
+                    })}
+                </div>
+                {/** Button to add a new blank menu */}
                 <ToolbarButton
-                    icon={<VscSplitVertical />}
-                    onClick={() =>
-                        layoutDispatch({
-                            type: "addWindow",
-                            path: path,
-                            window: {
-                                tabs: [new TabData("blank")],
-                                selectedIndex: 0,
-                            },
-                            placement: "bottom",
-                        })
-                    }
+                    icon={<VscAdd />}
+                    onClick={() => addBlankTab()}
                 />
-                <ToolbarButton
-                    icon={<VscSplitHorizontal />}
-                    onClick={() =>
-                        layoutDispatch({
-                            type: "addWindow",
-                            path: path,
-                            window: {
-                                tabs: [new TabData("blank")],
-                                selectedIndex: 0,
-                            },
-                            placement: "right",
-                        })
-                    }
-                />
+                {/** Draggable area to move window */}
+                <div draggable className="drag-area"></div>
+                {/** Buttons to add convert window to a row or column */}
+                <div className="toolbar-button-container">
+                    <ToolbarButton
+                        icon={<VscSplitVertical />}
+                        onClick={() =>
+                            layoutDispatch({
+                                type: "addWindow",
+                                path: path,
+                                window: {
+                                    tabs: [new TabData("blank")],
+                                    selectedIndex: 0,
+                                },
+                                placement: "bottom",
+                            })
+                        }
+                    />
+                    <ToolbarButton
+                        icon={<VscSplitHorizontal />}
+                        onClick={() =>
+                            layoutDispatch({
+                                type: "addWindow",
+                                path: path,
+                                window: {
+                                    tabs: [new TabData("blank")],
+                                    selectedIndex: 0,
+                                },
+                                placement: "right",
+                            })
+                        }
+                    />
+                </div>
             </div>
-        </div>
+            <div
+                style={{
+                    position: "absolute",
+                    top: position.top + windowToolbarHeight,
+                    left: position.left,
+                    width: position.width - separatorThickness,
+                    height:
+                        position.height -
+                        windowToolbarHeight -
+                        separatorThickness / 2,
+                    zIndex: 10,
+                    margin: "calc(var(--separator-thickness, 8px) / 2)",
+                    marginTop: 0,
+                }}
+            >
+                <WindowDropTarget path={path} placement="top" />
+                <WindowDropTarget path={path} placement="bottom" />
+                <WindowDropTarget path={path} placement="left" />
+                <WindowDropTarget path={path} placement="right" />
+                <WindowDropTarget path={path} placement="center" />
+            </div>
+        </>
     );
 }

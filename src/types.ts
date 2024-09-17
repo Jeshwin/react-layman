@@ -48,6 +48,13 @@ interface SelectTabAction extends BaseLaymanLayoutAction {
     tab: TabData;
 }
 
+interface MoveTabAction extends BaseLaymanLayoutAction {
+    type: "moveTab";
+    tab: TabData;
+    newPath: LaymanPath;
+    placement: "top" | "bottom" | "left" | "right" | "center";
+}
+
 // interface MoveSeparatorAction extends BaseLaymanLayoutAction {
 //     type: "moveSeparator";
 //     newSplitPercentage: number;
@@ -69,6 +76,7 @@ export type LaymanLayoutAction =
     | AddTabAction
     | RemoveTabAction
     | SelectTabAction
+    | MoveTabAction
     // | MoveSeparatorAction
     | AddWindowAction
     | RemoveWindowAction;
