@@ -7,7 +7,7 @@ import {
     LaymanPath,
     // SeparatorProps,
     ToolBarProps,
-    PaneProps,
+    WindowProps,
     Position,
 } from "./types";
 import {LaymanContext} from "./LaymanContext";
@@ -20,7 +20,7 @@ export function Layman() {
     // Local state for component lists
     // const [separators, setSeparators] = useState<SeparatorProps[]>([]);
     const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
-    const [panes, setPanes] = useState<PaneProps[]>([]);
+    const [windows, setWindows] = useState<WindowProps[]>([]);
     // Reference for parent div
     const laymanRef = useRef<HTMLDivElement | null>(null);
     const [containerSize, setContainerSize] = useState<{
@@ -59,7 +59,7 @@ export function Layman() {
     useMemo(() => {
         // const calculatedSeparators: SeparatorProps[] = [];
         const calculatedToolbars: ToolBarProps[] = [];
-        const calculatedPanes: PaneProps[] = [];
+        const calculatedWindows: WindowProps[] = [];
 
         function traverseLayout(
             layout: LaymanLayout,
@@ -70,15 +70,17 @@ export function Layman() {
             if ("tabs" in layout) {
                 // If it's a window, handle the tabs and panes
                 calculatedToolbars.push({
-                    position,
                     path,
+                    position,
                     tabs: layout.tabs,
+                    selectedIndex: layout.selectedIndex ?? 0,
                 });
 
-                layout.tabs.forEach((tab) => {
-                    calculatedPanes.push({
+                layout.tabs.forEach((tab, index) => {
+                    calculatedWindows.push({
                         position,
                         tab,
+                        isSelected: index == layout.selectedIndex,
                     });
                 });
             } else {
@@ -148,7 +150,7 @@ export function Layman() {
         // Set the calculated arrays
         // setSeparators(calculatedSeparators);
         setToolbars(calculatedToolbars);
-        setPanes(calculatedPanes);
+        setWindows(calculatedWindows);
     }, [containerSize, layout]);
 
     return (
@@ -165,16 +167,19 @@ export function Layman() {
             {toolbars.map((props) => (
                 <WindowToolbar
                     key={props.path.length != 0 ? props.path.join(":") : "root"}
-                    position={props.position}
                     path={props.path}
+                    position={props.position}
                     tabs={props.tabs}
+                    selectedIndex={props.selectedIndex}
                 />
             ))}
-            {panes.map((props) => (
+            *{" "}
+            {windows.map((props) => (
                 <Window
                     key={props.tab.id}
                     position={props.position}
                     tab={props.tab}
+                    isSelected={props.isSelected}
                 />
             ))}
         </div>

@@ -56,19 +56,38 @@ const LayoutReducer = (
             const window: LaymanLayout = _.get(layout, lodashPath);
             if (!window || !("tabs" in window)) return layout;
 
-            // Filter out the tab to be removed
-            window.tabs = window.tabs.filter((tab) => tab.id !== action.tab.id);
+            // Create a new array of tabs without the removed tab
+            const updatedTabs = window.tabs.filter(
+                (tab) => tab.id !== action.tab.id
+            );
+
+            // Adjust selectedIndex only if the removed tab is to the left of the selected one
+            let updatedSelectedIndex = window.selectedIndex;
+            const removedTabIndex = _.indexOf(window.tabs, action.tab);
+
+            if (
+                window.selectedIndex &&
+                removedTabIndex <= window.selectedIndex
+            ) {
+                updatedSelectedIndex = Math.max(0, window.selectedIndex - 1);
+            }
 
             // If no more tabs exist, remove the window itself
-            if (window.tabs.length === 0) {
+            if (updatedTabs.length === 0) {
                 return LayoutReducer(layout, {
                     type: "removeWindow",
                     path: action.path,
                 });
             }
 
-            // Return updated layout with the tab removed
-            return _.set(_.cloneDeep(layout), lodashPath, window);
+            // Return updated layout with immutability, ensuring no direct mutations
+            const updatedWindow = {
+                ...window,
+                tabs: updatedTabs,
+                selectedIndex: updatedSelectedIndex,
+            };
+
+            return _.set(_.cloneDeep(layout), lodashPath, updatedWindow);
         }
 
         case "selectTab": {

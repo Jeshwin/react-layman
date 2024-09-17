@@ -77,6 +77,7 @@
     display: flex;
     z-index: 10;
     background-color: var(--toolbar-bg-color, #18181b);
+    color: var(--tab-text-color, #ffffff);
     border-top-left-radius: var(--border-radius, 4px);
     border-top-right-radius: var(--border-radius, 4px);
     .tab-container {
@@ -150,6 +151,7 @@
         height: var(--toolbar-height, 32px);
         display: grid;
         place-content: center;
+        color: var(--tab-text-color, #ffffff);
         background-color: transparent;
         &:hover {
             cursor: pointer;
@@ -159,8 +161,6 @@
 
     .toolbar-button-container {
         display: flex;
-        overflow-x: scroll;
-        overflow-y: clip;
         border-top-right-radius: var(--border-radius, 4px);
     }
 }

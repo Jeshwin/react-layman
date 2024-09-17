@@ -88,13 +88,15 @@ export interface SeparatorProps {
     path: LaymanPath;
 }
 export interface ToolBarProps {
-    position: Position;
     path: LaymanPath;
+    position: Position;
     tabs: TabData[];
+    selectedIndex: number;
 }
-export interface PaneProps {
+export interface WindowProps {
     position: Position;
     tab: TabData;
+    isSelected: boolean;
 }
 
 export type PaneRenderer = (arg0: TabData) => JSX.Element;

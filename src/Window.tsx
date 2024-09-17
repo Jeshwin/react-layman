@@ -2,9 +2,9 @@ import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {useDrop} from "react-dnd";
-import {Position, TabType} from "./types";
+import {TabType, WindowProps} from "./types";
 
-export function Window({position, tab}: {position: Position; tab: TabData}) {
+export function Window({position, tab, isSelected}: WindowProps) {
     const {renderPane} = useContext(LaymanContext);
     const [, drop] = useDrop(() => ({
         accept: TabType,
@@ -42,7 +42,9 @@ export function Window({position, tab}: {position: Position; tab: TabData}) {
                     windowToolbarHeight -
                     separatorThickness / 2,
             }}
-            className={`layman-window selected`}
+            className={`layman-window ${
+                isSelected ? "selected" : "unselected"
+            }`}
         >
             {renderPane(tab)}
         </div>

@@ -1,6 +1,6 @@
-import {useContext} from "react";
+import {useContext, useEffect} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {LaymanPath, Position} from "./types";
+import {ToolBarProps} from "./types";
 import {NormalTab, SelectedTab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
@@ -10,11 +10,8 @@ export function WindowToolbar({
     path,
     position,
     tabs,
-}: {
-    path: LaymanPath;
-    position: Position;
-    tabs: TabData[];
-}) {
+    selectedIndex,
+}: ToolBarProps) {
     const {layoutDispatch} = useContext(LaymanContext);
     const windowToolbarHeight =
         parseInt(
@@ -31,22 +28,14 @@ export function WindowToolbar({
             10
         ) ?? 8;
 
-    // If none of the tabs are selected, set the first tab to be selected
-    // useEffect(() => {
-    //     let selectedTabExists = false;
-    //     tabs.forEach((tab) => {
-    //         if (tab.isSelected) {
-    //             selectedTabExists = true;
-    //         }
-    //     });
-    //     if (!selectedTabExists) {
-    //         layoutDispatch({
-    //             type: "selectTab",
-    //             path: path,
-    //             tab: tabs[0],
-    //         });
-    //     }
-    // }, [layoutDispatch, path, tabs]);
+    useEffect(() => {
+        layoutDispatch({
+            type: "selectTab",
+            path: path,
+            tab: tabs[selectedIndex],
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const addBlankTab = () => {
         layoutDispatch({
@@ -57,11 +46,6 @@ export function WindowToolbar({
     };
 
     const removeTabAtIndex = (index: number) => {
-        // Deleted tab left of selected tab
-        if (tabs[index].isSelected) {
-            tabs[Math.max(0, index - 1)].isSelected = true;
-        }
-
         layoutDispatch({
             type: "removeTab",
             path: path,
@@ -90,7 +74,7 @@ export function WindowToolbar({
             {/** Render each tab */}
             <div className="tab-container">
                 {tabs.map((tab: TabData, index: number) => {
-                    if (tab.isSelected) {
+                    if (index == selectedIndex) {
                         return (
                             <SelectedTab
                                 key={index}
@@ -111,16 +95,13 @@ export function WindowToolbar({
                 })}
             </div>
             {/** Button to add a new blank menu */}
-            <ToolbarButton
-                icon={<VscAdd color="white" />}
-                onClick={() => addBlankTab()}
-            />
+            <ToolbarButton icon={<VscAdd />} onClick={() => addBlankTab()} />
             {/** Draggable area to move window */}
             <div draggable className="drag-area"></div>
             {/** Buttons to add convert window to a row or column */}
             <div className="toolbar-button-container">
                 <ToolbarButton
-                    icon={<VscSplitVertical color="white" />}
+                    icon={<VscSplitVertical />}
                     onClick={() =>
                         layoutDispatch({
                             type: "addWindow",
@@ -133,7 +114,7 @@ export function WindowToolbar({
                     }
                 />
                 <ToolbarButton
-                    icon={<VscSplitHorizontal color="white" />}
+                    icon={<VscSplitHorizontal />}
                     onClick={() =>
                         layoutDispatch({
                             type: "addWindow",
