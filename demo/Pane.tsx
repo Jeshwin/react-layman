@@ -20,6 +20,7 @@ export default function Pane({paneId}: {paneId: string}) {
                 style={{
                     fontSize: 24,
                     lineHeight: "32px",
+                    color: "#f5f5f4",
                 }}
             >
                 {paneId}
@@ -28,7 +29,7 @@ export default function Pane({paneId}: {paneId: string}) {
                 style={{
                     fontSize: 20,
                     lineHeight: "28px",
-                    color: "#042f2e",
+                    color: "#ef4444",
                 }}
             >
                 Counter: {(counter / 10).toFixed(1)}s
