@@ -11,20 +11,20 @@
 
     /*** Windows ***/
     /* Background color of the window */
-    --window-bg-color: #1e293b;
+    --window-bg-color: #ccfbf1;
 
     /* Border radius for window corners */
     --border-radius: 8px;
 
     /*** Window Toolbars ***/
     /* Background color of the toolbar */
-    --toolbar-bg-color: #0f172a;
+    --toolbar-bg-color: #115e59;
 
     /* Background color of the toolbar on hover */
-    --toolbar-hover-bg-color: #334155;
+    --toolbar-hover-bg-color: #0f766e;
 
     /* Background color for toolbar buttons on hover */
-    --toolbar-button-hover-bg-color: #334155;
+    --toolbar-button-hover-bg-color: #0f766e;
 
     /* Height of the toolbar at the top of each window */
     --toolbar-height: 32px;

@@ -1,6 +1,8 @@
 export type {
     LaymanDirection,
     LaymanPath,
+    LaymanWindow,
+    LaymanNode,
     LaymanLayout,
     PaneRenderer,
     TabRenderer,

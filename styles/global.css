@@ -75,7 +75,6 @@
     margin: calc(var(--separator-thickness, 8px) / 2);
     margin-bottom: 0px;
     display: flex;
-    height: var(--toolbar-height, 32px);
     z-index: 10;
     background-color: var(--toolbar-bg-color, #18181b);
     border-top-left-radius: var(--border-radius, 4px);
@@ -89,6 +88,7 @@
             display: flex;
             align-items: center;
             width: fit-content;
+            height: var(--toolbar-height, 32px);
             background-color: var(--toolbar-bg-color, #18181b);
             &:hover {
                 background-color: var(--toolbar-hover-bg-color, #3f3f46);

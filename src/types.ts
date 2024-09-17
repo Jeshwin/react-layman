@@ -5,36 +5,73 @@ import {TabData} from "./TabData";
 // This is a utility type, a dynamically sized tuple
 // that requires at least 2 elements be present. This
 // guarantees flatness, i.e. no awkward [[[[A]]]] case
-type Children<T> = [T, T, ...T[]];
+export type Children<T> = [T, T, ...T[]];
 
 export const TabType = "TAB";
 
 export type LaymanDirection = "column" | "row";
-export type LaymanPath = number[];
+export type LaymanPath = Array<number>;
 
 export interface LaymanWindow {
     viewPercent?: number;
     tabs: TabData[];
-    selectedIndex: number;
+    selectedIndex?: number;
 }
 
-export type LaymanLayout =
-    | LaymanWindow
-    | {
-          direction: LaymanDirection;
-          viewPercent?: number;
-          children: Children<LaymanLayout>;
-      };
+export interface LaymanNode {
+    direction: LaymanDirection;
+    viewPercent?: number;
+    children: Children<LaymanLayout>;
+}
 
-export interface LaymanLayoutAction {
+export type LaymanLayout = LaymanWindow | LaymanNode;
+
+// Define the common attributes for all actions
+interface BaseLaymanLayoutAction {
     type: string;
     path: LaymanPath;
-    // tab?: TabData;
-    // direction?: LaymanDirection;
-    // placement?: LaymanBranch;
-    // newSplitPercentage?: number;
-    [key: string]: unknown;
 }
+
+// Define the specific attributes required for each action type
+interface AddTabAction extends BaseLaymanLayoutAction {
+    type: "addTab";
+    tab: TabData;
+}
+
+interface RemoveTabAction extends BaseLaymanLayoutAction {
+    type: "removeTab";
+    tab: TabData;
+}
+
+interface SelectTabAction extends BaseLaymanLayoutAction {
+    type: "selectTab";
+    tab: TabData;
+}
+
+// interface MoveSeparatorAction extends BaseLaymanLayoutAction {
+//     type: "moveSeparator";
+//     newSplitPercentage: number;
+//     neighbors: [LaymanWindow, LaymanWindow]; // The two affected windows
+// }
+
+interface AddWindowAction extends BaseLaymanLayoutAction {
+    type: "addWindow";
+    window: LaymanWindow;
+    placement: "top" | "bottom" | "left" | "right";
+}
+
+interface RemoveWindowAction extends BaseLaymanLayoutAction {
+    type: "removeWindow";
+}
+
+// Union type of all possible actions
+export type LaymanLayoutAction =
+    | AddTabAction
+    | RemoveTabAction
+    | SelectTabAction
+    // | MoveSeparatorAction
+    | AddWindowAction
+    | RemoveWindowAction;
 
 export interface Position {
     top: number;

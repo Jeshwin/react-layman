@@ -1,4 +1,4 @@
-import {useContext, useEffect} from "react";
+import {useContext} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
 import {LaymanPath, Position} from "./types";
 import {NormalTab, SelectedTab} from "./WindowTabs";
@@ -32,21 +32,21 @@ export function WindowToolbar({
         ) ?? 8;
 
     // If none of the tabs are selected, set the first tab to be selected
-    useEffect(() => {
-        let selectedTabExists = false;
-        tabs.forEach((tab) => {
-            if (tab.isSelected) {
-                selectedTabExists = true;
-            }
-        });
-        if (!selectedTabExists) {
-            layoutDispatch({
-                type: "selectTab",
-                path: path,
-                tab: tabs[0],
-            });
-        }
-    }, [layoutDispatch, path, tabs]);
+    // useEffect(() => {
+    //     let selectedTabExists = false;
+    //     tabs.forEach((tab) => {
+    //         if (tab.isSelected) {
+    //             selectedTabExists = true;
+    //         }
+    //     });
+    //     if (!selectedTabExists) {
+    //         layoutDispatch({
+    //             type: "selectTab",
+    //             path: path,
+    //             tab: tabs[0],
+    //         });
+    //     }
+    // }, [layoutDispatch, path, tabs]);
 
     const addBlankTab = () => {
         layoutDispatch({
@@ -125,9 +125,10 @@ export function WindowToolbar({
                         layoutDispatch({
                             type: "addWindow",
                             path: path,
-                            tab: new TabData("blank"),
-                            direction: "column",
-                            placement: "second",
+                            window: {
+                                tabs: [new TabData("blank")],
+                            },
+                            placement: "bottom",
                         })
                     }
                 />
@@ -137,9 +138,10 @@ export function WindowToolbar({
                         layoutDispatch({
                             type: "addWindow",
                             path: path,
-                            tab: new TabData("blank"),
-                            direction: "row",
-                            placement: "second",
+                            window: {
+                                tabs: [new TabData("blank")],
+                            },
+                            placement: "right",
                         })
                     }
                 />

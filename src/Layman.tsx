@@ -31,14 +31,27 @@ export function Layman() {
         height: 0,
     });
 
-    useEffect(() => {
-        setLaymanRef(laymanRef);
-
-        // Get the dimensions of the Layman container when the component mounts
+    // Function to update container size
+    const updateContainerSize = () => {
         if (laymanRef.current) {
             const {width, height} = laymanRef.current.getBoundingClientRect();
             setContainerSize({width, height});
         }
+    };
+
+    useEffect(() => {
+        setLaymanRef(laymanRef);
+
+        // Get the initial dimensions of the Layman container when the component mounts
+        updateContainerSize();
+
+        // Add window resize event listener
+        window.addEventListener("resize", updateContainerSize);
+
+        // Cleanup resize event listener on unmount
+        return () => {
+            window.removeEventListener("resize", updateContainerSize);
+        };
     }, [setLaymanRef]);
 
     // Calculate component lists whenever layout changes
