@@ -18,17 +18,17 @@ export default function Pane({paneId}: {paneId: string}) {
         <div id={paneId} className="pane">
             <div
                 style={{
-                    fontSize: 30,
-                    lineHeight: "36px",
+                    fontSize: 24,
+                    lineHeight: "32px",
                 }}
             >
                 {paneId}
             </div>
             <div
                 style={{
-                    paddingTop: 16,
-                    fontSize: 24,
-                    color: "#d4d4d8",
+                    fontSize: 20,
+                    lineHeight: "28px",
+                    color: "#042f2e",
                 }}
             >
                 Counter: {(counter / 10).toFixed(1)}s

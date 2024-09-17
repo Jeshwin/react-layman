@@ -34,7 +34,6 @@ export default function App() {
                             new TabData("Inbox", {icon: "mail-icon"}),
                             new TabData("Ratings", {icon: "heart-icon"}),
                         ],
-                        selectedIndex: 1,
                     },
                 ],
             },
@@ -49,7 +48,6 @@ export default function App() {
                     },
                     {
                         tabs: [new TabData("Reports", {icon: "reports-icon"})],
-                        selectedIndex: 0,
                     },
                 ],
             },
@@ -84,7 +82,7 @@ export default function App() {
             >
                 <div
                     style={{
-                        color: "white",
+                        fontFamily: "monospace",
                         width: "calc(100vw - 16px",
                         height: "calc(100vh - 16px)",
                     }}
