@@ -1,10 +1,18 @@
-import {useContext, useEffect} from "react";
+import {useContext, useEffect, useRef} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
 import {ToolBarProps} from "./types";
-import {NormalTab, SelectedTab} from "./WindowTabs";
+import {Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
+
+function usePrevious(value: number) {
+    const ref = useRef(0);
+    useEffect(() => {
+        ref.current = value;
+    });
+    return ref.current;
+}
 
 export function WindowToolbar({
     path,
@@ -13,6 +21,9 @@ export function WindowToolbar({
     selectedIndex,
 }: ToolBarProps) {
     const {layoutDispatch} = useContext(LaymanContext);
+    const tabContainerRef = useRef<HTMLDivElement>(null);
+    // Track the previous length of the tabs array
+    const previousTabCount = usePrevious(tabs.length);
     const windowToolbarHeight =
         parseInt(
             getComputedStyle(document.documentElement)
@@ -27,6 +38,21 @@ export function WindowToolbar({
                 .trim(),
             10
         ) ?? 8;
+
+    // useEffect to handle scrolling when the number of tabs changes
+    useEffect(() => {
+        // Check if the number of tabs increased
+        if (previousTabCount !== undefined && tabs.length > previousTabCount) {
+            if (tabContainerRef.current) {
+                const tabContainer = tabContainerRef.current;
+                // Check if the container is scrollable
+                if (tabContainer.scrollWidth > tabContainer.clientWidth) {
+                    // Scroll all the way to the right (including the new tab's width)
+                    tabContainer.scrollLeft = tabContainer.scrollWidth;
+                }
+            }
+        }
+    }, [tabs.length, previousTabCount]); // Run when the length of tabs changes
 
     useEffect(() => {
         layoutDispatch({
@@ -72,26 +98,17 @@ export function WindowToolbar({
             className="layman-toolbar"
         >
             {/** Render each tab */}
-            <div className="tab-container">
+            <div ref={tabContainerRef} className="tab-container">
                 {tabs.map((tab: TabData, index: number) => {
-                    if (index == selectedIndex) {
-                        return (
-                            <SelectedTab
-                                key={index}
-                                tab={tab}
-                                onDelete={() => removeTabAtIndex(index)}
-                            />
-                        );
-                    } else {
-                        return (
-                            <NormalTab
-                                key={index}
-                                tab={tab}
-                                onClick={() => handleClickTab(index)}
-                                onDelete={() => removeTabAtIndex(index)}
-                            />
-                        );
-                    }
+                    return (
+                        <Tab
+                            key={index}
+                            tab={tab}
+                            isSelected={index == selectedIndex}
+                            onDelete={() => removeTabAtIndex(index)}
+                            onMouseDown={() => handleClickTab(index)}
+                        />
+                    );
                 })}
             </div>
             {/** Button to add a new blank menu */}
@@ -108,6 +125,7 @@ export function WindowToolbar({
                             path: path,
                             window: {
                                 tabs: [new TabData("blank")],
+                                selectedIndex: 0,
                             },
                             placement: "bottom",
                         })
@@ -121,6 +139,7 @@ export function WindowToolbar({
                             path: path,
                             window: {
                                 tabs: [new TabData("blank")],
+                                selectedIndex: 0,
                             },
                             placement: "right",
                         })

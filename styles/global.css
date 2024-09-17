@@ -82,8 +82,8 @@
     border-top-right-radius: var(--border-radius, 4px);
     .tab-container {
         display: flex;
-        overflow-x: scroll;
-        overflow-y: clip;
+        overflow: scroll hidden;
+        scroll-behavior: smooth;
         border-top-left-radius: var(--border-radius, 4px);
         .tab {
             display: flex;

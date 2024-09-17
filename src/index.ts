@@ -16,4 +16,4 @@ export {Separator} from "./Separator";
 export {Window} from "./Window";
 export {ToolbarButton} from "./ToolbarButton";
 export {WindowToolbar} from "./WindowToolbar";
-export {NormalTab, SelectedTab} from "./WindowTabs";
+export {Tab} from "./WindowTabs";
