@@ -29,27 +29,11 @@ export default function App() {
                         ],
                         selectedIndex: 1,
                     },
-                    {
-                        tabs: [
-                            new TabData("Inbox", {icon: "mail-icon"}),
-                            new TabData("Ratings", {icon: "heart-icon"}),
-                        ],
-                    },
                 ],
             },
             {
-                direction: "column",
-                children: [
-                    {
-                        tabs: [
-                            new TabData("Dashboard", {icon: "dashboard-icon"}),
-                        ],
-                        selectedIndex: 0,
-                    },
-                    {
-                        tabs: [new TabData("Reports", {icon: "reports-icon"})],
-                    },
-                ],
+                tabs: [new TabData("Dashboard", {icon: "dashboard-icon"})],
+                selectedIndex: 0,
             },
         ],
     };

@@ -8,11 +8,13 @@ import {
     Children,
     LaymanWindow,
     LaymanDirection,
+    Position,
 } from "./types";
 import _ from "lodash";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
 import React from "react";
+import {DropHighlight} from "./DropHighlight";
 
 // Define default values for the context
 const defaultContextValue: LaymanContextType = {
@@ -20,6 +22,8 @@ const defaultContextValue: LaymanContextType = {
     setLaymanRef: () => {},
     layout: {tabs: []},
     layoutDispatch: () => {},
+    setDropHighlightPosition: () => {},
+    setIsDragging: () => {},
     renderPane: () => <></>,
     renderTab: () => <></>,
 };
@@ -141,10 +145,58 @@ const LayoutReducer = (
         }
 
         case "addWindow": {
+            // Handle the root-level case
+            if (action.path.length === 1) {
+                if (!("children" in layout)) return layout;
+                const isColumnPlacement =
+                    action.placement === "top" || action.placement === "bottom";
+                const currRootWindow = layout.children[action.path[0]];
+
+                if (
+                    (isColumnPlacement && layout.direction === "column") ||
+                    (!isColumnPlacement && layout.direction === "row")
+                ) {
+                    // Add the window along the existing root direction
+                    const index =
+                        action.placement === "bottom" ||
+                        action.placement === "right"
+                            ? action.path[0] + 1 // Add after the current window
+                            : action.path[0]; // Add before the current window
+                    const newRootChildren = [
+                        ...layout.children.slice(0, index),
+                        action.window,
+                        ...layout.children.slice(index),
+                    ];
+
+                    return {
+                        ...layout,
+                        children: newRootChildren as Children<LaymanLayout>,
+                    };
+                } else {
+                    // Split the root window into a new layout with the opposite direction
+                    return {
+                        ...layout,
+                        children: layout.children.map((child, index) => {
+                            if (index != action.path[0]) return child;
+                            return {
+                                direction: isColumnPlacement ? "column" : "row",
+                                children:
+                                    action.placement === "top" ||
+                                    action.placement === "left"
+                                        ? [action.window, currRootWindow]
+                                        : [currRootWindow, action.window],
+                            };
+                        }) as Children<LaymanLayout>,
+                    };
+                }
+            }
+
+            // Handle the non-root case
             const parentPath = _.dropRight(action.path);
             const parentLodashPath =
                 "children." + parentPath.join(".children.");
             const parent: LaymanLayout = _.get(layout, parentLodashPath);
+
             if (!parent || !("children" in parent)) return layout;
 
             // Helper to return the updated layout
@@ -215,6 +267,19 @@ const LayoutReducer = (
         }
 
         case "removeWindow": {
+            // Handle the root-level case
+            if (action.path.length === 1) {
+                if (!("children" in layout)) return layout;
+
+                return {
+                    ...layout,
+                    children: layout.children.filter(
+                        (_value, index) => index !== _.last(action.path)
+                    ) as Children<LaymanLayout>,
+                };
+            }
+
+            // Handle the non-root case
             const parentPath = _.dropRight(action.path);
             const parentLodashPath =
                 "children." + parentPath.join(".children.");
@@ -276,6 +341,14 @@ export const LaymanProvider = ({
 }: LaymanProviderProps) => {
     const [layout, layoutDispatch] = useReducer(LayoutReducer, initialLayout);
     const [laymanRef, setLaymanRef] = useState<React.RefObject<HTMLElement>>();
+    const [dropHighlightPosition, setDropHighlightPosition] =
+        useState<Position>({
+            top: 0,
+            left: 0,
+            width: 0,
+            height: 0,
+        });
+    const [isDragging, setIsDragging] = useState<boolean>(false);
 
     return (
         <LaymanContext.Provider
@@ -284,11 +357,19 @@ export const LaymanProvider = ({
                 setLaymanRef,
                 layout,
                 layoutDispatch,
+                setDropHighlightPosition,
+                setIsDragging,
                 renderPane,
                 renderTab,
             }}
         >
-            <DndProvider backend={HTML5Backend}>{children}</DndProvider>
+            <DndProvider backend={HTML5Backend}>
+                <DropHighlight
+                    position={dropHighlightPosition}
+                    isDragging={isDragging}
+                />
+                {children}
+            </DndProvider>
         </LaymanContext.Provider>
     );
 };

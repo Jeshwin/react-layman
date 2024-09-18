@@ -73,7 +73,6 @@
 }
 
 .layman-toolbar {
-    transition: width 150ms ease-in-out, height 150ms ease-in-out;
     position: absolute;
     margin: calc(var(--separator-thickness, 8px) / 2);
     margin-bottom: 0px;
@@ -170,40 +169,47 @@
 
 .layman-window-drop-target {
     position: absolute;
-    border-radius: var(--border-radius, 4px);
     &.top {
         top: 0;
         bottom: 75%;
         left: 0;
         right: 0;
-        background-color: #eab308;
     }
     &.left {
         top: 0;
         bottom: 0;
         left: 0;
         right: 75%;
-        background-color: #22c55e;
     }
     &.bottom {
         top: 75%;
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: #6366f1;
     }
     &.right {
         top: 0;
         bottom: 0;
         left: 75%;
         right: 0;
-        background-color: #ef4444;
     }
     &.center {
         top: 25%;
         bottom: 25%;
         left: 25%;
         right: 25%;
-        background-color: #737373;
     }
+}
+
+.layman-drop-highlight {
+    margin: calc(var(--separator-thickness, 8px) / 2);
+    border-radius: var(--border-radius, 4px);
+    margin-top: 0px;
+    position: absolute;
+    transition: width 150ms ease-in-out, height 150ms ease-in-out,
+        top 150ms ease-in-out, left 150ms ease-in-out;
+    z-index: 20;
+    background-color: var(--indicator-color, #f97316);
+    opacity: 0.5;
+    pointer-events: none;
 }

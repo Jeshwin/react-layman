@@ -6,6 +6,7 @@ import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {WindowDropTarget} from "./WindowDropTarget";
+import _ from "lodash";
 
 function usePrevious(value: number) {
     const ref = useRef(0);
@@ -168,11 +169,31 @@ export function WindowToolbar({
                     marginTop: 0,
                 }}
             >
-                <WindowDropTarget path={path} placement="top" />
-                <WindowDropTarget path={path} placement="bottom" />
-                <WindowDropTarget path={path} placement="left" />
-                <WindowDropTarget path={path} placement="right" />
-                <WindowDropTarget path={path} placement="center" />
+                <WindowDropTarget
+                    path={path}
+                    position={_.cloneDeep(position)}
+                    placement="top"
+                />
+                <WindowDropTarget
+                    path={path}
+                    position={_.cloneDeep(position)}
+                    placement="bottom"
+                />
+                <WindowDropTarget
+                    path={path}
+                    position={_.cloneDeep(position)}
+                    placement="left"
+                />
+                <WindowDropTarget
+                    path={path}
+                    position={_.cloneDeep(position)}
+                    placement="right"
+                />
+                <WindowDropTarget
+                    path={path}
+                    position={_.cloneDeep(position)}
+                    placement="center"
+                />
             </div>
         </>
     );

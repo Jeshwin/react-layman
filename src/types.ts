@@ -117,6 +117,8 @@ export interface LaymanContextType {
     >;
     layout: LaymanLayout;
     layoutDispatch: React.Dispatch<LaymanLayoutAction>;
+    setDropHighlightPosition: React.Dispatch<Position>;
+    setIsDragging: React.Dispatch<boolean>;
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
 }

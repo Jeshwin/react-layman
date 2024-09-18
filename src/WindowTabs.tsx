@@ -1,5 +1,5 @@
 import {VscClose} from "react-icons/vsc";
-import {useContext} from "react";
+import {useContext, useEffect} from "react";
 import {useDrag} from "react-dnd";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
@@ -20,7 +20,7 @@ export const Tab = ({
     onDelete,
     onMouseDown,
 }: TabProps) => {
-    const {renderTab} = useContext(LaymanContext);
+    const {renderTab, setIsDragging} = useContext(LaymanContext);
     const [{isDragging}, drag] = useDrag({
         type: TabType,
         item: {
@@ -31,6 +31,10 @@ export const Tab = ({
             isDragging: monitor.isDragging(),
         }),
     });
+
+    useEffect(() => {
+        setIsDragging(isDragging);
+    }, [isDragging, setIsDragging]);
 
     return (
         <div
