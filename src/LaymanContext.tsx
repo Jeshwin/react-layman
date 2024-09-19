@@ -44,6 +44,14 @@ const LayoutReducer = (
 ): LaymanLayout => {
     switch (action.type) {
         case "addTab": {
+            // Edge case: layout is a single window
+            if ("tabs" in layout) {
+                return {
+                    ...layout,
+                    tabs: [...layout.tabs, action.tab],
+                };
+            }
+
             const lodashPath = "children." + action.path.join(".children.");
             const window: LaymanLayout = _.get(layout, lodashPath);
             if (!window || !("tabs" in window)) return layout;
@@ -55,6 +63,14 @@ const LayoutReducer = (
         }
 
         case "removeTab": {
+            // Edge case: layout is a single window
+            if ("tabs" in layout) {
+                return {
+                    ...layout,
+                    tabs: layout.tabs.filter((tab) => tab.id !== action.tab.id),
+                };
+            }
+
             const lodashPath = "children." + action.path.join(".children.");
             const window: LaymanLayout = _.get(layout, lodashPath);
             if (!window || !("tabs" in window)) return layout;
@@ -64,7 +80,8 @@ const LayoutReducer = (
                 (tab) => tab.id !== action.tab.id
             );
 
-            // Adjust selectedIndex only if the removed tab is to the left of the selected one
+            // Adjust selectedIndex only if the removed tab is
+            // to the left of the selected one
             let updatedSelectedIndex = window.selectedIndex;
             const removedTabIndex = _.indexOf(window.tabs, action.tab);
 
@@ -83,17 +100,24 @@ const LayoutReducer = (
                 });
             }
 
-            // Return updated layout with immutability, ensuring no direct mutations
-            const updatedWindow = {
+            return _.set(_.cloneDeep(layout), lodashPath, {
                 ...window,
                 tabs: updatedTabs,
                 selectedIndex: updatedSelectedIndex,
-            };
-
-            return _.set(_.cloneDeep(layout), lodashPath, updatedWindow);
+            });
         }
 
         case "selectTab": {
+            // Edge case: layout is a single window
+            if ("tabs" in layout) {
+                return {
+                    ...layout,
+                    selectedIndex: layout.tabs.findIndex(
+                        (tab) => tab.id === action.tab.id
+                    ),
+                };
+            }
+
             const lodashPath = "children." + action.path.join(".children.");
             const window: LaymanLayout = _.get(layout, lodashPath);
             if (!window || !("tabs" in window)) return layout;
@@ -108,13 +132,6 @@ const LayoutReducer = (
         }
 
         case "moveTab": {
-            console.log(
-                `Dropped ${action.tab.id} onto ${action.newPath.join(".")}.${
-                    action.placement
-                }`
-            );
-            console.dir(action);
-
             const lodashPath = "children." + action.path.join(".children.");
             const window: LaymanLayout = _.get(layout, lodashPath);
             if (!window || !("tabs" in window)) return layout;
@@ -173,7 +190,8 @@ const LayoutReducer = (
                         children: newRootChildren as Children<LaymanLayout>,
                     };
                 } else {
-                    // Split the root window into a new layout with the opposite direction
+                    // Split the root window into a new layout
+                    // with the opposite direction
                     return {
                         ...layout,
                         children: layout.children.map((child, index) => {
@@ -254,10 +272,8 @@ const LayoutReducer = (
                 (isColumnPlacement && parent.direction === "column") ||
                 (!isColumnPlacement && parent.direction === "row")
             ) {
-                console.log("Add along the", parent.direction);
                 return addAlongDirection(index);
             } else {
-                console.log("Add against the", parent.direction);
                 return splitAndAdd(
                     getCurrentWindow(),
                     isColumnPlacement ? "column" : "row",

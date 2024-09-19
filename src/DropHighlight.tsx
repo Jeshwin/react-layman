@@ -13,6 +13,7 @@ export function DropHighlight({
             style={{
                 ...position,
                 visibility: isDragging ? "visible" : "hidden",
+                opacity: isDragging ? 0.2 : 0,
             }}
         ></div>
     );

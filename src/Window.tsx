@@ -1,18 +1,10 @@
 import {useContext} from "react";
 import {LaymanContext} from "./LaymanContext";
-import {TabData} from "./TabData";
-import {useDrop} from "react-dnd";
-import {TabType, WindowProps} from "./types";
+import {WindowProps} from "./types";
 
 export function Window({position, tab, isSelected}: WindowProps) {
     const {renderPane} = useContext(LaymanContext);
-    const [, drop] = useDrop(() => ({
-        accept: TabType,
-        drop: (item: TabData) => {
-            console.log(`Dropped ${item.id} onto ${tab.id}`);
-            console.dir(item);
-        },
-    }));
+
     const separatorThickness =
         parseInt(
             getComputedStyle(document.documentElement)
@@ -32,7 +24,6 @@ export function Window({position, tab, isSelected}: WindowProps) {
     return (
         <div
             id={tab.id}
-            ref={drop}
             style={{
                 top: position.top + windowToolbarHeight,
                 left: position.left,
