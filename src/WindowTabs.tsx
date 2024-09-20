@@ -1,65 +1,56 @@
 import {VscClose} from "react-icons/vsc";
-import {useContext} from "react";
+import {useContext, useEffect} from "react";
 import {useDrag} from "react-dnd";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
-import {TabType} from "./types";
+import {LaymanPath, TabType} from "./types";
 
-interface NormalTabProps {
+interface TabProps {
     tab: TabData;
-    onClick: React.MouseEventHandler<HTMLButtonElement>;
+    path: LaymanPath;
+    isSelected: boolean;
+    onMouseDown: React.MouseEventHandler<HTMLButtonElement>;
     onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-export const NormalTab = ({tab, onClick, onDelete}: NormalTabProps) => {
-    const {renderTab} = useContext(LaymanContext);
+export const Tab = ({
+    tab,
+    path,
+    isSelected,
+    onDelete,
+    onMouseDown,
+}: TabProps) => {
+    const {renderTab, setIsDragging} = useContext(LaymanContext);
     const [{isDragging}, drag] = useDrag({
         type: TabType,
-        item: tab,
+        item: {
+            path,
+            tab,
+        },
         collect: (monitor) => ({
             isDragging: monitor.isDragging(),
         }),
     });
 
+    useEffect(() => {
+        setIsDragging(isDragging);
+    }, [isDragging, setIsDragging]);
+
     return (
         <div
             ref={drag}
-            className={`tab ${isDragging ? "dragging" : ""}`}
-            style={{opacity: isDragging ? 0.5 : 1}}
+            className={`tab ${isSelected ? "selected" : ""} ${
+                isDragging ? "dragging" : ""
+            }`}
+            style={{
+                visibility: isDragging ? "hidden" : "visible",
+                width: isDragging ? 0 : "auto",
+            }}
         >
-            <button className="tab-selector" onMouseDown={onClick}>
+            {isSelected && <div className="indicator"></div>}
+            <button className="tab-selector" onMouseDown={onMouseDown}>
                 {renderTab(tab)}
             </button>
-            <button className="close-tab" onClick={onDelete}>
-                <VscClose color="white" />
-            </button>
-        </div>
-    );
-};
-
-interface SelectedTabProps {
-    tab: TabData;
-    onDelete: React.MouseEventHandler<HTMLButtonElement>;
-}
-
-export const SelectedTab = ({tab, onDelete}: SelectedTabProps) => {
-    const {renderTab} = useContext(LaymanContext);
-    const [{isDragging}, drag] = useDrag({
-        type: TabType,
-        item: tab,
-        collect: (monitor) => ({
-            isDragging: monitor.isDragging(),
-        }),
-    });
-
-    return (
-        <div
-            ref={drag}
-            className={`tab selected ${isDragging ? "dragging" : ""}`}
-            style={{opacity: isDragging ? 0.5 : 1}}
-        >
-            <div className="indicator"></div>
-            <button className="tab-selector">{renderTab(tab)}</button>
             <button className="close-tab" onClick={onDelete}>
                 <VscClose color="white" />
             </button>

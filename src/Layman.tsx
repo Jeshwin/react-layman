@@ -1,118 +1,260 @@
 import {useContext, useEffect, useMemo, useRef, useState} from "react";
 import {WindowToolbar} from "./WindowToolbar";
 import {Window} from "./Window";
-import {Separator} from "./Separator";
-import {Inset} from "./Inset";
 import {
     LaymanLayout,
     LaymanPath,
-    SeparatorProps,
     ToolBarProps,
-    PaneProps,
+    WindowProps,
+    Position,
 } from "./types";
 import {LaymanContext} from "./LaymanContext";
 
-// Entry point for Layman Window Manager
-// Takes in an initial layout as a binary tree object
-// Uses two function to render the layout; one to convert a unique id to a pane,
-// and one to convert the same unique id to a tab name/component
-// Stores useful global state using Jotai atoms
+/**
+ * Entry point for Layman Window Manager
+ */
 export function Layman() {
-    const {setLaymanRef, layout} = useContext(LaymanContext);
+    const {setLaymanRef, layout, draggedWindowTabs} = useContext(LaymanContext);
     // Local state for component lists
-    const [separators, setSeparators] = useState<SeparatorProps[]>([]);
     const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
-    const [panes, setPanes] = useState<PaneProps[]>([]);
+    const [windows, setWindows] = useState<WindowProps[]>([]);
+
     // Reference for parent div
-    const laymanRef = useRef(null);
+    const laymanRef = useRef<HTMLDivElement | null>(null);
+
+    // Size of Layman container
+    const [containerSize, setContainerSize] = useState<{
+        width: number;
+        height: number;
+    }>({
+        width: 0,
+        height: 0,
+    });
+
+    // Function to update container size
+    const updateContainerSize = () => {
+        if (laymanRef.current) {
+            const {width, height} = laymanRef.current.getBoundingClientRect();
+            setContainerSize({width, height});
+        }
+    };
 
     useEffect(() => {
         setLaymanRef(laymanRef);
-    });
+
+        // Get the initial dimensions of the container when the component mounts
+        updateContainerSize();
+
+        // Add window resize event listener
+        window.addEventListener("resize", updateContainerSize);
+
+        // Cleanup resize event listener on unmount
+        return () => {
+            window.removeEventListener("resize", updateContainerSize);
+        };
+    }, [setLaymanRef]);
 
     // Calculate component lists whenever layout changes
-    // useMemo caches values if they don't change
     useMemo(() => {
-        const calculatedSeparators: SeparatorProps[] = [];
         const calculatedToolbars: ToolBarProps[] = [];
-        const calculatedPanes: PaneProps[] = [];
+        const calculatedWindows: WindowProps[] = [];
 
         function traverseLayout(
             layout: LaymanLayout,
-            inset: Inset,
+            position: Position,
             path: LaymanPath
         ) {
-            if (Array.isArray(layout)) {
+            // Check if it's a window (LaymanWindow) or a layout split
+            if ("tabs" in layout) {
+                // If it's a window, handle the tabs and panes
                 calculatedToolbars.push({
-                    inset,
                     path,
-                    tabs: layout,
+                    position,
+                    tabs: layout.tabs,
+                    selectedIndex: layout.selectedIndex ?? 0,
                 });
-                layout.map((tab) =>
-                    calculatedPanes.push({
-                        inset,
-                        tab: tab,
-                    })
-                );
+
+                layout.tabs.forEach((tab, index) => {
+                    calculatedWindows.push({
+                        position,
+                        tab,
+                        isSelected: index == layout.selectedIndex,
+                    });
+                });
             } else {
-                if (!layout) return;
-                calculatedSeparators.push({
-                    parentInset: inset,
-                    splitPercentage: layout.splitPercentage ?? 50,
-                    direction: layout.direction,
-                    path,
-                });
-                const {firstInset, secondInset} = inset.newInsets(
-                    layout.splitPercentage ?? 50,
-                    layout.direction
-                );
-                traverseLayout(
-                    layout.first,
-                    firstInset,
-                    path.concat(["first"])
-                );
-                traverseLayout(
-                    layout.second,
-                    secondInset,
-                    path.concat(["second"])
-                );
+                // It's a layout split, traverse further
+                const {direction, children} = layout;
+
+                // Check if this split contains the dragged window
+                const containsDraggedWindow =
+                    draggedWindowTabs.length > 0 &&
+                    children.some(
+                        (child) =>
+                            "tabs" in child && child.tabs == draggedWindowTabs
+                    );
+
+                if (!containsDraggedWindow) {
+                    // Accumulate pixel offsets for children positioning
+                    let accumulatedPixels = 0;
+
+                    children.forEach((child, index) => {
+                        const viewPercent =
+                            child.viewPercent ?? 100 / children.length;
+
+                        const splitPixels =
+                            direction === "row"
+                                ? position.width * (viewPercent / 100)
+                                : position.height * (viewPercent / 100);
+
+                        // Calculate the new child position based on splitPixels
+                        const childPosition =
+                            direction === "row"
+                                ? {
+                                      top: position.top,
+                                      left: position.left + accumulatedPixels,
+                                      width: splitPixels,
+                                      height: position.height,
+                                  }
+                                : {
+                                      top: position.top + accumulatedPixels,
+                                      left: position.left,
+                                      width: position.width,
+                                      height: splitPixels,
+                                  };
+
+                        // Traverse deeper into the layout tree
+                        traverseLayout(
+                            child,
+                            childPosition,
+                            path.concat([index])
+                        );
+
+                        // Update accumulated pixel offset for the next child
+                        accumulatedPixels += splitPixels;
+                    });
+                } else {
+                    // Render non-dragged tabs as if dragged tab wasn't there
+                    let accumulatedPixels = 0;
+
+                    children.forEach((child, index) => {
+                        // Skip over dragged tab
+                        if ("tabs" in child && child.tabs == draggedWindowTabs)
+                            return;
+                        const viewPercent =
+                            child.viewPercent ?? 100 / (children.length - 1);
+
+                        const splitPixels =
+                            direction === "row"
+                                ? position.width * (viewPercent / 100)
+                                : position.height * (viewPercent / 100);
+
+                        // Calculate the new child position based on splitPixels
+                        const childPosition =
+                            direction === "row"
+                                ? {
+                                      top: position.top,
+                                      left: position.left + accumulatedPixels,
+                                      width: splitPixels,
+                                      height: position.height,
+                                  }
+                                : {
+                                      top: position.top + accumulatedPixels,
+                                      left: position.left,
+                                      width: position.width,
+                                      height: splitPixels,
+                                  };
+
+                        // Traverse deeper into the layout tree
+                        traverseLayout(
+                            child,
+                            childPosition,
+                            path.concat([index])
+                        );
+
+                        // Update accumulated pixel offset for the next child
+                        accumulatedPixels += splitPixels;
+                    });
+
+                    // Render dragged window as if it was still in the layout
+                    accumulatedPixels = 0;
+                    children.forEach((child, index) => {
+                        const viewPercent =
+                            child.viewPercent ?? 100 / children.length;
+
+                        const splitPixels =
+                            direction === "row"
+                                ? position.width * (viewPercent / 100)
+                                : position.height * (viewPercent / 100);
+
+                        // Calculate the new child position based on splitPixels
+                        const childPosition =
+                            direction === "row"
+                                ? {
+                                      top: position.top,
+                                      left: position.left + accumulatedPixels,
+                                      width: splitPixels,
+                                      height: position.height,
+                                  }
+                                : {
+                                      top: position.top + accumulatedPixels,
+                                      left: position.left,
+                                      width: position.width,
+                                      height: splitPixels,
+                                  };
+
+                        // Only traverse dragged window
+                        if (
+                            "tabs" in child &&
+                            child.tabs == draggedWindowTabs
+                        ) {
+                            traverseLayout(
+                                child,
+                                childPosition,
+                                path.concat([index])
+                            );
+                        }
+
+                        // Update accumulated pixel offset for the next child
+                        accumulatedPixels += splitPixels;
+                    });
+                }
             }
         }
 
+        // Initial traversal call with the root layout
         traverseLayout(
             layout,
-            new Inset({top: 0, left: 0, bottom: 0, right: 0}),
+            {
+                top: 0,
+                left: 0,
+                width: containerSize.width,
+                height: containerSize.height,
+            },
             []
         );
-        setSeparators(calculatedSeparators);
+
+        // Set the calculated arrays
         setToolbars(calculatedToolbars);
-        setPanes(calculatedPanes);
-    }, [layout]);
+        setWindows(calculatedWindows);
+    }, [containerSize, draggedWindowTabs, layout]);
 
     return (
         <div ref={laymanRef} className="layman-root">
-            {separators.map((props) => (
-                <Separator
-                    key={props.path.length != 0 ? props.path.join(":") : "root"}
-                    parentInset={props.parentInset}
-                    splitPercentage={props.splitPercentage}
-                    direction={props.direction}
-                    path={props.path}
-                />
-            ))}
             {toolbars.map((props) => (
                 <WindowToolbar
                     key={props.path.length != 0 ? props.path.join(":") : "root"}
-                    inset={props.inset}
                     path={props.path}
+                    position={props.position}
                     tabs={props.tabs}
+                    selectedIndex={props.selectedIndex}
                 />
             ))}
-            {panes.map((props) => (
+            {windows.map((props) => (
                 <Window
                     key={props.tab.id}
-                    inset={props.inset}
+                    position={props.position}
                     tab={props.tab}
+                    isSelected={props.isSelected}
                 />
             ))}
         </div>
