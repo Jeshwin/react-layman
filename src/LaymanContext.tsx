@@ -9,6 +9,7 @@ import {
     LaymanWindow,
     LaymanDirection,
     Position,
+    LaymanPath,
 } from "./types";
 import _ from "lodash";
 import {DndProvider} from "react-dnd";
@@ -314,6 +315,72 @@ const LayoutReducer = (
             );
 
             if (newChildren.length == 1) {
+                if ("children" in newChildren[0]) {
+                    // Handle grandparent being root
+                    if (parentPath.length == 1) {
+                        if (!("children" in layout)) return layout;
+                        if (layout.direction == newChildren[0].direction) {
+                            const parentIndex = _.findIndex(
+                                layout.children,
+                                (win) => win === parent
+                            );
+
+                            return {
+                                ...layout,
+                                children: [
+                                    ...layout.children.slice(0, parentIndex),
+                                    ...newChildren[0].children,
+                                    ...layout.children.slice(parentIndex + 1),
+                                ] as Children<LaymanLayout>,
+                            };
+                        }
+                    }
+                    // Check if "grandparent" is same direction as new parent
+                    const grandparentPath = _.dropRight(parentPath);
+                    const grandparentLodashPath =
+                        "children." + grandparentPath.join(".children.");
+
+                    console.log(parentLodashPath);
+                    console.log(grandparentLodashPath);
+                    const grandparent: LaymanLayout = _.get(
+                        layout,
+                        grandparentLodashPath
+                    );
+
+                    if (!grandparent || !("children" in grandparent))
+                        return layout;
+
+                    console.log(grandparent.direction);
+                    console.log(newChildren[0].direction);
+
+                    if (grandparent.direction === newChildren[0].direction) {
+                        // Find index of parent in grandparent.windows
+                        const parentIndex = _.findIndex(
+                            grandparent.children,
+                            (win) => win === parent
+                        );
+
+                        // Set the updated grandparent back into the layout
+                        return _.set(
+                            _.cloneDeep(layout),
+                            grandparentLodashPath,
+                            {
+                                ...grandparent,
+                                children: [
+                                    ...grandparent.children.slice(
+                                        0,
+                                        parentIndex
+                                    ), // windows before the parent
+                                    ...newChildren[0].children, // windows from parent
+                                    ...grandparent.children.slice(
+                                        parentIndex + 1
+                                    ), // windows after the parent
+                                ],
+                            }
+                        );
+                    }
+                }
+
                 return _.set(
                     _.cloneDeep(layout),
                     parentLodashPath,
@@ -325,6 +392,91 @@ const LayoutReducer = (
                 ...parent,
                 children: newChildren as Children<LaymanLayout>,
             });
+        }
+
+        case "moveWindow": {
+            console.log(action.path.join("."));
+            console.log(action.newPath.join("."));
+
+            const lodashPath = "children." + action.path.join(".children.");
+            const window: LaymanLayout = _.get(layout, lodashPath);
+            if (!window || !("tabs" in window)) return layout;
+
+            const removeWindowLayout = LayoutReducer(layout, {
+                type: "removeWindow",
+                path: action.path,
+            });
+
+            const adjustPath = (
+                layout: LaymanLayout,
+                originalPath: LaymanPath,
+                newPath: LaymanPath
+            ) => {
+                let adjustedPath = _.clone(newPath);
+
+                // Step 1: Check if the originalPath's parent has turned from a split into a window
+                const parentPath = _.dropRight(originalPath);
+                const parentLodashPath =
+                    "children." + parentPath.join(".children.");
+                const parent = _.get(layout, parentLodashPath);
+
+                if (parent && "tabs" in parent) {
+                    // Case where the parent is now a single window, so we remove the last entry of newPath
+                    if (_.isEqual(_.dropRight(newPath), parentPath)) {
+                        // If newPath shares the same parent as the moved window
+                        adjustedPath = _.dropRight(newPath);
+                        return adjustedPath;
+                    }
+                }
+
+                // Step 2: Check if the originalPath and newPath share the same parent, and adjust the shared path
+                const commonLength = _.takeWhile(
+                    originalPath,
+                    (val, idx) => val === newPath[idx]
+                ).length;
+                if (commonLength == originalPath.length - 1) {
+                    // Both paths share the same parent
+                    const parentIndex = originalPath[commonLength]; // Last shared index
+
+                    // If the original path is further into the parent split, decrement the path index of the newPath
+                    if (newPath[commonLength] > parentIndex) {
+                        adjustedPath[commonLength] = newPath[commonLength] - 1;
+                    }
+                }
+
+                console.log(originalPath.join("."));
+                console.log(adjustedPath.join("."));
+
+                return adjustedPath;
+            };
+
+            // Edge case: removing window causes newPath to change
+            const newPath = adjustPath(
+                removeWindowLayout,
+                action.path,
+                action.newPath
+            );
+            if (action.placement === "center") {
+                // Add all tabs
+                let updatedLayout = _.cloneDeep(removeWindowLayout);
+
+                action.window.tabs.forEach((tab) => {
+                    updatedLayout = LayoutReducer(updatedLayout, {
+                        type: "addTab",
+                        path: newPath,
+                        tab: tab,
+                    });
+                });
+
+                return updatedLayout;
+            } else {
+                return LayoutReducer(removeWindowLayout, {
+                    type: "addWindow",
+                    path: newPath,
+                    window: action.window,
+                    placement: action.placement,
+                });
+            }
         }
 
         // case "moveSeparator": {

@@ -7,9 +7,6 @@ import {TabData} from "./TabData";
 // guarantees flatness, i.e. no awkward [[[[A]]]] case
 export type Children<T> = [T, T, ...T[]];
 
-export const TabType = "TAB";
-export const WindowType = "WINDOW";
-
 export type LaymanDirection = "column" | "row";
 export type LaymanPath = Array<number>;
 
@@ -72,9 +69,11 @@ interface RemoveWindowAction extends BaseLaymanLayoutAction {
     type: "removeWindow";
 }
 
-interface DragWindowAction extends BaseLaymanLayoutAction {
-    type: "dragWindow";
-    isDragging: boolean;
+interface MoveWindowAction extends BaseLaymanLayoutAction {
+    type: "moveWindow";
+    window: LaymanWindow;
+    newPath: LaymanPath;
+    placement: "top" | "bottom" | "left" | "right" | "center";
 }
 
 // Union type of all possible actions
@@ -86,7 +85,7 @@ export type LaymanLayoutAction =
     // | MoveSeparatorAction
     | AddWindowAction
     | RemoveWindowAction
-    | DragWindowAction;
+    | MoveWindowAction;
 
 export interface Position {
     top: number;
@@ -94,6 +93,22 @@ export interface Position {
     width: number;
     height: number;
 }
+
+export const TabType = "TAB";
+export const WindowType = "WINDOW";
+
+interface DragTab {
+    tab: TabData;
+    path: LaymanPath;
+}
+
+interface DragWindow {
+    tabs: TabData[];
+    path: LaymanPath;
+    selectedIndex: number;
+}
+
+export type DragData = DragTab | DragWindow;
 
 // Types for component props
 export interface SeparatorProps {

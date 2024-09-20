@@ -1,6 +1,5 @@
 import {useDrop} from "react-dnd";
-import {LaymanPath, Position, TabType, WindowType} from "./types";
-import {TabData} from "./TabData";
+import {DragData, LaymanPath, Position, TabType, WindowType} from "./types";
 import {useContext, useEffect, useRef} from "react";
 import {LaymanContext} from "./LaymanContext";
 
@@ -72,14 +71,31 @@ export function WindowDropTarget({
 
     const [, drop] = useDrop(() => ({
         accept: [TabType, WindowType],
-        drop: (item: {tab: TabData; path: LaymanPath}) => {
-            layoutDispatch({
-                type: "moveTab",
-                tab: item.tab,
-                path: item.path,
-                newPath: path,
-                placement: placement,
-            });
+        drop: (item: DragData, monitor) => {
+            const itemType = monitor.getItemType();
+
+            if (itemType === TabType && "tab" in item) {
+                // Handle TabType case
+                layoutDispatch({
+                    type: "moveTab",
+                    tab: item.tab,
+                    path: item.path,
+                    newPath: path,
+                    placement: placement,
+                });
+            } else if (itemType === WindowType && "tabs" in item) {
+                // Handle WindowType case
+                layoutDispatch({
+                    type: "moveWindow",
+                    path: item.path,
+                    newPath: path,
+                    window: {
+                        tabs: item.tabs,
+                        selectedIndex: item.selectedIndex,
+                    },
+                    placement: placement,
+                });
+            }
         },
         hover: () => setDropHighlightPosition(newDropHighlightPosition.current),
     }));
