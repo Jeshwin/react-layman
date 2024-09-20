@@ -137,7 +137,7 @@ export function WindowToolbar({
                     width: position.width - separatorThickness,
                     height: windowToolbarHeight,
                     transform: `scale(${scale})`,
-                    transformOrigin: `${dragStartPosition.x}px top`,
+                    transformOrigin: `${dragStartPosition.x}px bottom`,
                     zIndex: isDragging ? 13 : "auto",
                     pointerEvents: isDragging ? "none" : "auto",
                     userSelect: isDragging ? "none" : "auto",

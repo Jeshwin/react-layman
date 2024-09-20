@@ -81,10 +81,7 @@ export function WindowDropTarget({
                 placement: placement,
             });
         },
-        hover: () => {
-            setDropHighlightPosition(newDropHighlightPosition.current);
-            console.dir(newDropHighlightPosition.current);
-        },
+        hover: () => setDropHighlightPosition(newDropHighlightPosition.current),
     }));
 
     return (

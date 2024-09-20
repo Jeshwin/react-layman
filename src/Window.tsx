@@ -23,6 +23,8 @@ export function Window({position, tab, isSelected}: WindowProps) {
                 .trim(),
             10
         ) ?? 64;
+    const isDragging = draggedWindowTabs.includes(tab);
+    const scale = isDragging ? 0.7 : 1;
 
     // Custom drag layer to track mouse position during dragging
     const {clientOffset} = useDragLayer((monitor) => ({
@@ -37,7 +39,7 @@ export function Window({position, tab, isSelected}: WindowProps) {
 
     // Effect to handle dragging logic and update the current mouse position during dragging
     useEffect(() => {
-        if (draggedWindowTabs.includes(tab) && clientOffset) {
+        if (isDragging && clientOffset) {
             const deltaX = windowDragStartPosition.x;
             const deltaY = windowDragStartPosition.y;
             setCurrentMousePosition({
@@ -50,7 +52,13 @@ export function Window({position, tab, isSelected}: WindowProps) {
                 left: 0,
             });
         }
-    }, [draggedWindowTabs, windowDragStartPosition, tab, clientOffset]);
+    }, [
+        draggedWindowTabs,
+        windowDragStartPosition,
+        tab,
+        clientOffset,
+        isDragging,
+    ]);
 
     const [portalElement, setPortalElement] = useState<HTMLElement | null>(
         null
@@ -70,18 +78,14 @@ export function Window({position, tab, isSelected}: WindowProps) {
         return null; // Don't render until portal element is available
     }
 
-    const scale = draggedWindowTabs.includes(tab) ? 0.7 : 1;
-
     return (
         <div
             id={tab.id}
             style={{
                 top:
-                    (position.top + windowToolbarHeight) * scale +
-                    currentMousePosition.top -
-                    (draggedWindowTabs.includes(tab)
-                        ? windowToolbarHeight * scale * 0.5 + 8
-                        : 0),
+                    position.top +
+                    windowToolbarHeight +
+                    currentMousePosition.top,
                 left: position.left * scale + currentMousePosition.left,
                 width: position.width - separatorThickness,
                 height:
@@ -89,40 +93,32 @@ export function Window({position, tab, isSelected}: WindowProps) {
                     windowToolbarHeight -
                     separatorThickness / 2,
                 transform: `scale(${scale})`,
-                transformOrigin: `${windowDragStartPosition.x}px ${windowDragStartPosition.y}px`,
-                zIndex: draggedWindowTabs.includes(tab) ? 12 : "auto",
-                pointerEvents: draggedWindowTabs.includes(tab)
-                    ? "none"
-                    : "auto",
+                transformOrigin: `${windowDragStartPosition.x}px top`,
+                zIndex: isDragging ? 12 : "auto",
+                pointerEvents: isDragging ? "none" : "auto",
             }}
             className={`layman-window ${
                 isSelected ? "selected" : "unselected"
             }`}
         >
-            {draggedWindowTabs.includes(tab) &&
+            {isDragging &&
                 createPortal(
                     <div
                         style={{
                             position: "absolute",
                             zIndex: 15,
                             top:
-                                (position.top + windowToolbarHeight) * scale +
-                                currentMousePosition.top -
-                                (draggedWindowTabs.includes(tab)
-                                    ? windowToolbarHeight * scale * 0.5 + 8
-                                    : 0),
+                                position.top +
+                                windowToolbarHeight * scale +
+                                currentMousePosition.top,
                             left:
                                 position.left * scale +
                                 currentMousePosition.left +
                                 12,
-                            width: position.width - separatorThickness + 2,
-                            height:
-                                position.height -
-                                windowToolbarHeight -
-                                separatorThickness / 2 +
-                                2,
+                            width: position.width - separatorThickness,
+                            height: position.height - separatorThickness / 2,
                             transform: `scale(${scale})`,
-                            transformOrigin: `${windowDragStartPosition.x}px ${windowDragStartPosition.y}px`,
+                            transformOrigin: `${windowDragStartPosition.x}px top`,
                             border: "1px solid var(--indicator-color, #f97316)",
                             borderRadius: "var(--border-radius, 8px)",
                             pointerEvents: "none",
