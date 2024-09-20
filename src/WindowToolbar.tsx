@@ -1,12 +1,13 @@
-import {useContext, useEffect, useRef} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {ToolBarProps} from "./types";
+import {ToolBarProps, WindowType} from "./types";
 import {Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {WindowDropTarget} from "./WindowDropTarget";
 import _ from "lodash";
+import {useDrag, useDragLayer} from "react-dnd";
 
 function usePrevious(value: number) {
     const ref = useRef(0);
@@ -22,7 +23,12 @@ export function WindowToolbar({
     tabs,
     selectedIndex,
 }: ToolBarProps) {
-    const {layoutDispatch} = useContext(LaymanContext);
+    const {
+        layoutDispatch,
+        setIsDragging,
+        setWindowDragStartPosition,
+        setDraggedWindowTabs,
+    } = useContext(LaymanContext);
     const tabContainerRef = useRef<HTMLDivElement>(null);
     // Track the previous length of the tabs array
     const previousTabCount = usePrevious(tabs.length);
@@ -65,38 +71,76 @@ export function WindowToolbar({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const addBlankTab = () => {
-        layoutDispatch({
-            type: "addTab",
-            path: path,
-            tab: new TabData("blank"),
-        });
-    };
+    // Setting up drag for moving windows using react-dnd
+    const [currentMousePosition, setCurrentMousePosition] = useState({
+        top: position.top,
+        left: position.left,
+    });
+    const [dragStartPosition, setDragStartPosition] = useState({x: 0, y: 0});
+    const [{isDragging}, drag] = useDrag({
+        type: WindowType,
+        item: {path, tabs, selectedIndex},
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging(),
+        }),
+        end: () => {
+            setDraggedWindowTabs([]);
+            setWindowDragStartPosition({x: 0, y: 0});
+        },
+    });
 
-    const removeTabAtIndex = (index: number) => {
-        layoutDispatch({
-            type: "removeTab",
-            path: path,
-            tab: tabs[index],
-        });
-    };
+    // Custom drag layer to track mouse position during dragging
+    const {clientOffset} = useDragLayer((monitor) => ({
+        clientOffset: monitor.getClientOffset(),
+    }));
 
-    const handleClickTab = (index: number) => {
-        layoutDispatch({
-            type: "selectTab",
-            path: path,
-            tab: tabs[index],
-        });
-    };
+    useEffect(() => {
+        if (clientOffset && isDragging) {
+            setCurrentMousePosition({
+                top: clientOffset.y - dragStartPosition.y,
+                left: clientOffset.x - dragStartPosition.x,
+            });
+        } else {
+            setCurrentMousePosition({
+                top: 0,
+                left: 0,
+            });
+        }
+    }, [clientOffset, dragStartPosition, isDragging, position]);
+
+    useEffect(() => {
+        setIsDragging(isDragging);
+    }, [isDragging, setIsDragging]);
+
+    useEffect(() => {
+        if (isDragging) {
+            setDraggedWindowTabs(tabs);
+            setWindowDragStartPosition(dragStartPosition);
+        }
+    }, [
+        dragStartPosition,
+        isDragging,
+        setDraggedWindowTabs,
+        setWindowDragStartPosition,
+        tabs,
+    ]);
+
+    const scale = isDragging ? 0.7 : 1;
 
     return (
         <>
             <div
                 id={path.join(":")}
                 style={{
-                    ...position,
+                    top: position.top + currentMousePosition.top,
+                    left: position.left * scale + currentMousePosition.left,
                     width: position.width - separatorThickness,
                     height: windowToolbarHeight,
+                    transform: `scale(${scale})`,
+                    transformOrigin: `${dragStartPosition.x}px top`,
+                    zIndex: isDragging ? 13 : "auto",
+                    pointerEvents: isDragging ? "none" : "auto",
+                    userSelect: isDragging ? "none" : "auto",
                 }}
                 className="layman-toolbar"
             >
@@ -109,8 +153,20 @@ export function WindowToolbar({
                                 path={path}
                                 tab={tab}
                                 isSelected={index == selectedIndex}
-                                onDelete={() => removeTabAtIndex(index)}
-                                onMouseDown={() => handleClickTab(index)}
+                                onDelete={() =>
+                                    layoutDispatch({
+                                        type: "removeTab",
+                                        path: path,
+                                        tab: tabs[index],
+                                    })
+                                }
+                                onMouseDown={() =>
+                                    layoutDispatch({
+                                        type: "selectTab",
+                                        path: path,
+                                        tab: tabs[index],
+                                    })
+                                }
                             />
                         );
                     })}
@@ -118,10 +174,25 @@ export function WindowToolbar({
                 {/** Button to add a new blank menu */}
                 <ToolbarButton
                     icon={<VscAdd />}
-                    onClick={() => addBlankTab()}
+                    onClick={() =>
+                        layoutDispatch({
+                            type: "addTab",
+                            path: path,
+                            tab: new TabData("blank"),
+                        })
+                    }
                 />
                 {/** Draggable area to move window */}
-                <div draggable className="drag-area"></div>
+                <div
+                    ref={drag}
+                    className="drag-area"
+                    onMouseDown={(event) => {
+                        setDragStartPosition({
+                            x: event.clientX,
+                            y: event.clientY,
+                        });
+                    }}
+                ></div>
                 {/** Buttons to add convert window to a row or column */}
                 <div className="toolbar-button-container">
                     <ToolbarButton
@@ -154,47 +225,49 @@ export function WindowToolbar({
                     />
                 </div>
             </div>
-            <div
-                style={{
-                    position: "absolute",
-                    top: position.top + windowToolbarHeight,
-                    left: position.left,
-                    width: position.width - separatorThickness,
-                    height:
-                        position.height -
-                        windowToolbarHeight -
-                        separatorThickness / 2,
-                    zIndex: 10,
-                    margin: "calc(var(--separator-thickness, 8px) / 2)",
-                    marginTop: 0,
-                }}
-            >
-                <WindowDropTarget
-                    path={path}
-                    position={_.cloneDeep(position)}
-                    placement="top"
-                />
-                <WindowDropTarget
-                    path={path}
-                    position={_.cloneDeep(position)}
-                    placement="bottom"
-                />
-                <WindowDropTarget
-                    path={path}
-                    position={_.cloneDeep(position)}
-                    placement="left"
-                />
-                <WindowDropTarget
-                    path={path}
-                    position={_.cloneDeep(position)}
-                    placement="right"
-                />
-                <WindowDropTarget
-                    path={path}
-                    position={_.cloneDeep(position)}
-                    placement="center"
-                />
-            </div>
+            {!isDragging && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: position.top + windowToolbarHeight,
+                        left: position.left,
+                        width: position.width - separatorThickness,
+                        height:
+                            position.height -
+                            windowToolbarHeight -
+                            separatorThickness / 2,
+                        zIndex: 10,
+                        margin: "calc(var(--separator-thickness, 8px) / 2)",
+                        marginTop: 0,
+                    }}
+                >
+                    <WindowDropTarget
+                        path={path}
+                        position={_.cloneDeep(position)}
+                        placement="top"
+                    />
+                    <WindowDropTarget
+                        path={path}
+                        position={_.cloneDeep(position)}
+                        placement="bottom"
+                    />
+                    <WindowDropTarget
+                        path={path}
+                        position={_.cloneDeep(position)}
+                        placement="left"
+                    />
+                    <WindowDropTarget
+                        path={path}
+                        position={_.cloneDeep(position)}
+                        placement="right"
+                    />
+                    <WindowDropTarget
+                        path={path}
+                        position={_.cloneDeep(position)}
+                        placement="center"
+                    />
+                </div>
+            )}
         </>
     );
 }

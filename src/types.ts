@@ -8,6 +8,7 @@ import {TabData} from "./TabData";
 export type Children<T> = [T, T, ...T[]];
 
 export const TabType = "TAB";
+export const WindowType = "WINDOW";
 
 export type LaymanDirection = "column" | "row";
 export type LaymanPath = Array<number>;
@@ -71,6 +72,11 @@ interface RemoveWindowAction extends BaseLaymanLayoutAction {
     type: "removeWindow";
 }
 
+interface DragWindowAction extends BaseLaymanLayoutAction {
+    type: "dragWindow";
+    isDragging: boolean;
+}
+
 // Union type of all possible actions
 export type LaymanLayoutAction =
     | AddTabAction
@@ -79,7 +85,8 @@ export type LaymanLayoutAction =
     | MoveTabAction
     // | MoveSeparatorAction
     | AddWindowAction
-    | RemoveWindowAction;
+    | RemoveWindowAction
+    | DragWindowAction;
 
 export interface Position {
     top: number;
@@ -119,6 +126,10 @@ export interface LaymanContextType {
     layoutDispatch: React.Dispatch<LaymanLayoutAction>;
     setDropHighlightPosition: React.Dispatch<Position>;
     setIsDragging: React.Dispatch<boolean>;
+    draggedWindowTabs: TabData[];
+    setDraggedWindowTabs: React.Dispatch<TabData[]>;
+    windowDragStartPosition: {x: number; y: number};
+    setWindowDragStartPosition: React.Dispatch<{x: number; y: number}>;
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
 }

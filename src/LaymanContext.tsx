@@ -15,6 +15,7 @@ import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
 import React from "react";
 import {DropHighlight} from "./DropHighlight";
+import {TabData} from "./TabData";
 
 // Define default values for the context
 const defaultContextValue: LaymanContextType = {
@@ -24,6 +25,10 @@ const defaultContextValue: LaymanContextType = {
     layoutDispatch: () => {},
     setDropHighlightPosition: () => {},
     setIsDragging: () => {},
+    draggedWindowTabs: [],
+    setDraggedWindowTabs: () => {},
+    windowDragStartPosition: {x: 0, y: 0},
+    setWindowDragStartPosition: () => {},
     renderPane: () => <></>,
     renderTab: () => <></>,
 };
@@ -364,6 +369,11 @@ export const LaymanProvider = ({
             width: 0,
             height: 0,
         });
+    const [draggedWindowTabs, setDraggedWindowTabs] = useState<TabData[]>([]);
+    const [windowDragStartPosition, setWindowDragStartPosition] = useState({
+        x: 0,
+        y: 0,
+    });
     const [isDragging, setIsDragging] = useState<boolean>(false);
 
     return (
@@ -375,6 +385,10 @@ export const LaymanProvider = ({
                 layoutDispatch,
                 setDropHighlightPosition,
                 setIsDragging,
+                draggedWindowTabs,
+                setDraggedWindowTabs,
+                windowDragStartPosition,
+                setWindowDragStartPosition,
                 renderPane,
                 renderTab,
             }}
@@ -384,6 +398,7 @@ export const LaymanProvider = ({
                     position={dropHighlightPosition}
                     isDragging={isDragging}
                 />
+                <div id="drag-window-border"></div>
                 {children}
             </DndProvider>
         </LaymanContext.Provider>

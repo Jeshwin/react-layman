@@ -1,5 +1,5 @@
 import {useDrop} from "react-dnd";
-import {LaymanPath, Position, TabType} from "./types";
+import {LaymanPath, Position, TabType, WindowType} from "./types";
 import {TabData} from "./TabData";
 import {useContext, useEffect, useRef} from "react";
 import {LaymanContext} from "./LaymanContext";
@@ -23,20 +23,6 @@ export function WindowDropTarget({
         width: 0,
         height: 0,
     });
-
-    const [, drop] = useDrop(() => ({
-        accept: TabType,
-        drop: (item: {tab: TabData; path: LaymanPath}) => {
-            layoutDispatch({
-                type: "moveTab",
-                tab: item.tab,
-                path: item.path,
-                newPath: path,
-                placement: placement,
-            });
-        },
-        hover: () => setDropHighlightPosition(newDropHighlightPosition.current),
-    }));
 
     const windowToolbarHeight =
         parseInt(
@@ -83,6 +69,23 @@ export function WindowDropTarget({
 
         newDropHighlightPosition.current = dropPosition;
     }, [position, windowToolbarHeight, separatorThickness, placement]);
+
+    const [, drop] = useDrop(() => ({
+        accept: [TabType, WindowType],
+        drop: (item: {tab: TabData; path: LaymanPath}) => {
+            layoutDispatch({
+                type: "moveTab",
+                tab: item.tab,
+                path: item.path,
+                newPath: path,
+                placement: placement,
+            });
+        },
+        hover: () => {
+            setDropHighlightPosition(newDropHighlightPosition.current);
+            console.dir(newDropHighlightPosition.current);
+        },
+    }));
 
     return (
         <div
