@@ -2,12 +2,6 @@ import {LaymanProvider, LaymanLayout, Layman} from "../src";
 import {TabData} from "../src/TabData";
 import Pane from "./Pane";
 
-/**
- * @function App
- * @description The main functional component of the application, rendering the Layman layout manager
- * with the provided initial data and custom renderers for tabs and panes.
- * @returns {JSX.Element} The React component tree structure representing the entire application.
- */
 export default function App() {
     const initialLayout: LaymanLayout = {
         direction: "row",
@@ -38,14 +32,13 @@ export default function App() {
         ],
     };
     /**
-     * @function renderPane
-     * @description Transforms a given pane ID to its corresponding window component
+     * Transforms a given pane ID to its corresponding window component
      */
     const renderPane = (tab: TabData): JSX.Element => <Pane paneId={tab.id} />;
 
     /**
-     * @function renderTab
-     * @description Transforms a given pane ID to its corresponding tab name for display purposes.
+     * Transforms a given pane ID to its corresponding tab name
+     * for display purposes.
      */
     const renderTab = (tab: TabData) => tab.name;
 
