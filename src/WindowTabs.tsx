@@ -1,6 +1,6 @@
 import {VscClose} from "react-icons/vsc";
 import {useContext, useEffect} from "react";
-import {useDrag} from "react-dnd";
+import {ConnectDragSource, useDrag} from "react-dnd";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {LaymanPath, TabType} from "./types";
@@ -39,15 +39,41 @@ export const Tab = ({
     return (
         <div
             ref={drag}
-            className={`tab ${isSelected ? "selected" : ""} ${
-                isDragging ? "dragging" : ""
-            }`}
+            className={`tab ${isSelected ? "selected" : ""}`}
             style={{
                 visibility: isDragging ? "hidden" : "visible",
                 width: isDragging ? 0 : "auto",
             }}
         >
             {isSelected && <div className="indicator"></div>}
+            <button className="tab-selector" onMouseDown={onMouseDown}>
+                {renderTab(tab)}
+            </button>
+            <button className="close-tab" onClick={onDelete}>
+                <VscClose color="white" />
+            </button>
+        </div>
+    );
+};
+
+interface SingleTabProps {
+    dragRef: ConnectDragSource;
+    tab: TabData;
+    onDelete: React.MouseEventHandler<HTMLButtonElement>;
+    onMouseDown: React.MouseEventHandler<HTMLButtonElement>;
+}
+
+export const SingleTab = ({
+    dragRef,
+    tab,
+    onDelete,
+    onMouseDown,
+}: SingleTabProps) => {
+    const {renderTab} = useContext(LaymanContext);
+
+    return (
+        <div ref={dragRef} className={`tab selected`}>
+            <div className="indicator"></div>
             <button className="tab-selector" onMouseDown={onMouseDown}>
                 {renderTab(tab)}
             </button>

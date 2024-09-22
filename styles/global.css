@@ -149,6 +149,17 @@
             cursor: grabbing;
         }
     }
+    .extended-drag-area {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        cursor: grab;
+        &:active {
+            cursor: grabbing;
+        }
+    }
 
     button.toolbar-button {
         width: var(--toolbar-height, 32px);

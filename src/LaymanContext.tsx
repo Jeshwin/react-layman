@@ -172,7 +172,22 @@ const LayoutReducer = (
                 layout,
                 _.dropRight(action.path)
             );
-            if (!parent || !("children" in parent)) return layout;
+            console.dir(parent);
+            if (!parent) return layout;
+
+            if (!("children" in parent)) {
+                // Base layout must be window, adding to this
+                const isColumnPlacement =
+                    action.placement === "top" || action.placement === "bottom";
+                const newChildren: Children<LaymanLayout> =
+                    action.placement === "top" || action.placement === "left"
+                        ? [action.window, parent]
+                        : [parent, action.window];
+                return {
+                    direction: isColumnPlacement ? "column" : "row",
+                    children: newChildren,
+                };
+            }
 
             const isColumnPlacement =
                 action.placement === "top" || action.placement === "bottom";

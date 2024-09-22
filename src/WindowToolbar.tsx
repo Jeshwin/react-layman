@@ -1,7 +1,7 @@
 import {useContext, useEffect, useRef, useState} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
 import {ToolBarProps, WindowType} from "./types";
-import {Tab} from "./WindowTabs";
+import {SingleTab, Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
@@ -16,6 +16,11 @@ function usePrevious(value: number) {
     });
     return ref.current;
 }
+
+// 1x1 transparent image for empty drag preview
+const transparentImage = new Image(); // Create a transparent image
+transparentImage.src =
+    "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; // 1x1 pixel transparent GIF
 
 export function WindowToolbar({
     path,
@@ -77,7 +82,7 @@ export function WindowToolbar({
         left: position.left,
     });
     const [dragStartPosition, setDragStartPosition] = useState({x: 0, y: 0});
-    const [{isDragging}, drag] = useDrag({
+    const [{isDragging}, drag, dragPreview] = useDrag({
         type: WindowType,
         item: {path, tabs, selectedIndex},
         collect: (monitor) => ({
@@ -88,6 +93,27 @@ export function WindowToolbar({
             setWindowDragStartPosition({x: 0, y: 0});
         },
     });
+    const [{singleTabIsDragging}, singleTabDrag, singleTabDragPreview] =
+        useDrag({
+            type: WindowType,
+            item: {path, tabs, selectedIndex},
+            collect: (monitor) => ({
+                singleTabIsDragging: monitor.isDragging(),
+            }),
+            end: () => {
+                setDraggedWindowTabs([]);
+                setWindowDragStartPosition({x: 0, y: 0});
+            },
+        });
+
+    // Hide default drag previews
+    useEffect(() => {
+        dragPreview(transparentImage);
+    }, [dragPreview]);
+
+    useEffect(() => {
+        singleTabDragPreview(transparentImage);
+    }, [singleTabDragPreview]);
 
     // Custom drag layer to track mouse position during dragging
     const {clientOffset} = useDragLayer((monitor) => ({
@@ -95,7 +121,7 @@ export function WindowToolbar({
     }));
 
     useEffect(() => {
-        if (clientOffset && isDragging) {
+        if (clientOffset && (isDragging || singleTabIsDragging)) {
             setCurrentMousePosition({
                 top: clientOffset.y - dragStartPosition.y,
                 left: clientOffset.x - dragStartPosition.x,
@@ -106,14 +132,20 @@ export function WindowToolbar({
                 left: 0,
             });
         }
-    }, [clientOffset, dragStartPosition, isDragging, position]);
+    }, [
+        clientOffset,
+        dragStartPosition,
+        isDragging,
+        position,
+        singleTabIsDragging,
+    ]);
 
     useEffect(() => {
-        setIsDragging(isDragging);
-    }, [isDragging, setIsDragging]);
+        setIsDragging(isDragging || singleTabIsDragging);
+    }, [isDragging, setIsDragging, singleTabIsDragging]);
 
     useEffect(() => {
-        if (isDragging) {
+        if (isDragging || singleTabIsDragging) {
             setDraggedWindowTabs(tabs);
             setWindowDragStartPosition(dragStartPosition);
         }
@@ -122,10 +154,11 @@ export function WindowToolbar({
         isDragging,
         setDraggedWindowTabs,
         setWindowDragStartPosition,
+        singleTabIsDragging,
         tabs,
     ]);
 
-    const scale = isDragging ? 0.7 : 1;
+    const scale = isDragging || singleTabIsDragging ? 0.7 : 1;
 
     return (
         <>
@@ -138,38 +171,65 @@ export function WindowToolbar({
                     height: windowToolbarHeight,
                     transform: `scale(${scale})`,
                     transformOrigin: `${dragStartPosition.x}px bottom`,
-                    zIndex: isDragging ? 13 : "auto",
-                    pointerEvents: isDragging ? "none" : "auto",
-                    userSelect: isDragging ? "none" : "auto",
+                    zIndex: isDragging || singleTabIsDragging ? 13 : "auto",
+                    pointerEvents:
+                        isDragging || singleTabIsDragging ? "none" : "auto",
+                    userSelect:
+                        isDragging || singleTabIsDragging ? "none" : "auto",
                 }}
                 className="layman-toolbar"
             >
                 {/** Render each tab */}
                 <div ref={tabContainerRef} className="tab-container">
-                    {tabs.map((tab: TabData, index: number) => {
-                        return (
-                            <Tab
-                                key={index}
-                                path={path}
-                                tab={tab}
-                                isSelected={index == selectedIndex}
-                                onDelete={() =>
-                                    layoutDispatch({
-                                        type: "removeTab",
-                                        path: path,
-                                        tab: tabs[index],
-                                    })
-                                }
-                                onMouseDown={() =>
-                                    layoutDispatch({
-                                        type: "selectTab",
-                                        path: path,
-                                        tab: tabs[index],
-                                    })
-                                }
-                            />
-                        );
-                    })}
+                    {tabs.length > 1 ? (
+                        tabs.map((tab: TabData, index: number) => {
+                            return (
+                                <Tab
+                                    key={index}
+                                    path={path}
+                                    tab={tab}
+                                    isSelected={index == selectedIndex}
+                                    onDelete={() =>
+                                        layoutDispatch({
+                                            type: "removeTab",
+                                            path: path,
+                                            tab: tabs[index],
+                                        })
+                                    }
+                                    onMouseDown={() =>
+                                        layoutDispatch({
+                                            type: "selectTab",
+                                            path: path,
+                                            tab: tabs[index],
+                                        })
+                                    }
+                                />
+                            );
+                        })
+                    ) : (
+                        <SingleTab
+                            dragRef={singleTabDrag}
+                            tab={tabs[0]}
+                            onDelete={() =>
+                                layoutDispatch({
+                                    type: "removeTab",
+                                    path: path,
+                                    tab: tabs[0],
+                                })
+                            }
+                            onMouseDown={(event) => {
+                                setDragStartPosition({
+                                    x: event.clientX,
+                                    y: event.clientY,
+                                });
+                                layoutDispatch({
+                                    type: "selectTab",
+                                    path: path,
+                                    tab: tabs[0],
+                                });
+                            }}
+                        />
+                    )}
                 </div>
                 {/** Button to add a new blank menu */}
                 <ToolbarButton
@@ -225,7 +285,7 @@ export function WindowToolbar({
                     />
                 </div>
             </div>
-            {!isDragging && (
+            {!(isDragging || singleTabIsDragging) && (
                 <div
                     style={{
                         position: "absolute",
