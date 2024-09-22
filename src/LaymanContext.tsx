@@ -6,8 +6,6 @@ import {
     TabRenderer,
     LaymanLayoutAction,
     Children,
-    LaymanWindow,
-    LaymanDirection,
     Position,
     LaymanPath,
 } from "./types";
@@ -48,37 +46,36 @@ const LayoutReducer = (
     layout: LaymanLayout,
     action: LaymanLayoutAction
 ): LaymanLayout => {
+    /**
+     * Helper function to get nested layout object at a path
+     */
+    const getLayoutAtPath = (layout: LaymanLayout, path: LaymanPath) => {
+        if (path.length === 0) return layout;
+        const lodashPath = "children." + path.join(".children.");
+        return _.get(layout, lodashPath);
+    };
+
     switch (action.type) {
         case "addTab": {
-            // Edge case: layout is a single window
-            if ("tabs" in layout) {
-                return {
-                    ...layout,
-                    tabs: [...layout.tabs, action.tab],
-                };
-            }
-
             const lodashPath = "children." + action.path.join(".children.");
-            const window: LaymanLayout = _.get(layout, lodashPath);
+            const window: LaymanLayout = getLayoutAtPath(layout, action.path);
             if (!window || !("tabs" in window)) return layout;
 
-            return _.set(_.cloneDeep(layout), lodashPath, {
+            const updatedLayout = {
                 ...window,
                 tabs: [...window.tabs, action.tab],
-            });
+            };
+
+            if (action.path.length == 0) {
+                return updatedLayout;
+            } else {
+                return _.set(_.cloneDeep(layout), lodashPath, updatedLayout);
+            }
         }
 
         case "removeTab": {
-            // Edge case: layout is a single window
-            if ("tabs" in layout) {
-                return {
-                    ...layout,
-                    tabs: layout.tabs.filter((tab) => tab.id !== action.tab.id),
-                };
-            }
-
             const lodashPath = "children." + action.path.join(".children.");
-            const window: LaymanLayout = _.get(layout, lodashPath);
+            const window: LaymanLayout = getLayoutAtPath(layout, action.path);
             if (!window || !("tabs" in window)) return layout;
 
             // Create a new array of tabs without the removed tab
@@ -106,40 +103,41 @@ const LayoutReducer = (
                 });
             }
 
-            return _.set(_.cloneDeep(layout), lodashPath, {
+            const updatedLayout = {
                 ...window,
                 tabs: updatedTabs,
                 selectedIndex: updatedSelectedIndex,
-            });
+            };
+
+            if (action.path.length == 0) {
+                return updatedLayout;
+            } else {
+                return _.set(_.cloneDeep(layout), lodashPath, updatedLayout);
+            }
         }
 
         case "selectTab": {
-            // Edge case: layout is a single window
-            if ("tabs" in layout) {
-                return {
-                    ...layout,
-                    selectedIndex: layout.tabs.findIndex(
-                        (tab) => tab.id === action.tab.id
-                    ),
-                };
-            }
-
             const lodashPath = "children." + action.path.join(".children.");
-            const window: LaymanLayout = _.get(layout, lodashPath);
+            const window: LaymanLayout = getLayoutAtPath(layout, action.path);
             if (!window || !("tabs" in window)) return layout;
 
             // Update selectedIndex in the window
-            window.selectedIndex = window.tabs.findIndex(
-                (tab) => tab.id === action.tab.id
-            );
+            const updatedLayout = {
+                ...window,
+                selectedIndex: window.tabs.findIndex(
+                    (tab) => tab.id === action.tab.id
+                ),
+            };
 
-            // Return the updated layout
-            return _.set(_.cloneDeep(layout), lodashPath, window);
+            if (action.path.length == 0) {
+                return updatedLayout;
+            } else {
+                return _.set(_.cloneDeep(layout), lodashPath, updatedLayout);
+            }
         }
 
         case "moveTab": {
-            const lodashPath = "children." + action.path.join(".children.");
-            const window: LaymanLayout = _.get(layout, lodashPath);
+            const window: LaymanLayout = getLayoutAtPath(layout, action.path);
             if (!window || !("tabs" in window)) return layout;
 
             const removeTabLayout = LayoutReducer(layout, {
@@ -168,104 +166,13 @@ const LayoutReducer = (
         }
 
         case "addWindow": {
-            // Handle the root-level case
-            if (action.path.length === 1) {
-                if (!("children" in layout)) return layout;
-                const isColumnPlacement =
-                    action.placement === "top" || action.placement === "bottom";
-                const currRootWindow = layout.children[action.path[0]];
-
-                if (
-                    (isColumnPlacement && layout.direction === "column") ||
-                    (!isColumnPlacement && layout.direction === "row")
-                ) {
-                    // Add the window along the existing root direction
-                    const index =
-                        action.placement === "bottom" ||
-                        action.placement === "right"
-                            ? action.path[0] + 1 // Add after the current window
-                            : action.path[0]; // Add before the current window
-                    const newRootChildren = [
-                        ...layout.children.slice(0, index),
-                        action.window,
-                        ...layout.children.slice(index),
-                    ];
-
-                    return {
-                        ...layout,
-                        children: newRootChildren as Children<LaymanLayout>,
-                    };
-                } else {
-                    // Split the root window into a new layout
-                    // with the opposite direction
-                    return {
-                        ...layout,
-                        children: layout.children.map((child, index) => {
-                            if (index != action.path[0]) return child;
-                            return {
-                                direction: isColumnPlacement ? "column" : "row",
-                                children:
-                                    action.placement === "top" ||
-                                    action.placement === "left"
-                                        ? [action.window, currRootWindow]
-                                        : [currRootWindow, action.window],
-                            };
-                        }) as Children<LaymanLayout>,
-                    };
-                }
-            }
-
-            // Handle the non-root case
-            const parentPath = _.dropRight(action.path);
             const parentLodashPath =
-                "children." + parentPath.join(".children.");
-            const parent: LaymanLayout = _.get(layout, parentLodashPath);
-
+                "children." + _.dropRight(action.path).join(".children.");
+            const parent: LaymanLayout = getLayoutAtPath(
+                layout,
+                _.dropRight(action.path)
+            );
             if (!parent || !("children" in parent)) return layout;
-
-            // Helper to return the updated layout
-            const updateLayout = (newChildren: Array<LaymanLayout>) => {
-                return _.set(_.cloneDeep(layout), parentLodashPath, {
-                    ...parent,
-                    children: newChildren as Children<LaymanLayout>,
-                });
-            };
-
-            // Helper to get the current window
-            const getCurrentWindow = () => {
-                const lodashPath = "children." + action.path.join(".children.");
-                const currWindow: LaymanLayout = _.get(layout, lodashPath);
-                return currWindow && "tabs" in currWindow ? currWindow : null;
-            };
-
-            // Common logic for adding in a column or row direction
-            const addAlongDirection = (index: number) => {
-                return updateLayout([
-                    ...parent.children.slice(0, index),
-                    action.window,
-                    ...parent.children.slice(index),
-                ]);
-            };
-
-            // Common logic for splitting along the opposite direction
-            const splitAndAdd = (
-                currWindow: LaymanWindow | null,
-                direction: LaymanDirection,
-                placement: "top" | "bottom" | "left" | "right"
-            ) => {
-                if (!currWindow) return layout;
-                const newChildren: Children<LaymanLayout> =
-                    placement === "top" || placement === "left"
-                        ? [action.window, currWindow]
-                        : [currWindow, action.window];
-                return updateLayout(
-                    parent.children.map((child, index) =>
-                        index === _.last(action.path)
-                            ? {direction, children: newChildren}
-                            : child
-                    )
-                );
-            };
 
             const isColumnPlacement =
                 action.placement === "top" || action.placement === "bottom";
@@ -278,35 +185,63 @@ const LayoutReducer = (
                 (isColumnPlacement && parent.direction === "column") ||
                 (!isColumnPlacement && parent.direction === "row")
             ) {
-                return addAlongDirection(index);
+                const updatedLayout = {
+                    ...parent,
+                    children: [
+                        ...parent.children.slice(0, index),
+                        action.window,
+                        ...parent.children.slice(index),
+                    ] as Children<LaymanLayout>,
+                };
+                if (_.dropRight(action.path).length == 0) {
+                    return updatedLayout;
+                } else {
+                    return _.set(
+                        _.cloneDeep(layout),
+                        parentLodashPath,
+                        updatedLayout
+                    );
+                }
             } else {
-                return splitAndAdd(
-                    getCurrentWindow(),
-                    isColumnPlacement ? "column" : "row",
-                    action.placement
+                const window: LaymanLayout = getLayoutAtPath(
+                    layout,
+                    action.path
                 );
+                if (!window || !("tabs" in window)) return layout;
+                const newChildren: Children<LaymanLayout> =
+                    action.placement === "top" || action.placement === "left"
+                        ? [action.window, window]
+                        : [window, action.window];
+                const updatedLayout = {
+                    ...parent,
+                    children: parent.children.map((child, index) =>
+                        index === _.last(action.path)
+                            ? {
+                                  direction: isColumnPlacement
+                                      ? "column"
+                                      : "row",
+                                  children: newChildren,
+                              }
+                            : child
+                    ) as Children<LaymanLayout>,
+                };
+                if (_.dropRight(action.path).length == 0) {
+                    return updatedLayout;
+                } else {
+                    return _.set(
+                        _.cloneDeep(layout),
+                        parentLodashPath,
+                        updatedLayout
+                    );
+                }
             }
         }
 
         case "removeWindow": {
-            // Handle the root-level case
-            if (action.path.length === 1) {
-                if (!("children" in layout)) return layout;
-
-                return {
-                    ...layout,
-                    children: layout.children.filter(
-                        (_value, index) => index !== _.last(action.path)
-                    ) as Children<LaymanLayout>,
-                };
-            }
-
-            // Handle the non-root case
             const parentPath = _.dropRight(action.path);
             const parentLodashPath =
                 "children." + parentPath.join(".children.");
-            const parent: LaymanLayout = _.get(layout, parentLodashPath);
-
+            const parent: LaymanLayout = getLayoutAtPath(layout, parentPath);
             if (!parent || !("children" in parent)) return layout;
 
             // Remove the child layout since it has no tabs
@@ -315,13 +250,24 @@ const LayoutReducer = (
             );
 
             if (newChildren.length != 1) {
-                return _.set(_.cloneDeep(layout), parentLodashPath, {
+                const updatedLayout = {
                     ...parent,
                     children: newChildren as Children<LaymanLayout>,
-                });
+                };
+                if (parentPath.length == 0) {
+                    return updatedLayout;
+                }
+                return _.set(
+                    _.cloneDeep(layout),
+                    parentLodashPath,
+                    updatedLayout
+                );
             }
             // Replace parent with only child
             if (!("children" in newChildren[0])) {
+                if (parentPath.length == 0) {
+                    return newChildren[0];
+                }
                 return _.set(
                     _.cloneDeep(layout),
                     parentLodashPath,
@@ -331,18 +277,9 @@ const LayoutReducer = (
 
             // Check if "grandparent" is same direction as new parent
             const grandparentPath = _.dropRight(parentPath);
-            let grandparentLodashPath;
-            let grandparent: LaymanLayout;
-
-            if (grandparentPath.length == 0) {
-                grandparentLodashPath = "";
-                grandparent = layout;
-            } else {
-                grandparentLodashPath =
-                    "children." + grandparentPath.join(".children.");
-                grandparent = _.get(layout, grandparentLodashPath);
-            }
-
+            const grandparentLodashPath =
+                "children." + grandparentPath.join(".children.");
+            const grandparent = getLayoutAtPath(layout, grandparentPath);
             if (!grandparent || !("children" in grandparent)) return layout;
 
             // Merge with grandparent if they are the same direction
@@ -356,7 +293,7 @@ const LayoutReducer = (
                         ...grandparent.children.slice(parentIndex + 1),
                     ] as Children<LaymanLayout>,
                 };
-                if (grandparentLodashPath.length == 0) {
+                if (grandparentPath.length == 0) {
                     return updatedLayout;
                 }
                 return _.set(
@@ -365,6 +302,9 @@ const LayoutReducer = (
                     updatedLayout
                 );
             } else {
+                if (grandparentPath.length == 0) {
+                    return newChildren[0];
+                }
                 return _.set(
                     _.cloneDeep(layout),
                     parentLodashPath,
@@ -374,8 +314,7 @@ const LayoutReducer = (
         }
 
         case "moveWindow": {
-            const lodashPath = "children." + action.path.join(".children.");
-            const window: LaymanLayout = _.get(layout, lodashPath);
+            const window: LaymanLayout = getLayoutAtPath(layout, action.path);
             if (!window || !("tabs" in window)) return layout;
 
             const removeWindowLayout = LayoutReducer(layout, {
@@ -388,14 +327,50 @@ const LayoutReducer = (
                 originalPath: LaymanPath,
                 newPath: LaymanPath
             ) => {
-                // Changes occur if newPath is ancestor of originalPath's parent
+                console.log("originalPath: ", originalPath.join("."));
+                console.log("newPath: ", newPath.join("."));
+
                 const commonLength = _.takeWhile(
                     originalPath,
                     (val, idx) => val === newPath[idx]
                 ).length;
 
                 if (commonLength != originalPath.length - 1) {
-                    return newPath;
+                    if (commonLength != originalPath.length - 2) {
+                        return newPath;
+                    }
+
+                    const adjustedPath = _.clone(newPath);
+
+                    const parentPath = _.dropRight(action.path);
+                    const parent = getLayoutAtPath(layout, parentPath);
+                    if (!parent || !("children" in parent)) return adjustedPath;
+
+                    const grandparentPath = _.dropRight(parentPath);
+                    const grandparent = getLayoutAtPath(
+                        layout,
+                        grandparentPath
+                    );
+                    if (!grandparent || !("children" in grandparent))
+                        return adjustedPath;
+
+                    const onlyChild =
+                        parent.children[_.last(originalPath) == 1 ? 0 : 1];
+
+                    if (!onlyChild || !("children" in onlyChild)) {
+                        return adjustedPath;
+                    }
+
+                    if (grandparent.direction === onlyChild.direction) {
+                        if (
+                            adjustedPath[commonLength] >
+                            originalPath[commonLength]
+                        ) {
+                            adjustedPath[commonLength] +=
+                                onlyChild.children.length - 1;
+                        }
+                        return adjustedPath;
+                    }
                 }
                 const adjustedPath = _.clone(newPath);
 
@@ -407,64 +382,42 @@ const LayoutReducer = (
 
                 // originalPath's parent had two children, only child moved up
                 const parentPath = _.dropRight(originalPath);
-                let parentLodashPath;
-                let parent: LaymanLayout;
-
-                if (parentPath.length == 0) {
-                    parentLodashPath = "";
-                    parent = layout;
-                } else {
-                    parentLodashPath =
-                        "children." + parentPath.join(".children.");
-                    parent = _.get(layout, parentLodashPath);
-                }
-
+                const parent = getLayoutAtPath(layout, parentPath);
                 if (!parent || !("children" in parent)) {
-                    return newPath;
+                    return adjustedPath;
                 }
 
                 // Remove parent from path
                 if (parent.children.length == 2) {
                     adjustedPath.splice(commonLength, 1);
-                }
 
-                // Grandparent and only child share direction, moves up again
-                const grandparentPath = _.dropRight(parentPath);
-                let grandparentLodashPath;
-                let grandparent: LaymanLayout;
+                    // Grandparent and only child share direction, moves up again
+                    const grandparentPath = _.dropRight(parentPath);
+                    const grandparent = getLayoutAtPath(
+                        layout,
+                        grandparentPath
+                    );
+                    if (!grandparent || !("children" in grandparent)) {
+                        return adjustedPath;
+                    }
 
-                if (grandparentPath.length == 0) {
-                    grandparentLodashPath = "";
-                    grandparent = layout;
-                } else {
-                    grandparentLodashPath =
-                        "children." + grandparentPath.join(".children.");
-                    grandparent = _.get(layout, grandparentLodashPath);
-                }
+                    const onlyChild =
+                        parent.children[_.last(originalPath) == 1 ? 0 : 1];
 
-                if (!grandparent || !("children" in grandparent)) {
-                    return newPath;
-                }
+                    if (!onlyChild || !("children" in onlyChild)) {
+                        return adjustedPath;
+                    }
 
-                const onlyChild =
-                    parent.children[_.last(originalPath) == 1 ? 0 : 1];
-
-                if (!onlyChild || !("children" in onlyChild)) {
-                    return newPath;
-                }
-
-                // Merge with grandparent if they are the same direction
-                if (grandparent.direction === onlyChild.direction) {
-                    adjustedPath[commonLength - 1] +=
-                        adjustedPath[commonLength];
-                    adjustedPath.splice(commonLength, 1);
+                    // Merge with grandparent if they are the same direction
+                    if (grandparent.direction === onlyChild.direction) {
+                        adjustedPath[commonLength - 1] +=
+                            adjustedPath[commonLength];
+                        adjustedPath.splice(commonLength, 1);
+                    }
                 }
 
                 return adjustedPath;
             };
-
-            console.log("action.path: ", action.path.join("."));
-            console.log("old action.newPath: ", action.newPath.join("."));
 
             // Handle removing window causes newPath to change
             const newPath = adjustPath(layout, action.path, action.newPath);
