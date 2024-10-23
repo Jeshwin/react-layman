@@ -4,7 +4,7 @@
     --separator-handle-color: #ffffff;
 
     /* Thickness of the separator between windows */
-    --separator-thickness: 8px;
+    --separator-thickness: 4px;
 
     /* Length of the separator handle */
     --separator-handle-length: 36px;

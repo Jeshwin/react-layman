@@ -53,11 +53,11 @@ interface MoveTabAction extends BaseLaymanLayoutAction {
     placement: "top" | "bottom" | "left" | "right" | "center";
 }
 
-// interface MoveSeparatorAction extends BaseLaymanLayoutAction {
-//     type: "moveSeparator";
-//     newSplitPercentage: number;
-//     neighbors: [LaymanWindow, LaymanWindow]; // The two affected windows
-// }
+interface MoveSeparatorAction extends BaseLaymanLayoutAction {
+    type: "moveSeparator";
+    index: number;
+    newSplitPercentage: number;
+}
 
 interface AddWindowAction extends BaseLaymanLayoutAction {
     type: "addWindow";
@@ -82,7 +82,7 @@ export type LaymanLayoutAction =
     | RemoveTabAction
     | SelectTabAction
     | MoveTabAction
-    // | MoveSeparatorAction
+    | MoveSeparatorAction
     | AddWindowAction
     | RemoveWindowAction
     | MoveWindowAction;
@@ -112,8 +112,8 @@ export type DragData = DragTab | DragWindow;
 
 // Types for component props
 export interface SeparatorProps {
-    parentPosition: Position;
-    splitPercentage: number;
+    position: Position;
+    index: number;
     direction: LaymanDirection;
     path: LaymanPath;
 }
@@ -134,9 +134,7 @@ export type TabRenderer = (arg0: TabData) => string | JSX.Element;
 
 export interface LaymanContextType {
     laymanRef: React.RefObject<HTMLElement> | undefined;
-    setLaymanRef: Dispatch<
-        SetStateAction<React.RefObject<HTMLElement> | undefined>
-    >;
+    setLaymanRef: Dispatch<SetStateAction<React.RefObject<HTMLElement> | undefined>>;
     layout: LaymanLayout;
     layoutDispatch: React.Dispatch<LaymanLayoutAction>;
     setDropHighlightPosition: React.Dispatch<Position>;

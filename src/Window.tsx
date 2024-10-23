@@ -5,7 +5,7 @@ import {useDragLayer} from "react-dnd";
 import {createPortal} from "react-dom";
 
 export function Window({position, tab, isSelected}: WindowProps) {
-    const {renderPane, draggedWindowTabs, windowDragStartPosition} =
+    const {laymanRef, renderPane, draggedWindowTabs, windowDragStartPosition} =
         useContext(LaymanContext);
 
     const separatorThickness =
@@ -23,6 +23,14 @@ export function Window({position, tab, isSelected}: WindowProps) {
                 .trim(),
             10
         ) ?? 64;
+    // Get offset of layout from top-left corner of whole window
+    const layoutOffset =
+        laymanRef && laymanRef.current
+            ? laymanRef.current.getBoundingClientRect()
+            : {
+                  top: 0,
+                  left: 0,
+              };
     const isDragging = draggedWindowTabs.includes(tab);
     const scale = isDragging ? 0.7 : 1;
 
@@ -109,12 +117,13 @@ export function Window({position, tab, isSelected}: WindowProps) {
                             zIndex: 15,
                             top:
                                 position.top +
-                                windowToolbarHeight * scale +
-                                currentMousePosition.top,
+                                (windowToolbarHeight / 2) * scale +
+                                currentMousePosition.top +
+                                layoutOffset.top,
                             left:
                                 position.left * scale +
                                 currentMousePosition.left +
-                                12,
+                                layoutOffset.left,
                             width: position.width - separatorThickness,
                             height: position.height - separatorThickness / 2,
                             transform: `scale(${scale})`,

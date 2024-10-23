@@ -43,30 +43,30 @@ export default function App() {
     const renderTab = (tab: TabData) => tab.name;
 
     return (
-        <LaymanProvider
-            initialLayout={initialLayout}
-            renderPane={renderPane}
-            renderTab={renderTab}
+        <div
+            style={{
+                width: "100%",
+                height: "100%",
+                display: "grid",
+                placeContent: "center",
+                backgroundColor: "#09090b",
+            }}
         >
             <div
                 style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "grid",
-                    placeContent: "center",
-                    backgroundColor: "#09090b",
+                    fontFamily: "monospace",
+                    width: "calc(100vw - 16px",
+                    height: "calc(100vh - 16px)",
                 }}
             >
-                <div
-                    style={{
-                        fontFamily: "monospace",
-                        width: "calc(100vw - 16px",
-                        height: "calc(100vh - 16px)",
-                    }}
+                <LaymanProvider
+                    initialLayout={initialLayout}
+                    renderPane={renderPane}
+                    renderTab={renderTab}
                 >
                     <Layman />
-                </div>
+                </LaymanProvider>
             </div>
-        </LaymanProvider>
+        </div>
     );
 }
