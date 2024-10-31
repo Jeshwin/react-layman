@@ -3,26 +3,16 @@ import {LaymanContext} from "./LaymanContext";
 import {WindowProps} from "./types";
 import {useDragLayer} from "react-dnd";
 import {createPortal} from "react-dom";
+import {WindowContext} from "./WindowContext";
 
-export function Window({position, tab, isSelected}: WindowProps) {
-    const {laymanRef, renderPane, draggedWindowTabs, windowDragStartPosition} =
-        useContext(LaymanContext);
+export function Window({position, path, tab, isSelected}: WindowProps) {
+    const {laymanRef, renderPane, draggedWindowTabs, windowDragStartPosition} = useContext(LaymanContext);
 
     const separatorThickness =
-        parseInt(
-            getComputedStyle(document.documentElement)
-                .getPropertyValue("--separator-thickness")
-                .trim(),
-            10
-        ) ?? 8;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
 
     const windowToolbarHeight =
-        parseInt(
-            getComputedStyle(document.documentElement)
-                .getPropertyValue("--toolbar-height")
-                .trim(),
-            10
-        ) ?? 64;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
     // Get offset of layout from top-left corner of whole window
     const layoutOffset =
         laymanRef && laymanRef.current
@@ -60,17 +50,9 @@ export function Window({position, tab, isSelected}: WindowProps) {
                 left: 0,
             });
         }
-    }, [
-        draggedWindowTabs,
-        windowDragStartPosition,
-        tab,
-        clientOffset,
-        isDragging,
-    ]);
+    }, [draggedWindowTabs, windowDragStartPosition, tab, clientOffset, isDragging]);
 
-    const [portalElement, setPortalElement] = useState<HTMLElement | null>(
-        null
-    );
+    const [portalElement, setPortalElement] = useState<HTMLElement | null>(null);
 
     // Check for the portal target element when the component mounts
     useEffect(() => {
@@ -90,24 +72,16 @@ export function Window({position, tab, isSelected}: WindowProps) {
         <div
             id={tab.id}
             style={{
-                top:
-                    position.top +
-                    windowToolbarHeight +
-                    currentMousePosition.top,
+                top: position.top + windowToolbarHeight + currentMousePosition.top,
                 left: position.left * scale + currentMousePosition.left,
                 width: position.width - separatorThickness,
-                height:
-                    position.height -
-                    windowToolbarHeight -
-                    separatorThickness / 2,
+                height: position.height - windowToolbarHeight - separatorThickness / 2,
                 transform: `scale(${scale})`,
                 transformOrigin: `${windowDragStartPosition.x}px top`,
                 zIndex: isDragging ? 12 : "auto",
                 pointerEvents: isDragging ? "none" : "auto",
             }}
-            className={`layman-window ${
-                isSelected ? "selected" : "unselected"
-            }`}
+            className={`layman-window ${isSelected ? "selected" : "unselected"}`}
         >
             {isDragging &&
                 createPortal(
@@ -120,10 +94,7 @@ export function Window({position, tab, isSelected}: WindowProps) {
                                 (windowToolbarHeight / 2) * scale +
                                 currentMousePosition.top +
                                 layoutOffset.top,
-                            left:
-                                position.left * scale +
-                                currentMousePosition.left +
-                                layoutOffset.left,
+                            left: position.left * scale + currentMousePosition.left + layoutOffset.left,
                             width: position.width - separatorThickness,
                             height: position.height - separatorThickness / 2,
                             transform: `scale(${scale})`,
@@ -136,7 +107,16 @@ export function Window({position, tab, isSelected}: WindowProps) {
                     ></div>,
                     document.getElementById("drag-window-border")!
                 )}
-            {renderPane(tab)}
+            <WindowContext.Provider
+                value={{
+                    position,
+                    path,
+                    tab,
+                    isSelected,
+                }}
+            >
+                {renderPane(tab)}
+            </WindowContext.Provider>
         </div>
     );
 }

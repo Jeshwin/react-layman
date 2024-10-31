@@ -13,14 +13,8 @@ interface TabProps {
     onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-export const Tab = ({
-    tab,
-    path,
-    isSelected,
-    onDelete,
-    onMouseDown,
-}: TabProps) => {
-    const {renderTab, setIsDragging} = useContext(LaymanContext);
+export const Tab = ({tab, path, isSelected, onDelete, onMouseDown}: TabProps) => {
+    const {renderTab, setGlobalDragging} = useContext(LaymanContext);
     const [{isDragging}, drag] = useDrag({
         type: TabType,
         item: {
@@ -33,8 +27,8 @@ export const Tab = ({
     });
 
     useEffect(() => {
-        setIsDragging(isDragging);
-    }, [isDragging, setIsDragging]);
+        setGlobalDragging(isDragging);
+    }, [isDragging, setGlobalDragging]);
 
     return (
         <div
@@ -63,12 +57,7 @@ interface SingleTabProps {
     onMouseDown: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-export const SingleTab = ({
-    dragRef,
-    tab,
-    onDelete,
-    onMouseDown,
-}: SingleTabProps) => {
+export const SingleTab = ({dragRef, tab, onDelete, onMouseDown}: SingleTabProps) => {
     const {renderTab} = useContext(LaymanContext);
 
     return (

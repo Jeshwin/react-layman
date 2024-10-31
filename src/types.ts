@@ -112,6 +112,7 @@ export type DragData = DragTab | DragWindow;
 
 // Types for component props
 export interface SeparatorProps {
+    nodePosition: Position;
     position: Position;
     index: number;
     direction: LaymanDirection;
@@ -125,6 +126,7 @@ export interface ToolBarProps {
 }
 export interface WindowProps {
     position: Position;
+    path: LaymanPath;
     tab: TabData;
     isSelected: boolean;
 }
@@ -138,7 +140,8 @@ export interface LaymanContextType {
     layout: LaymanLayout;
     layoutDispatch: React.Dispatch<LaymanLayoutAction>;
     setDropHighlightPosition: React.Dispatch<Position>;
-    setIsDragging: React.Dispatch<boolean>;
+    globalDragging: boolean;
+    setGlobalDragging: React.Dispatch<boolean>;
     draggedWindowTabs: TabData[];
     setDraggedWindowTabs: React.Dispatch<TabData[]>;
     windowDragStartPosition: {x: number; y: number};

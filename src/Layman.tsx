@@ -69,6 +69,7 @@ export function Layman() {
                 layout.tabs.forEach((tab, index) => {
                     calculatedWindows.push({
                         position,
+                        path,
                         tab,
                         isSelected: index == layout.selectedIndex,
                     });
@@ -116,6 +117,7 @@ export function Layman() {
                         // Add separator
                         if (index != 0)
                             calculatedSeparators.push({
+                                nodePosition: position,
                                 position: {
                                     ...childPosition,
                                     width: position.width,
@@ -136,7 +138,9 @@ export function Layman() {
                     children.forEach((child, index) => {
                         // Skip over dragged tab
                         if ("tabs" in child && child.tabs == draggedWindowTabs) return;
-                        const viewPercent = child.viewPercent ?? 100 / (children.length - 1);
+                        const viewPercent = child.viewPercent
+                            ? (child.viewPercent * children.length) / (children.length - 1)
+                            : 100 / (children.length - 1);
 
                         const splitPixels =
                             direction === "row"
@@ -165,6 +169,7 @@ export function Layman() {
                         // Add separator
                         if (index != children.length - 1)
                             calculatedSeparators.push({
+                                nodePosition: position,
                                 position: {
                                     top: 0,
                                     left: 0,
@@ -212,6 +217,7 @@ export function Layman() {
 
                             if (index != children.length - 1)
                                 calculatedSeparators.push({
+                                    nodePosition: position,
                                     position: {
                                         top: 0,
                                         left: 0,

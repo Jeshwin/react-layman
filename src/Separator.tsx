@@ -2,22 +2,32 @@
 import {MouseEventHandler, useCallback, useContext, useEffect, useState} from "react";
 import {SeparatorProps} from "./types";
 import {LaymanContext} from "./LaymanContext";
+import _ from "lodash";
 
-export function Separator({position, index, direction, path}: SeparatorProps) {
+export function Separator({nodePosition, position, index, direction, path}: SeparatorProps) {
     const {layout, layoutDispatch, laymanRef} = useContext(LaymanContext);
     const [isDragging, setIsDragging] = useState(false);
 
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
 
-    const minSplitPercentage = 20;
-    const maxSplitPercentage = 100 - minSplitPercentage;
-
     // Compute relative split percentage using position of the parent node
     // absoluteSplitPercentage just gets mouse position and dimensions of total layout
     // relative split percentage needs to get the position of only the parent layout
     // Also needs to consider existing split percentages of affected windows? So you can't overflow?
-    const calculateRelativeSplitPercentage = (absoluteSplitPercentage: number) => absoluteSplitPercentage;
+    const calculateRelativeSplitPercentage = (absoluteSplitPercentage: number) => {
+        // Determine layout dimensions and scaling based on direction
+        const windowStart = direction === "column" ? position.top : position.left;
+        const windowSize = direction === "column" ? position.height : position.width;
+
+        // Convert the absolute percentage to an absolute pixel offset within the entire layout
+        const absolutePixelOffset = (absoluteSplitPercentage / 100) * windowSize;
+
+        // Calculate relative percentage by scaling absolute pixel offset to the window's size
+        const relativeSplitPercentage = (absolutePixelOffset / windowSize) * 100;
+
+        return relativeSplitPercentage;
+    };
 
     // Toggle isDragging when holding separator
     const handleMouseUp: MouseEventHandler<HTMLElement> = (event) => {
@@ -40,20 +50,29 @@ export function Separator({position, index, direction, path}: SeparatorProps) {
             event.preventDefault();
             if (!isDragging || !laymanRef!.current) return;
             const parentBBox = laymanRef!.current.getBoundingClientRect();
-            const absoluteSplitPercentage =
+            // const absoluteSplitPercentage =
+            //     direction === "column"
+            //         ? ((event.clientY - parentBBox.top) / parentBBox.height) * 100.0
+            //         : ((event.clientX - parentBBox.left) / parentBBox.width) * 100.0;
+            // const relativeSplitPercentage = calculateRelativeSplitPercentage(absoluteSplitPercentage);
+            let splitPercentage =
                 direction === "column"
-                    ? ((event.clientY - parentBBox.top) / parentBBox.height) * 100.0
-                    : ((event.clientX - parentBBox.left) / parentBBox.width) * 100.0;
-            const relativeSplitPercentage = calculateRelativeSplitPercentage(absoluteSplitPercentage);
-            const newSplitPercentage = Math.min(
-                Math.max(relativeSplitPercentage, minSplitPercentage),
-                maxSplitPercentage
-            );
+                    ? ((event.clientY - nodePosition.top) / nodePosition.height) * 100.0
+                    : ((event.clientX - nodePosition.left) / nodePosition.width) * 100.0;
+            // Clamp splitPercentage between 5 and 95 for now
+            splitPercentage = _.clamp(splitPercentage, 5, 95);
+
+            // layoutDispatch({
+            //     type: "moveSeparator",
+            //     path: path,
+            //     index,
+            //     newSplitPercentage: relativeSplitPercentage,
+            // });
             layoutDispatch({
                 type: "moveSeparator",
                 path: path,
                 index,
-                newSplitPercentage: newSplitPercentage,
+                newSplitPercentage: splitPercentage,
             });
         };
 
@@ -72,7 +91,7 @@ export function Separator({position, index, direction, path}: SeparatorProps) {
                 handleMouseUp as unknown as (this: Document, ev: MouseEvent) => never
             );
         };
-    }, [direction, isDragging, path, laymanRef, layout, layoutDispatch, minSplitPercentage, maxSplitPercentage, index]);
+    }, [direction, isDragging, nodePosition, path, laymanRef, layout, layoutDispatch, index]);
 
     return (
         <div
