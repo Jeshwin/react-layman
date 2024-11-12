@@ -25,51 +25,51 @@ export interface LaymanNode {
 export type LaymanLayout = LaymanWindow | LaymanNode;
 
 // Define the common attributes for all actions
-interface BaseLaymanLayoutAction {
+export interface BaseLaymanLayoutAction {
     type: string;
     path: LaymanPath;
 }
 
 // Define the specific attributes required for each action type
-interface AddTabAction extends BaseLaymanLayoutAction {
+export interface AddTabAction extends BaseLaymanLayoutAction {
     type: "addTab";
     tab: TabData;
 }
 
-interface RemoveTabAction extends BaseLaymanLayoutAction {
+export interface RemoveTabAction extends BaseLaymanLayoutAction {
     type: "removeTab";
     tab: TabData;
 }
 
-interface SelectTabAction extends BaseLaymanLayoutAction {
+export interface SelectTabAction extends BaseLaymanLayoutAction {
     type: "selectTab";
     tab: TabData;
 }
 
-interface MoveTabAction extends BaseLaymanLayoutAction {
+export interface MoveTabAction extends BaseLaymanLayoutAction {
     type: "moveTab";
     tab: TabData;
     newPath: LaymanPath;
     placement: "top" | "bottom" | "left" | "right" | "center";
 }
 
-// interface MoveSeparatorAction extends BaseLaymanLayoutAction {
-//     type: "moveSeparator";
-//     newSplitPercentage: number;
-//     neighbors: [LaymanWindow, LaymanWindow]; // The two affected windows
-// }
+export interface MoveSeparatorAction extends BaseLaymanLayoutAction {
+    type: "moveSeparator";
+    index: number;
+    newSplitPercentage: number;
+}
 
-interface AddWindowAction extends BaseLaymanLayoutAction {
+export interface AddWindowAction extends BaseLaymanLayoutAction {
     type: "addWindow";
     window: LaymanWindow;
     placement: "top" | "bottom" | "left" | "right";
 }
 
-interface RemoveWindowAction extends BaseLaymanLayoutAction {
+export interface RemoveWindowAction extends BaseLaymanLayoutAction {
     type: "removeWindow";
 }
 
-interface MoveWindowAction extends BaseLaymanLayoutAction {
+export interface MoveWindowAction extends BaseLaymanLayoutAction {
     type: "moveWindow";
     window: LaymanWindow;
     newPath: LaymanPath;
@@ -82,7 +82,7 @@ export type LaymanLayoutAction =
     | RemoveTabAction
     | SelectTabAction
     | MoveTabAction
-    // | MoveSeparatorAction
+    | MoveSeparatorAction
     | AddWindowAction
     | RemoveWindowAction
     | MoveWindowAction;
@@ -112,10 +112,12 @@ export type DragData = DragTab | DragWindow;
 
 // Types for component props
 export interface SeparatorProps {
-    parentPosition: Position;
-    splitPercentage: number;
+    nodePosition: Position;
+    position: Position;
+    index: number;
     direction: LaymanDirection;
     path: LaymanPath;
+    separators?: SeparatorProps[];
 }
 export interface ToolBarProps {
     path: LaymanPath;
@@ -125,6 +127,7 @@ export interface ToolBarProps {
 }
 export interface WindowProps {
     position: Position;
+    path: LaymanPath;
     tab: TabData;
     isSelected: boolean;
 }
@@ -134,13 +137,12 @@ export type TabRenderer = (arg0: TabData) => string | JSX.Element;
 
 export interface LaymanContextType {
     laymanRef: React.RefObject<HTMLElement> | undefined;
-    setLaymanRef: Dispatch<
-        SetStateAction<React.RefObject<HTMLElement> | undefined>
-    >;
+    setLaymanRef: Dispatch<SetStateAction<React.RefObject<HTMLElement> | undefined>>;
     layout: LaymanLayout;
     layoutDispatch: React.Dispatch<LaymanLayoutAction>;
     setDropHighlightPosition: React.Dispatch<Position>;
-    setIsDragging: React.Dispatch<boolean>;
+    globalDragging: boolean;
+    setGlobalDragging: React.Dispatch<boolean>;
     draggedWindowTabs: TabData[];
     setDraggedWindowTabs: React.Dispatch<TabData[]>;
     windowDragStartPosition: {x: number; y: number};

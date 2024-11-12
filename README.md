@@ -19,16 +19,17 @@ You can play around with Layman through [this demo](https://github.com/Jeshwin/r
 
 ## Progress
 
--   [ ] Dynamic Layout
+-   [x] Dynamic Layout
     -   [x] Rows and columns
     -   [x] Adjustable windows
-    -   [ ] Drag and drop windows
+    -   [x] Drag and drop windows
     -   [x] Delete windows
     -   [x] Tabbed windows
-        -   [ ] Draggable tabs
+        -   [x] Draggable tabs
 -   [ ] Extra features
     -   [ ] Auto Arrange
     -   [ ] "Add to corner" hueristic
+    -   [ ] Add tabs from sources external to layout
 
 ## Usage
 

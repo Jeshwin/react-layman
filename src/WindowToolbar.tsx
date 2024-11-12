@@ -1,6 +1,6 @@
 import {useContext, useEffect, useRef, useState} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {ToolBarProps, WindowType} from "./types";
+import {Position, ToolBarProps, WindowType} from "./types";
 import {SingleTab, Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
@@ -19,38 +19,18 @@ function usePrevious(value: number) {
 
 // 1x1 transparent image for empty drag preview
 const transparentImage = new Image(); // Create a transparent image
-transparentImage.src =
-    "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; // 1x1 pixel transparent GIF
+transparentImage.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; // 1x1 pixel transparent GIF
 
-export function WindowToolbar({
-    path,
-    position,
-    tabs,
-    selectedIndex,
-}: ToolBarProps) {
-    const {
-        layoutDispatch,
-        setIsDragging,
-        setWindowDragStartPosition,
-        setDraggedWindowTabs,
-    } = useContext(LaymanContext);
+export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProps) {
+    const {layoutDispatch, globalDragging, setGlobalDragging, setWindowDragStartPosition, setDraggedWindowTabs} =
+        useContext(LaymanContext);
     const tabContainerRef = useRef<HTMLDivElement>(null);
     // Track the previous length of the tabs array
     const previousTabCount = usePrevious(tabs.length);
     const windowToolbarHeight =
-        parseInt(
-            getComputedStyle(document.documentElement)
-                .getPropertyValue("--toolbar-height")
-                .trim(),
-            10
-        ) ?? 64;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
     const separatorThickness =
-        parseInt(
-            getComputedStyle(document.documentElement)
-                .getPropertyValue("--separator-thickness")
-                .trim(),
-            10
-        ) ?? 8;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
 
     // useEffect to handle scrolling when the number of tabs changes
     useEffect(() => {
@@ -93,18 +73,17 @@ export function WindowToolbar({
             setWindowDragStartPosition({x: 0, y: 0});
         },
     });
-    const [{singleTabIsDragging}, singleTabDrag, singleTabDragPreview] =
-        useDrag({
-            type: WindowType,
-            item: {path, tabs, selectedIndex},
-            collect: (monitor) => ({
-                singleTabIsDragging: monitor.isDragging(),
-            }),
-            end: () => {
-                setDraggedWindowTabs([]);
-                setWindowDragStartPosition({x: 0, y: 0});
-            },
-        });
+    const [{singleTabIsDragging}, singleTabDrag, singleTabDragPreview] = useDrag({
+        type: WindowType,
+        item: {path, tabs, selectedIndex},
+        collect: (monitor) => ({
+            singleTabIsDragging: monitor.isDragging(),
+        }),
+        end: () => {
+            setDraggedWindowTabs([]);
+            setWindowDragStartPosition({x: 0, y: 0});
+        },
+    });
 
     // Hide default drag previews
     useEffect(() => {
@@ -132,50 +111,46 @@ export function WindowToolbar({
                 left: 0,
             });
         }
-    }, [
-        clientOffset,
-        dragStartPosition,
-        isDragging,
-        position,
-        singleTabIsDragging,
-    ]);
+    }, [clientOffset, dragStartPosition, isDragging, position, singleTabIsDragging]);
 
     useEffect(() => {
-        setIsDragging(isDragging || singleTabIsDragging);
-    }, [isDragging, setIsDragging, singleTabIsDragging]);
+        setGlobalDragging(isDragging || singleTabIsDragging);
+    }, [isDragging, setGlobalDragging, singleTabIsDragging]);
 
     useEffect(() => {
         if (isDragging || singleTabIsDragging) {
             setDraggedWindowTabs(tabs);
             setWindowDragStartPosition(dragStartPosition);
         }
-    }, [
-        dragStartPosition,
-        isDragging,
-        setDraggedWindowTabs,
-        setWindowDragStartPosition,
-        singleTabIsDragging,
-        tabs,
-    ]);
+    }, [dragStartPosition, isDragging, setDraggedWindowTabs, setWindowDragStartPosition, singleTabIsDragging, tabs]);
 
     const scale = isDragging || singleTabIsDragging ? 0.7 : 1;
+
+    const windowToolbarPosition: Position = {
+        top: position.top + currentMousePosition.top,
+        left: position.left * scale + currentMousePosition.left,
+        width: position.width - separatorThickness,
+        height: windowToolbarHeight,
+    };
+
+    const dropTargetsPosition: Position = {
+        top: position.top + windowToolbarHeight,
+        left: position.left,
+        width: position.width - separatorThickness,
+        height: position.height - windowToolbarHeight - separatorThickness / 2,
+    };
 
     return (
         <>
             <div
                 id={path.join(":")}
                 style={{
-                    top: position.top + currentMousePosition.top,
-                    left: position.left * scale + currentMousePosition.left,
-                    width: position.width - separatorThickness,
-                    height: windowToolbarHeight,
+                    ...windowToolbarPosition,
                     transform: `scale(${scale})`,
                     transformOrigin: `${dragStartPosition.x}px bottom`,
                     zIndex: isDragging || singleTabIsDragging ? 13 : "auto",
-                    pointerEvents:
-                        isDragging || singleTabIsDragging ? "none" : "auto",
-                    userSelect:
-                        isDragging || singleTabIsDragging ? "none" : "auto",
+                    pointerEvents: isDragging || singleTabIsDragging ? "none" : "auto",
+                    userSelect: isDragging || singleTabIsDragging ? "none" : "auto",
                 }}
                 className="layman-toolbar"
             >
@@ -289,43 +264,18 @@ export function WindowToolbar({
                 <div
                     style={{
                         position: "absolute",
-                        top: position.top + windowToolbarHeight,
-                        left: position.left,
-                        width: position.width - separatorThickness,
-                        height:
-                            position.height -
-                            windowToolbarHeight -
-                            separatorThickness / 2,
+                        ...dropTargetsPosition,
                         zIndex: 10,
                         margin: "calc(var(--separator-thickness, 8px) / 2)",
                         marginTop: 0,
+                        pointerEvents: globalDragging ? "auto" : "none",
                     }}
                 >
-                    <WindowDropTarget
-                        path={path}
-                        position={_.cloneDeep(position)}
-                        placement="top"
-                    />
-                    <WindowDropTarget
-                        path={path}
-                        position={_.cloneDeep(position)}
-                        placement="bottom"
-                    />
-                    <WindowDropTarget
-                        path={path}
-                        position={_.cloneDeep(position)}
-                        placement="left"
-                    />
-                    <WindowDropTarget
-                        path={path}
-                        position={_.cloneDeep(position)}
-                        placement="right"
-                    />
-                    <WindowDropTarget
-                        path={path}
-                        position={_.cloneDeep(position)}
-                        placement="center"
-                    />
+                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="top" />
+                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="bottom" />
+                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="left" />
+                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="right" />
+                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="center" />
                 </div>
             )}
         </>

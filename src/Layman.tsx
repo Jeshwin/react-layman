@@ -1,14 +1,9 @@
 import {useContext, useEffect, useMemo, useRef, useState} from "react";
 import {WindowToolbar} from "./WindowToolbar";
 import {Window} from "./Window";
-import {
-    LaymanLayout,
-    LaymanPath,
-    ToolBarProps,
-    WindowProps,
-    Position,
-} from "./types";
+import {LaymanLayout, LaymanPath, ToolBarProps, WindowProps, Position, SeparatorProps} from "./types";
 import {LaymanContext} from "./LaymanContext";
+import {Separator} from "./Separator";
 
 /**
  * Entry point for Layman Window Manager
@@ -18,7 +13,7 @@ export function Layman() {
     // Local state for component lists
     const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
     const [windows, setWindows] = useState<WindowProps[]>([]);
-
+    const [separators, setSeparators] = useState<SeparatorProps[]>([]);
     // Reference for parent div
     const laymanRef = useRef<HTMLDivElement | null>(null);
 
@@ -58,12 +53,9 @@ export function Layman() {
     useMemo(() => {
         const calculatedToolbars: ToolBarProps[] = [];
         const calculatedWindows: WindowProps[] = [];
+        const calculatedSeparators: SeparatorProps[] = [];
 
-        function traverseLayout(
-            layout: LaymanLayout,
-            position: Position,
-            path: LaymanPath
-        ) {
+        function traverseLayout(layout: LaymanLayout, position: Position, path: LaymanPath) {
             // Check if it's a window (LaymanWindow) or a layout split
             if ("tabs" in layout) {
                 // If it's a window, handle the tabs and panes
@@ -77,6 +69,7 @@ export function Layman() {
                 layout.tabs.forEach((tab, index) => {
                     calculatedWindows.push({
                         position,
+                        path,
                         tab,
                         isSelected: index == layout.selectedIndex,
                     });
@@ -88,18 +81,14 @@ export function Layman() {
                 // Check if this split contains the dragged window
                 const containsDraggedWindow =
                     draggedWindowTabs.length > 0 &&
-                    children.some(
-                        (child) =>
-                            "tabs" in child && child.tabs == draggedWindowTabs
-                    );
+                    children.some((child) => "tabs" in child && child.tabs == draggedWindowTabs);
 
                 if (!containsDraggedWindow) {
                     // Accumulate pixel offsets for children positioning
                     let accumulatedPixels = 0;
 
                     children.forEach((child, index) => {
-                        const viewPercent =
-                            child.viewPercent ?? 100 / children.length;
+                        const viewPercent = child.viewPercent ?? 100 / children.length;
 
                         const splitPixels =
                             direction === "row"
@@ -123,25 +112,40 @@ export function Layman() {
                                   };
 
                         // Traverse deeper into the layout tree
-                        traverseLayout(
-                            child,
-                            childPosition,
-                            path.concat([index])
-                        );
+                        traverseLayout(child, childPosition, path.concat([index]));
+
+                        // Add separator
+                        if (index != 0)
+                            calculatedSeparators.push({
+                                nodePosition: position,
+                                position: {
+                                    ...childPosition,
+                                    width: position.width,
+                                    height: position.height,
+                                },
+                                index: index - 1,
+                                direction,
+                                path: path.concat([index]),
+                            });
 
                         // Update accumulated pixel offset for the next child
                         accumulatedPixels += splitPixels;
                     });
                 } else {
+                    // Get split percentage of dragged window to calculate new split percentages
+                    const draggedWindow = children.find((child) => "tabs" in child && child.tabs == draggedWindowTabs);
+                    const draggedWindowSplitPercentage = draggedWindow ? draggedWindow.viewPercent : undefined;
                     // Render non-dragged tabs as if dragged tab wasn't there
                     let accumulatedPixels = 0;
 
                     children.forEach((child, index) => {
                         // Skip over dragged tab
-                        if ("tabs" in child && child.tabs == draggedWindowTabs)
-                            return;
-                        const viewPercent =
-                            child.viewPercent ?? 100 / (children.length - 1);
+                        if ("tabs" in child && child.tabs == draggedWindowTabs) return;
+                        const viewPercent = draggedWindowSplitPercentage
+                            ? ((child.viewPercent ? child.viewPercent : 100 / children.length) * 100) /
+                              (100 - draggedWindowSplitPercentage)
+                            : ((child.viewPercent ? child.viewPercent : 100 / children.length) * children.length) /
+                              (children.length - 1);
 
                         const splitPixels =
                             direction === "row"
@@ -165,11 +169,23 @@ export function Layman() {
                                   };
 
                         // Traverse deeper into the layout tree
-                        traverseLayout(
-                            child,
-                            childPosition,
-                            path.concat([index])
-                        );
+                        traverseLayout(child, childPosition, path.concat([index]));
+
+                        // Add separator
+
+                        if (index != children.length - 1)
+                            calculatedSeparators.push({
+                                nodePosition: position,
+                                position: {
+                                    top: 0,
+                                    left: 0,
+                                    width: 0,
+                                    height: 0,
+                                },
+                                index,
+                                direction,
+                                path: path.concat([index]),
+                            });
 
                         // Update accumulated pixel offset for the next child
                         accumulatedPixels += splitPixels;
@@ -178,8 +194,7 @@ export function Layman() {
                     // Render dragged window as if it was still in the layout
                     accumulatedPixels = 0;
                     children.forEach((child, index) => {
-                        const viewPercent =
-                            child.viewPercent ?? 100 / children.length;
+                        const viewPercent = child.viewPercent ?? 100 / children.length;
 
                         const splitPixels =
                             direction === "row"
@@ -203,15 +218,22 @@ export function Layman() {
                                   };
 
                         // Only traverse dragged window
-                        if (
-                            "tabs" in child &&
-                            child.tabs == draggedWindowTabs
-                        ) {
-                            traverseLayout(
-                                child,
-                                childPosition,
-                                path.concat([index])
-                            );
+                        if ("tabs" in child && child.tabs == draggedWindowTabs) {
+                            traverseLayout(child, childPosition, path.concat([index]));
+
+                            if (index != children.length - 1)
+                                calculatedSeparators.push({
+                                    nodePosition: position,
+                                    position: {
+                                        top: 0,
+                                        left: 0,
+                                        width: 0,
+                                        height: 0,
+                                    },
+                                    index,
+                                    direction,
+                                    path: path.concat([index]),
+                                });
                         }
 
                         // Update accumulated pixel offset for the next child
@@ -236,25 +258,22 @@ export function Layman() {
         // Set the calculated arrays
         setToolbars(calculatedToolbars);
         setWindows(calculatedWindows);
+        setSeparators(calculatedSeparators);
     }, [containerSize, draggedWindowTabs, layout]);
 
     return (
         <div ref={laymanRef} className="layman-root">
             {toolbars.map((props) => (
-                <WindowToolbar
-                    key={props.path.length != 0 ? props.path.join(":") : "root"}
-                    path={props.path}
-                    position={props.position}
-                    tabs={props.tabs}
-                    selectedIndex={props.selectedIndex}
-                />
+                <WindowToolbar key={props.path.length != 0 ? props.path.join(":") : "root"} {...props} />
             ))}
             {windows.map((props) => (
-                <Window
-                    key={props.tab.id}
-                    position={props.position}
-                    tab={props.tab}
-                    isSelected={props.isSelected}
+                <Window key={props.tab.id} {...props} />
+            ))}
+            {separators.map((props) => (
+                <Separator
+                    key={props.path.length != 0 ? props.path.join(":") : "root"}
+                    separators={separators} // Pass the full list
+                    {...props}
                 />
             ))}
         </div>

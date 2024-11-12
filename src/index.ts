@@ -10,6 +10,7 @@ export type {
 } from "./types";
 
 export {LaymanContext, LaymanProvider} from "./LaymanContext";
+export {WindowContext, useWindowContext} from "./WindowContext";
 
 export {Layman} from "./Layman";
 export {Separator} from "./Separator";

@@ -14,7 +14,7 @@ export function WindowDropTarget({
     position,
     placement,
 }: WindowDropTargetProps) {
-    const {layoutDispatch, setDropHighlightPosition} =
+    const {laymanRef, layoutDispatch, setDropHighlightPosition} =
         useContext(LaymanContext);
     const newDropHighlightPosition = useRef<Position>({
         top: 0,
@@ -63,11 +63,26 @@ export function WindowDropTarget({
             dropPosition.width = dropPosition.width / 2;
         }
 
-        dropPosition.top += separatorThickness;
-        dropPosition.left += separatorThickness;
+        // Get offset of layout from top-left corner of whole window
+        const layoutOffset =
+            laymanRef && laymanRef.current
+                ? laymanRef.current.getBoundingClientRect()
+                : {
+                      top: 0,
+                      left: 0,
+                  };
+        // Include total offset of layout
+        dropPosition.top += layoutOffset.top;
+        dropPosition.left += layoutOffset.left;
 
         newDropHighlightPosition.current = dropPosition;
-    }, [position, windowToolbarHeight, separatorThickness, placement]);
+    }, [
+        position,
+        windowToolbarHeight,
+        separatorThickness,
+        placement,
+        laymanRef,
+    ]);
 
     const [, drop] = useDrop(() => ({
         accept: [TabType, WindowType],
