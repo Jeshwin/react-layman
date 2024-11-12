@@ -4,30 +4,28 @@ import {SeparatorProps} from "./types";
 import {LaymanContext} from "./LaymanContext";
 import _ from "lodash";
 
-export function Separator({nodePosition, position, index, direction, path}: SeparatorProps) {
-    const {layout, layoutDispatch, laymanRef} = useContext(LaymanContext);
+export function Separator({nodePosition, position, index, direction, path, separators}: SeparatorProps) {
+    const {layoutDispatch, laymanRef} = useContext(LaymanContext);
     const [isDragging, setIsDragging] = useState(false);
 
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
+    const toolbarHeight =
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 32;
 
-    // Compute relative split percentage using position of the parent node
-    // absoluteSplitPercentage just gets mouse position and dimensions of total layout
-    // relative split percentage needs to get the position of only the parent layout
-    // Also needs to consider existing split percentages of affected windows? So you can't overflow?
-    const calculateRelativeSplitPercentage = (absoluteSplitPercentage: number) => {
-        // Determine layout dimensions and scaling based on direction
-        const windowStart = direction === "column" ? position.top : position.left;
-        const windowSize = direction === "column" ? position.height : position.width;
+    // Find the previous separator
+    const previousSeparator = separators!.find((sep) => {
+        const prevPath = [...path];
+        prevPath[prevPath.length - 1] -= 1;
+        return _.isEqual(sep.path, prevPath);
+    })?.position;
 
-        // Convert the absolute percentage to an absolute pixel offset within the entire layout
-        const absolutePixelOffset = (absoluteSplitPercentage / 100) * windowSize;
-
-        // Calculate relative percentage by scaling absolute pixel offset to the window's size
-        const relativeSplitPercentage = (absolutePixelOffset / windowSize) * 100;
-
-        return relativeSplitPercentage;
-    };
+    // Find the next separator
+    const nextSeparator = separators!.find((sep) => {
+        const prevPath = [...path];
+        prevPath[prevPath.length - 1] += 1;
+        return _.isEqual(sep.path, prevPath);
+    })?.position;
 
     // Toggle isDragging when holding separator
     const handleMouseUp: MouseEventHandler<HTMLElement> = (event) => {
@@ -35,42 +33,59 @@ export function Separator({nodePosition, position, index, direction, path}: Sepa
         setIsDragging(false);
     };
 
-    const handleMouseDown: MouseEventHandler<HTMLElement> = useCallback(
-        (event) => {
-            event.preventDefault();
-            setIsDragging(true);
-            console.dir({position, index, direction, path});
-        },
-        [direction, index, path, position]
-    );
+    const handleMouseDown: MouseEventHandler<HTMLElement> = useCallback((event) => {
+        event.preventDefault();
+        setIsDragging(true);
+    }, []);
 
     // Add event listeners to let separator change layout when dragged
     useEffect(() => {
         const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
             event.preventDefault();
             if (!isDragging || !laymanRef!.current) return;
-            const parentBBox = laymanRef!.current.getBoundingClientRect();
-            // const absoluteSplitPercentage =
-            //     direction === "column"
-            //         ? ((event.clientY - parentBBox.top) / parentBBox.height) * 100.0
-            //         : ((event.clientX - parentBBox.left) / parentBBox.width) * 100.0;
-            // const relativeSplitPercentage = calculateRelativeSplitPercentage(absoluteSplitPercentage);
+            //? Keep a running total of previous split percentages to offset current one by
+            //? For example, mouse at 33.3% from the left for the first separator will obviously be 33.3%
+            //? But for the second separator, mouse at 66.7% (or 33.3% plus first separator %) should be 33.3%
             let splitPercentage =
                 direction === "column"
-                    ? ((event.clientY - nodePosition.top) / nodePosition.height) * 100.0
-                    : ((event.clientX - nodePosition.left) / nodePosition.width) * 100.0;
+                    ? 100 *
+                      ((event.clientY - (previousSeparator ? previousSeparator.top : nodePosition.top)) /
+                          nodePosition.height)
+                    : 100 *
+                      ((event.clientX - (previousSeparator ? previousSeparator.left : nodePosition.left)) /
+                          nodePosition.width);
+            const minSplitPercentage =
+                (100 * (toolbarHeight + separatorThickness)) /
+                (direction === "column" ? nodePosition.height : nodePosition.width);
+            console.log(
+                `100 * ${toolbarHeight + separatorThickness} / ${
+                    direction === "column" ? nodePosition.height : nodePosition.width
+                } = ${minSplitPercentage}`
+            );
+            const maxSplitPercentage =
+                (direction === "column"
+                    ? 100 *
+                      (((nextSeparator ? nextSeparator.top : nodePosition.top + nodePosition.height) -
+                          (previousSeparator ? previousSeparator.top : nodePosition.top)) /
+                          nodePosition.height)
+                    : 100 *
+                      (((nextSeparator ? nextSeparator.left : nodePosition.left + nodePosition.width) -
+                          (previousSeparator ? previousSeparator.left : nodePosition.left)) /
+                          nodePosition.width)) - minSplitPercentage;
+            console.dir({
+                splitPercentage,
+                minSplitPercentage,
+                maxSplitPercentage,
+            });
+            splitPercentage = _.clamp(splitPercentage, minSplitPercentage, maxSplitPercentage);
             // Clamp splitPercentage between 5 and 95 for now
-            splitPercentage = _.clamp(splitPercentage, 5, 95);
-
-            // layoutDispatch({
-            //     type: "moveSeparator",
-            //     path: path,
-            //     index,
-            //     newSplitPercentage: relativeSplitPercentage,
-            // });
+            // splitPercentage = _.clamp(splitPercentage, 5, 95);
+            // Remove last part of path
+            const basePath = [...path];
+            basePath.pop();
             layoutDispatch({
                 type: "moveSeparator",
-                path: path,
+                path: basePath,
                 index,
                 newSplitPercentage: splitPercentage,
             });
@@ -91,7 +106,19 @@ export function Separator({nodePosition, position, index, direction, path}: Sepa
                 handleMouseUp as unknown as (this: Document, ev: MouseEvent) => never
             );
         };
-    }, [direction, isDragging, nodePosition, path, laymanRef, layout, layoutDispatch, index]);
+    }, [
+        direction,
+        index,
+        isDragging,
+        laymanRef,
+        layoutDispatch,
+        nextSeparator,
+        nodePosition,
+        path,
+        previousSeparator,
+        separatorThickness,
+        toolbarHeight,
+    ]);
 
     return (
         <div

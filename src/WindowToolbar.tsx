@@ -1,6 +1,6 @@
 import {useContext, useEffect, useRef, useState} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {ToolBarProps, WindowType} from "./types";
+import {Position, ToolBarProps, WindowType} from "./types";
 import {SingleTab, Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
@@ -126,15 +126,26 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
 
     const scale = isDragging || singleTabIsDragging ? 0.7 : 1;
 
+    const windowToolbarPosition: Position = {
+        top: position.top + currentMousePosition.top,
+        left: position.left * scale + currentMousePosition.left,
+        width: position.width - separatorThickness,
+        height: windowToolbarHeight,
+    };
+
+    const dropTargetsPosition: Position = {
+        top: position.top + windowToolbarHeight,
+        left: position.left,
+        width: position.width - separatorThickness,
+        height: position.height - windowToolbarHeight - separatorThickness / 2,
+    };
+
     return (
         <>
             <div
                 id={path.join(":")}
                 style={{
-                    top: position.top + currentMousePosition.top,
-                    left: position.left * scale + currentMousePosition.left,
-                    width: position.width - separatorThickness,
-                    height: windowToolbarHeight,
+                    ...windowToolbarPosition,
                     transform: `scale(${scale})`,
                     transformOrigin: `${dragStartPosition.x}px bottom`,
                     zIndex: isDragging || singleTabIsDragging ? 13 : "auto",
@@ -253,10 +264,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                 <div
                     style={{
                         position: "absolute",
-                        top: position.top + windowToolbarHeight,
-                        left: position.left,
-                        width: position.width - separatorThickness,
-                        height: position.height - windowToolbarHeight - separatorThickness / 2,
+                        ...dropTargetsPosition,
                         zIndex: 10,
                         margin: "calc(var(--separator-thickness, 8px) / 2)",
                         marginTop: 0,

@@ -125,7 +125,7 @@ export function Layman() {
                                 },
                                 index: index - 1,
                                 direction,
-                                path,
+                                path: path.concat([index]),
                             });
 
                         // Update accumulated pixel offset for the next child
@@ -167,6 +167,7 @@ export function Layman() {
                         traverseLayout(child, childPosition, path.concat([index]));
 
                         // Add separator
+
                         if (index != children.length - 1)
                             calculatedSeparators.push({
                                 nodePosition: position,
@@ -178,7 +179,7 @@ export function Layman() {
                                 },
                                 index,
                                 direction,
-                                path,
+                                path: path.concat([index]),
                             });
 
                         // Update accumulated pixel offset for the next child
@@ -226,7 +227,7 @@ export function Layman() {
                                     },
                                     index,
                                     direction,
-                                    path,
+                                    path: path.concat([index]),
                                 });
                         }
 
@@ -264,7 +265,11 @@ export function Layman() {
                 <Window key={props.tab.id} {...props} />
             ))}
             {separators.map((props) => (
-                <Separator key={props.path.length != 0 ? props.path.join(":") : "root"} {...props} />
+                <Separator
+                    key={props.path.length != 0 ? props.path.join(":") : "root"}
+                    separators={separators} // Pass the full list
+                    {...props}
+                />
             ))}
         </div>
     );

@@ -25,51 +25,51 @@ export interface LaymanNode {
 export type LaymanLayout = LaymanWindow | LaymanNode;
 
 // Define the common attributes for all actions
-interface BaseLaymanLayoutAction {
+export interface BaseLaymanLayoutAction {
     type: string;
     path: LaymanPath;
 }
 
 // Define the specific attributes required for each action type
-interface AddTabAction extends BaseLaymanLayoutAction {
+export interface AddTabAction extends BaseLaymanLayoutAction {
     type: "addTab";
     tab: TabData;
 }
 
-interface RemoveTabAction extends BaseLaymanLayoutAction {
+export interface RemoveTabAction extends BaseLaymanLayoutAction {
     type: "removeTab";
     tab: TabData;
 }
 
-interface SelectTabAction extends BaseLaymanLayoutAction {
+export interface SelectTabAction extends BaseLaymanLayoutAction {
     type: "selectTab";
     tab: TabData;
 }
 
-interface MoveTabAction extends BaseLaymanLayoutAction {
+export interface MoveTabAction extends BaseLaymanLayoutAction {
     type: "moveTab";
     tab: TabData;
     newPath: LaymanPath;
     placement: "top" | "bottom" | "left" | "right" | "center";
 }
 
-interface MoveSeparatorAction extends BaseLaymanLayoutAction {
+export interface MoveSeparatorAction extends BaseLaymanLayoutAction {
     type: "moveSeparator";
     index: number;
     newSplitPercentage: number;
 }
 
-interface AddWindowAction extends BaseLaymanLayoutAction {
+export interface AddWindowAction extends BaseLaymanLayoutAction {
     type: "addWindow";
     window: LaymanWindow;
     placement: "top" | "bottom" | "left" | "right";
 }
 
-interface RemoveWindowAction extends BaseLaymanLayoutAction {
+export interface RemoveWindowAction extends BaseLaymanLayoutAction {
     type: "removeWindow";
 }
 
-interface MoveWindowAction extends BaseLaymanLayoutAction {
+export interface MoveWindowAction extends BaseLaymanLayoutAction {
     type: "moveWindow";
     window: LaymanWindow;
     newPath: LaymanPath;
@@ -117,6 +117,7 @@ export interface SeparatorProps {
     index: number;
     direction: LaymanDirection;
     path: LaymanPath;
+    separators?: SeparatorProps[];
 }
 export interface ToolBarProps {
     path: LaymanPath;
