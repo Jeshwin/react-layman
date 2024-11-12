@@ -43,9 +43,6 @@ export function Separator({nodePosition, position, index, direction, path, separ
         const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
             event.preventDefault();
             if (!isDragging || !laymanRef!.current) return;
-            //? Keep a running total of previous split percentages to offset current one by
-            //? For example, mouse at 33.3% from the left for the first separator will obviously be 33.3%
-            //? But for the second separator, mouse at 66.7% (or 33.3% plus first separator %) should be 33.3%
             let splitPercentage =
                 direction === "column"
                     ? 100 *
@@ -57,11 +54,6 @@ export function Separator({nodePosition, position, index, direction, path, separ
             const minSplitPercentage =
                 (100 * (toolbarHeight + separatorThickness)) /
                 (direction === "column" ? nodePosition.height : nodePosition.width);
-            console.log(
-                `100 * ${toolbarHeight + separatorThickness} / ${
-                    direction === "column" ? nodePosition.height : nodePosition.width
-                } = ${minSplitPercentage}`
-            );
             const maxSplitPercentage =
                 (direction === "column"
                     ? 100 *
@@ -72,15 +64,7 @@ export function Separator({nodePosition, position, index, direction, path, separ
                       (((nextSeparator ? nextSeparator.left : nodePosition.left + nodePosition.width) -
                           (previousSeparator ? previousSeparator.left : nodePosition.left)) /
                           nodePosition.width)) - minSplitPercentage;
-            console.dir({
-                splitPercentage,
-                minSplitPercentage,
-                maxSplitPercentage,
-            });
             splitPercentage = _.clamp(splitPercentage, minSplitPercentage, maxSplitPercentage);
-            // Clamp splitPercentage between 5 and 95 for now
-            // splitPercentage = _.clamp(splitPercentage, 5, 95);
-            // Remove last part of path
             const basePath = [...path];
             basePath.pop();
             layoutDispatch({

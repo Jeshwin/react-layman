@@ -131,15 +131,38 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
     const parent: LaymanLayout = getLayoutAtPath(layout, parentPath);
     if (!parent || !("children" in parent)) return layout;
 
+    // Get split percentage of dragged window to calculate new split percentages
+    const removedWindow = parent.children.find((_child, index) => index === _.last(action.path));
+    const removedWindowSplitPercentage = removedWindow ? removedWindow.viewPercent : undefined;
+
     // Remove the child layout since it has no tabs
     const newChildren = parent.children
         .filter((_value, index) => index !== _.last(action.path))
-        .map((child) => ({
-            ...child,
-            viewPercent: child.viewPercent
-                ? (child.viewPercent * parent.children.length) / (parent.children.length - 1)
-                : child.viewPercent,
-        }));
+        .map((child) => {
+            console.dir({
+                viewPercent: child.viewPercent,
+                removed: removedWindowSplitPercentage,
+            });
+            console.log(
+                `${child.viewPercent} => ${
+                    removedWindowSplitPercentage
+                        ? ((child.viewPercent ? child.viewPercent : 100 / parent.children.length) * 100) /
+                          (100 - removedWindowSplitPercentage)
+                        : ((child.viewPercent ? child.viewPercent : 100 / parent.children.length) *
+                              parent.children.length) /
+                          (parent.children.length - 1)
+                }`
+            );
+            return {
+                ...child,
+                viewPercent: removedWindowSplitPercentage
+                    ? ((child.viewPercent ? child.viewPercent : 100 / parent.children.length) * 100) /
+                      (100 - removedWindowSplitPercentage)
+                    : ((child.viewPercent ? child.viewPercent : 100 / parent.children.length) *
+                          parent.children.length) /
+                      (parent.children.length - 1),
+            };
+        });
 
     if (newChildren.length != 1) {
         const updatedLayout = {
@@ -207,7 +230,6 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
 const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
     const parentLodashPath = "children." + _.dropRight(action.path).join(".children.");
     const parent: LaymanLayout = getLayoutAtPath(layout, _.dropRight(action.path));
-    console.dir(parent);
     if (!parent) return layout;
 
     if (!("children" in parent)) {

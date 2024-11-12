@@ -132,15 +132,20 @@ export function Layman() {
                         accumulatedPixels += splitPixels;
                     });
                 } else {
+                    // Get split percentage of dragged window to calculate new split percentages
+                    const draggedWindow = children.find((child) => "tabs" in child && child.tabs == draggedWindowTabs);
+                    const draggedWindowSplitPercentage = draggedWindow ? draggedWindow.viewPercent : undefined;
                     // Render non-dragged tabs as if dragged tab wasn't there
                     let accumulatedPixels = 0;
 
                     children.forEach((child, index) => {
                         // Skip over dragged tab
                         if ("tabs" in child && child.tabs == draggedWindowTabs) return;
-                        const viewPercent = child.viewPercent
-                            ? (child.viewPercent * children.length) / (children.length - 1)
-                            : 100 / (children.length - 1);
+                        const viewPercent = draggedWindowSplitPercentage
+                            ? ((child.viewPercent ? child.viewPercent : 100 / children.length) * 100) /
+                              (100 - draggedWindowSplitPercentage)
+                            : ((child.viewPercent ? child.viewPercent : 100 / children.length) * children.length) /
+                              (children.length - 1);
 
                         const splitPixels =
                             direction === "row"
