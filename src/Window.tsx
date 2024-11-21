@@ -89,7 +89,7 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
                 ...adjustedWindowPosition,
                 transform: `scale(${scale})`,
                 transformOrigin: `${windowDragStartPosition.x}px top`,
-                zIndex: isDragging ? 12 : "auto",
+                zIndex: isDragging ? 12 : 5,
                 pointerEvents: isDragging ? "none" : "auto",
             }}
             className={`layman-window ${isSelected ? "selected" : "unselected"}`}

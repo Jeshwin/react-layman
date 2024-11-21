@@ -6,7 +6,6 @@ import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {WindowDropTarget} from "./WindowDropTarget";
-import _ from "lodash";
 import {useDrag, useDragLayer} from "react-dnd";
 
 function usePrevious(value: number) {
@@ -148,7 +147,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                     ...windowToolbarPosition,
                     transform: `scale(${scale})`,
                     transformOrigin: `${dragStartPosition.x}px bottom`,
-                    zIndex: isDragging || singleTabIsDragging ? 13 : "auto",
+                    zIndex: isDragging || singleTabIsDragging ? 13 : 7,
                     pointerEvents: isDragging || singleTabIsDragging ? "none" : "auto",
                     userSelect: isDragging || singleTabIsDragging ? "none" : "auto",
                 }}
@@ -271,11 +270,11 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                         pointerEvents: globalDragging ? "auto" : "none",
                     }}
                 >
-                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="top" />
-                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="bottom" />
-                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="left" />
-                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="right" />
-                    <WindowDropTarget path={path} position={_.cloneDeep(position)} placement="center" />
+                    <WindowDropTarget path={path} position={position} placement="top" />
+                    <WindowDropTarget path={path} position={position} placement="bottom" />
+                    <WindowDropTarget path={path} position={position} placement="left" />
+                    <WindowDropTarget path={path} position={position} placement="right" />
+                    <WindowDropTarget path={path} position={position} placement="center" />
                 </div>
             )}
         </>

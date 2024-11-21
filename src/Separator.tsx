@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {MouseEventHandler, useCallback, useContext, useEffect, useState} from "react";
+import {MouseEventHandler, useContext, useEffect, useState} from "react";
 import {SeparatorProps} from "./types";
 import {LaymanContext} from "./LaymanContext";
 import _ from "lodash";
@@ -33,17 +32,15 @@ export function Separator({nodePosition, position, index, direction, path, separ
         setIsDragging(false);
     };
 
-    const handleMouseDown: MouseEventHandler<HTMLElement> = useCallback((event) => {
+    const handleMouseDown: MouseEventHandler<HTMLElement> = (event) => {
         event.preventDefault();
         setIsDragging(true);
-    }, []);
+    };
 
     // Add event listeners to let separator change layout when dragged
     useEffect(() => {
-        const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
-            event.preventDefault();
-            if (!isDragging || !laymanRef!.current) return;
-            let splitPercentage =
+        const calculateSplitPercentage = (event: {clientY: number; clientX: number}) => {
+            const splitPercentage =
                 direction === "column"
                     ? 100 *
                       ((event.clientY - (previousSeparator ? previousSeparator.top : nodePosition.top)) /
@@ -64,9 +61,14 @@ export function Separator({nodePosition, position, index, direction, path, separ
                       (((nextSeparator ? nextSeparator.left : nodePosition.left + nodePosition.width) -
                           (previousSeparator ? previousSeparator.left : nodePosition.left)) /
                           nodePosition.width)) - minSplitPercentage;
-            splitPercentage = _.clamp(splitPercentage, minSplitPercentage, maxSplitPercentage);
-            const basePath = [...path];
-            basePath.pop();
+            return _.clamp(splitPercentage, minSplitPercentage, maxSplitPercentage);
+        };
+
+        const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
+            event.preventDefault();
+            if (!isDragging || !laymanRef!.current) return;
+            const splitPercentage = calculateSplitPercentage(event);
+            const basePath = path.slice(0, path.length - 1);
             layoutDispatch({
                 type: "moveSeparator",
                 path: basePath,
