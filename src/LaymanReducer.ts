@@ -503,6 +503,21 @@ const addTabWithHeuristic = (layout: LaymanLayout, action: AddTabActionWithHeuri
     return layout;
 };
 
+const autoArrange = (layout: LaymanLayout): LaymanLayout => {
+    if (!layout || "tabs" in layout) {
+        return layout;
+    }
+    const numChildren = layout.children.length;
+    const newSplitPercentage = 100 / numChildren;
+    return {
+        ...layout,
+        children: layout.children.map((child) => ({
+            ...autoArrange(child),
+            viewPercent: newSplitPercentage,
+        })) as Children<LaymanLayout>,
+    };
+};
+
 export const LaymanReducer = (layout: LaymanLayout, action: LaymanLayoutAction): LaymanLayout => {
     switch (action.type) {
         case "addTab":
@@ -523,6 +538,8 @@ export const LaymanReducer = (layout: LaymanLayout, action: LaymanLayoutAction):
             return moveSeparator(layout, action);
         case "addTabWithHeuristic":
             return addTabWithHeuristic(layout, action);
+        case "autoArrange":
+            return autoArrange(layout);
         default:
             throw new Error("Unknown action: " + action);
     }

@@ -2,6 +2,7 @@ import {LaymanProvider, LaymanLayout, Layman, TabData} from "../src";
 import Pane from "./Pane";
 import TabSource from "./extra/TabSource";
 import NullLayout from "./extra/NullLayout";
+import AutoArrangeButton from "./extra/AutoArrangeButton";
 
 export default function App() {
     const initialLayout: LaymanLayout = {
@@ -63,8 +64,10 @@ export default function App() {
                         height: 64,
                         display: "flex",
                         justifyContent: "center",
+                        alignItems: "center",
                     }}
                 >
+                    <AutoArrangeButton />
                     <TabSource tabName={"A"} heuristic="topleft" />
                     <TabSource tabName={"B"} heuristic="topleft" />
                     <TabSource tabName={"C"} heuristic="topleft" />

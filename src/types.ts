@@ -85,6 +85,10 @@ export interface AddTabActionWithHeuristic {
     tab: TabData;
 }
 
+export type AutoArrangeAction = {
+    type: "autoArrange";
+};
+
 // Union type of all possible actions
 export type LaymanLayoutAction =
     | AddTabAction
@@ -95,7 +99,8 @@ export type LaymanLayoutAction =
     | AddWindowAction
     | RemoveWindowAction
     | MoveWindowAction
-    | AddTabActionWithHeuristic;
+    | AddTabActionWithHeuristic
+    | AutoArrangeAction;
 
 export interface Position {
     top: number;
