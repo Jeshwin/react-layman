@@ -4,7 +4,7 @@ import {LaymanContext} from "./LaymanContext";
 import _ from "lodash";
 
 export function Separator({nodePosition, position, index, direction, path, separators}: SeparatorProps) {
-    const {layoutDispatch, laymanRef} = useContext(LaymanContext);
+    const {globalContainerSize, layoutDispatch} = useContext(LaymanContext);
     const [isDragging, setIsDragging] = useState(false);
 
     const separatorThickness =
@@ -40,13 +40,14 @@ export function Separator({nodePosition, position, index, direction, path, separ
     // Add event listeners to let separator change layout when dragged
     useEffect(() => {
         const calculateSplitPercentage = (event: {clientY: number; clientX: number}) => {
+            const eventX = event.clientX - globalContainerSize.left;
+            const eventY = event.clientY - globalContainerSize.top;
             const splitPercentage =
                 direction === "column"
                     ? 100 *
-                      ((event.clientY - (previousSeparator ? previousSeparator.top : nodePosition.top)) /
-                          nodePosition.height)
+                      ((eventY - (previousSeparator ? previousSeparator.top : nodePosition.top)) / nodePosition.height)
                     : 100 *
-                      ((event.clientX - (previousSeparator ? previousSeparator.left : nodePosition.left)) /
+                      ((eventX - (previousSeparator ? previousSeparator.left : nodePosition.left)) /
                           nodePosition.width);
             const minSplitPercentage =
                 (100 * (toolbarHeight + separatorThickness)) /
@@ -66,7 +67,7 @@ export function Separator({nodePosition, position, index, direction, path, separ
 
         const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
             event.preventDefault();
-            if (!isDragging || !laymanRef!.current) return;
+            if (!isDragging) return;
             const splitPercentage = calculateSplitPercentage(event);
             const basePath = path.slice(0, path.length - 1);
             layoutDispatch({
@@ -94,9 +95,9 @@ export function Separator({nodePosition, position, index, direction, path, separ
         };
     }, [
         direction,
+        globalContainerSize,
         index,
         isDragging,
-        laymanRef,
         layoutDispatch,
         nextSeparator,
         nodePosition,

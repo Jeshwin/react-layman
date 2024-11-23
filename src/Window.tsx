@@ -6,21 +6,13 @@ import {createPortal} from "react-dom";
 import {WindowContext} from "./WindowContext";
 
 export function Window({position, path, tab, isSelected}: WindowProps) {
-    const {laymanRef, renderPane, draggedWindowTabs, windowDragStartPosition} = useContext(LaymanContext);
+    const {globalContainerSize, renderPane, draggedWindowTabs, windowDragStartPosition} = useContext(LaymanContext);
 
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
 
     const windowToolbarHeight =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
-    // Get offset of layout from top-left corner of whole window
-    const layoutOffset =
-        laymanRef && laymanRef.current
-            ? laymanRef.current.getBoundingClientRect()
-            : {
-                  top: 0,
-                  left: 0,
-              };
     const isDragging = draggedWindowTabs.includes(tab);
     const scale = isDragging ? 0.7 : 1;
 
@@ -76,8 +68,8 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
     };
 
     const borderPosition: Position = {
-        top: position.top + (windowToolbarHeight / 2) * scale + currentMousePosition.top + layoutOffset.top,
-        left: position.left * scale + currentMousePosition.left + layoutOffset.left,
+        top: position.top + (windowToolbarHeight / 2) * scale + currentMousePosition.top + globalContainerSize.top,
+        left: position.left * scale + currentMousePosition.left + globalContainerSize.left,
         width: position.width - separatorThickness,
         height: position.height - separatorThickness / 2,
     };
@@ -99,7 +91,7 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
                     <div
                         style={{
                             position: "absolute",
-                            zIndex: 15,
+                            zIndex: 12,
                             ...borderPosition,
                             transform: `scale(${scale})`,
                             transformOrigin: `${windowDragStartPosition.x}px top`,

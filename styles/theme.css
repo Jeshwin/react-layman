@@ -10,6 +10,9 @@
     --separator-handle-length: 16px;
 
     /*** Windows ***/
+    /* Background color of whole layout */
+    --layout-bg-color: #08090c;
+
     /* Background color of the window */
     --window-bg-color: #44403c;
 

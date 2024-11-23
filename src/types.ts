@@ -99,7 +99,7 @@ export const WindowType = "WINDOW";
 
 interface DragTab {
     tab: TabData;
-    path: LaymanPath;
+    path?: LaymanPath;
 }
 
 interface DragWindow {
@@ -136,8 +136,8 @@ export type PaneRenderer = (arg0: TabData) => JSX.Element;
 export type TabRenderer = (arg0: TabData) => string | JSX.Element;
 
 export interface LaymanContextType {
-    laymanRef: React.RefObject<HTMLElement> | undefined;
-    setLaymanRef: Dispatch<SetStateAction<React.RefObject<HTMLElement> | undefined>>;
+    globalContainerSize: Position;
+    setGlobalContainerSize: Dispatch<SetStateAction<Position>>;
     layout: LaymanLayout;
     layoutDispatch: React.Dispatch<LaymanLayoutAction>;
     setDropHighlightPosition: React.Dispatch<Position>;

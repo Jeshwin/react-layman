@@ -9,8 +9,8 @@ import {LaymanReducer} from "./LaymanReducer";
 
 // Define default values for the context
 const defaultContextValue: LaymanContextType = {
-    laymanRef: undefined,
-    setLaymanRef: () => {},
+    globalContainerSize: {top: 0, left: 0, width: 0, height: 0},
+    setGlobalContainerSize: () => {},
     layout: {tabs: []},
     layoutDispatch: () => {},
     setDropHighlightPosition: () => {},
@@ -35,7 +35,13 @@ export const LaymanContext = createContext<LaymanContextType>(defaultContextValu
 
 export const LaymanProvider = ({initialLayout, renderPane, renderTab, children}: LaymanProviderProps) => {
     const [layout, layoutDispatch] = useReducer(LaymanReducer, initialLayout);
-    const [laymanRef, setLaymanRef] = useState<React.RefObject<HTMLElement>>();
+    // Size of Layman container
+    const [globalContainerSize, setGlobalContainerSize] = useState<Position>({
+        top: 0,
+        left: 0,
+        width: 0,
+        height: 0,
+    });
     const [dropHighlightPosition, setDropHighlightPosition] = useState<Position>({
         top: 0,
         left: 0,
@@ -52,8 +58,8 @@ export const LaymanProvider = ({initialLayout, renderPane, renderTab, children}:
     return (
         <LaymanContext.Provider
             value={{
-                laymanRef,
-                setLaymanRef,
+                globalContainerSize,
+                setGlobalContainerSize,
                 layout,
                 layoutDispatch,
                 setDropHighlightPosition,

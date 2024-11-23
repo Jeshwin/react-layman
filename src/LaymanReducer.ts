@@ -97,14 +97,19 @@ const selectTab = (layout: LaymanLayout, action: SelectTabAction) => {
 };
 
 const moveTab = (layout: LaymanLayout, action: MoveTabAction) => {
-    const window: LaymanLayout = getLayoutAtPath(layout, action.path);
+    const window: LaymanLayout = getLayoutAtPath(layout, action.newPath);
     if (!window || !("tabs" in window)) return layout;
 
-    const removeTabLayout = LaymanReducer(layout, {
-        type: "removeTab",
-        path: action.path,
-        tab: action.tab,
-    });
+    // Remove tab from original path if it came from within the layout
+    // If it was added externally, action.path must be [-1], so we skip
+    let removeTabLayout = layout;
+    if (!(action.path.length === 1 && action.path[0] != -1)) {
+        removeTabLayout = LaymanReducer(layout, {
+            type: "removeTab",
+            path: action.path,
+            tab: action.tab,
+        });
+    }
 
     if (action.placement === "center") {
         return addTab(removeTabLayout, {

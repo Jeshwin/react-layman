@@ -29,7 +29,7 @@ You can play around with Layman through [this demo](https://github.com/Jeshwin/r
 -   [ ] Extra features
     -   [ ] Auto Arrange
     -   [ ] "Add to corner" hueristic
-    -   [ ] Add tabs from sources external to layout
+    -   [x] Add tabs from sources external to layout
 
 ## Usage
 

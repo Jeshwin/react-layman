@@ -9,13 +9,8 @@ interface WindowDropTargetProps {
     placement: "top" | "left" | "bottom" | "right" | "center";
 }
 
-export function WindowDropTarget({
-    path,
-    position,
-    placement,
-}: WindowDropTargetProps) {
-    const {laymanRef, layoutDispatch, setDropHighlightPosition} =
-        useContext(LaymanContext);
+export function WindowDropTarget({path, position, placement}: WindowDropTargetProps) {
+    const {globalContainerSize, layoutDispatch, setDropHighlightPosition} = useContext(LaymanContext);
     const newDropHighlightPosition = useRef<Position>({
         top: 0,
         left: 0,
@@ -24,28 +19,17 @@ export function WindowDropTarget({
     });
 
     const windowToolbarHeight =
-        parseInt(
-            getComputedStyle(document.documentElement)
-                .getPropertyValue("--toolbar-height")
-                .trim(),
-            10
-        ) ?? 64;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
 
     const separatorThickness =
-        parseInt(
-            getComputedStyle(document.documentElement)
-                .getPropertyValue("--separator-thickness")
-                .trim(),
-            10
-        ) ?? 8;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
 
     useEffect(() => {
         const dropPosition: Position = {
             top: position.top + windowToolbarHeight,
             left: position.left,
             width: position.width - separatorThickness,
-            height:
-                position.height - windowToolbarHeight - separatorThickness / 2,
+            height: position.height - windowToolbarHeight - separatorThickness / 2,
         };
 
         if (placement === "top") {
@@ -63,17 +47,9 @@ export function WindowDropTarget({
             dropPosition.width = dropPosition.width / 2;
         }
 
-        // Get offset of layout from top-left corner of whole window
-        const layoutOffset =
-            laymanRef && laymanRef.current
-                ? laymanRef.current.getBoundingClientRect()
-                : {
-                      top: 0,
-                      left: 0,
-                  };
         // Include total offset of layout
-        dropPosition.top += layoutOffset.top;
-        dropPosition.left += layoutOffset.left;
+        dropPosition.top += globalContainerSize.top;
+        dropPosition.left += globalContainerSize.left;
 
         newDropHighlightPosition.current = dropPosition;
     }, [
@@ -81,7 +57,8 @@ export function WindowDropTarget({
         windowToolbarHeight,
         separatorThickness,
         placement,
-        laymanRef,
+        globalContainerSize.top,
+        globalContainerSize.left,
     ]);
 
     const [, drop] = useDrop(() => ({
@@ -90,16 +67,14 @@ export function WindowDropTarget({
             const itemType = monitor.getItemType();
 
             if (itemType === TabType && "tab" in item) {
-                // Handle TabType case
                 layoutDispatch({
                     type: "moveTab",
                     tab: item.tab,
-                    path: item.path,
+                    path: item.path ?? [-1],
                     newPath: path,
                     placement: placement,
                 });
             } else if (itemType === WindowType && "tabs" in item) {
-                // Handle WindowType case
                 layoutDispatch({
                     type: "moveWindow",
                     path: item.path,
@@ -115,10 +90,5 @@ export function WindowDropTarget({
         hover: () => setDropHighlightPosition(newDropHighlightPosition.current),
     }));
 
-    return (
-        <div
-            ref={drop}
-            className={`layman-window-drop-target ${placement}`}
-        ></div>
-    );
+    return <div ref={drop} className={`layman-window-drop-target ${placement}`}></div>;
 }
