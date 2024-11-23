@@ -40,7 +40,7 @@ export default function TabSource({tabName, heuristic}: {tabName: string; heuris
                 placeContent: "center",
                 textAlign: "center",
                 borderRadius: 8,
-                backgroundColor: "#babbf1",
+                backgroundColor: "#7f849c",
                 margin: 4,
                 opacity: isDragging ? 0.5 : 1,
                 cursor: "pointer",
