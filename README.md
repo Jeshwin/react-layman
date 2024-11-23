@@ -431,11 +431,3 @@ export default function TabSource({tabName, heuristic}: {tabName: string; heuris
 ## License
 
 This repository is published under the [MIT license](/LICENSE)
-
-```
-
-```
-
-```
-
-```
