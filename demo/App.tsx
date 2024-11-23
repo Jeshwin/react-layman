@@ -53,6 +53,7 @@ export default function App() {
         >
             <div
                 style={{
+                    color: "#cdd6f4",
                     backgroundColor: "#232634",
                 }}
             >
@@ -71,6 +72,7 @@ export default function App() {
                     <TabSource tabName={"A"} heuristic="topleft" />
                     <TabSource tabName={"B"} heuristic="topleft" />
                     <TabSource tabName={"C"} heuristic="topleft" />
+                    <div style={{fontSize: 10}}>Top Left Heuristic</div>
                 </div>
                 <div style={{position: "relative", height: "calc(100vh - 64px)", display: "flex"}}>
                     <div
@@ -84,6 +86,7 @@ export default function App() {
                             justifyContent: "center",
                         }}
                     >
+                        <div style={{fontSize: 10}}>Top Right Heuristic</div>
                         <TabSource tabName={"D"} heuristic="topright" />
                         <TabSource tabName={"E"} heuristic="topright" />
                         <TabSource tabName={"F"} heuristic="topright" />
