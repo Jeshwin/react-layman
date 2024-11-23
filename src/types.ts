@@ -76,30 +76,18 @@ export interface MoveWindowAction extends BaseLaymanLayoutAction {
     placement: "top" | "bottom" | "left" | "right" | "center";
 }
 
-export type LaymanHeuristic =
-    | "top"
-    | "bottom"
-    | "left"
-    | "right"
-    | "topleft"
-    | "topright"
-    | "bottomleft"
-    | "bottomright";
+// Currently support two hueristics
+export type LaymanHeuristic = "topleft" | "topright";
 
-export interface BaseLaymanLayoutActionWithHeuristic {
-    type: string;
-    heuristic: LaymanHeuristic;
-}
-
-export interface AddTabActionWithHeuristic extends BaseLaymanLayoutActionWithHeuristic {
+export interface AddTabActionWithHeuristic {
     type: "addTabWithHeuristic";
+    heuristic: LaymanHeuristic;
     tab: TabData;
 }
 
-export interface AddWindowActionWithHeuristic extends BaseLaymanLayoutActionWithHeuristic {
-    type: "addWindowWithHeuristic";
-    window: LaymanWindow;
-}
+export type AutoArrangeAction = {
+    type: "autoArrange";
+};
 
 // Union type of all possible actions
 export type LaymanLayoutAction =
@@ -112,7 +100,7 @@ export type LaymanLayoutAction =
     | RemoveWindowAction
     | MoveWindowAction
     | AddTabActionWithHeuristic
-    | AddWindowActionWithHeuristic;
+    | AutoArrangeAction;
 
 export interface Position {
     top: number;

@@ -1,5 +1,6 @@
 import {
     AddTabAction,
+    AddTabActionWithHeuristic,
     AddWindowAction,
     Children,
     LaymanLayout,
@@ -472,6 +473,51 @@ const moveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction) => {
     }
 };
 
+const addTabWithHeuristic = (layout: LaymanLayout, action: AddTabActionWithHeuristic) => {
+    if (!layout) {
+        return {
+            tabs: [action.tab],
+        };
+    }
+    if ("tabs" in layout) {
+        return {
+            ...layout,
+            tabs: [...layout.tabs, action.tab],
+            selectedIndex: layout.tabs.length,
+        };
+    }
+
+    if (action.heuristic === "topleft") {
+        const newChildren: Children<LaymanLayout> = [...layout.children];
+        newChildren[0] = addTabWithHeuristic(newChildren[0], action);
+        return {...layout, children: newChildren};
+    } else if (action.heuristic === "topright") {
+        const newChildren: Children<LaymanLayout> = [...layout.children];
+        if (layout.direction === "column") {
+            newChildren[0] = addTabWithHeuristic(newChildren[0], action);
+        } else {
+            newChildren[newChildren.length - 1] = addTabWithHeuristic(newChildren[newChildren.length - 1], action);
+        }
+        return {...layout, children: newChildren};
+    }
+    return layout;
+};
+
+const autoArrange = (layout: LaymanLayout): LaymanLayout => {
+    if (!layout || "tabs" in layout) {
+        return layout;
+    }
+    const numChildren = layout.children.length;
+    const newSplitPercentage = 100 / numChildren;
+    return {
+        ...layout,
+        children: layout.children.map((child) => ({
+            ...autoArrange(child),
+            viewPercent: newSplitPercentage,
+        })) as Children<LaymanLayout>,
+    };
+};
+
 export const LaymanReducer = (layout: LaymanLayout, action: LaymanLayoutAction): LaymanLayout => {
     switch (action.type) {
         case "addTab":
@@ -490,7 +536,11 @@ export const LaymanReducer = (layout: LaymanLayout, action: LaymanLayoutAction):
             return moveWindow(layout, action);
         case "moveSeparator":
             return moveSeparator(layout, action);
+        case "addTabWithHeuristic":
+            return addTabWithHeuristic(layout, action);
+        case "autoArrange":
+            return autoArrange(layout);
         default:
-            throw new Error("Unknown action: " + action.type);
+            throw new Error("Unknown action: " + action);
     }
 };

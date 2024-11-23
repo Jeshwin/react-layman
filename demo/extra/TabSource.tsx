@@ -1,9 +1,9 @@
 import {useDrag} from "react-dnd";
 import {useContext, useEffect} from "react";
-import {LaymanContext, TabType, TabData} from "../../src";
+import {LaymanContext, TabType, TabData, LaymanHeuristic} from "../../src";
 
-export default function TabSource({tabName}: {tabName: string}) {
-    const {setGlobalDragging} = useContext(LaymanContext);
+export default function TabSource({tabName, heuristic}: {tabName: string; heuristic: LaymanHeuristic}) {
+    const {setGlobalDragging, layoutDispatch} = useContext(LaymanContext);
 
     const [{isDragging}, drag] = useDrag({
         type: TabType,
@@ -21,12 +21,12 @@ export default function TabSource({tabName}: {tabName: string}) {
     }, [isDragging, setGlobalDragging]);
 
     const handleDoubleClick = () => {
-        // // Add tab to the top left window
-        // layoutDispatch({
-        //     type: "addTabWithHeuristic",
-        //     tab: new TabData(tabName),
-        //     heuristic: "topleft",
-        // });
+        // Add tab to the top left window
+        layoutDispatch({
+            type: "addTabWithHeuristic",
+            tab: new TabData(tabName),
+            heuristic: heuristic,
+        });
     };
 
     return (
@@ -43,6 +43,7 @@ export default function TabSource({tabName}: {tabName: string}) {
                 backgroundColor: "#babbf1",
                 margin: 4,
                 opacity: isDragging ? 0.5 : 1,
+                cursor: "pointer",
             }}
             onDoubleClick={handleDoubleClick}
         >
