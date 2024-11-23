@@ -28,7 +28,7 @@ You can play around with Layman through [this demo](https://github.com/Jeshwin/r
         -   [x] Draggable tabs
 -   [ ] Extra features
     -   [ ] Auto Arrange
-    -   [ ] "Add to corner" hueristic
+    -   [x] "Add to corner" hueristic
     -   [x] Add tabs from sources external to layout
 
 ## Usage

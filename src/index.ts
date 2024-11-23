@@ -7,6 +7,7 @@ export type {
     PaneRenderer,
     TabRenderer,
     LaymanContextType,
+    LaymanHeuristic,
 } from "./types";
 
 export {TabType, WindowType} from "./types";

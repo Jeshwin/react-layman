@@ -1,5 +1,4 @@
-import {LaymanProvider, LaymanLayout, Layman} from "../src";
-import {TabData} from "../src/TabData";
+import {LaymanProvider, LaymanLayout, Layman, TabData} from "../src";
 import Pane from "./Pane";
 import TabSource from "./extra/TabSource";
 import NullLayout from "./extra/NullLayout";
@@ -66,9 +65,9 @@ export default function App() {
                         justifyContent: "center",
                     }}
                 >
-                    <TabSource tabName={"A"} />
-                    <TabSource tabName={"B"} />
-                    <TabSource tabName={"C"} />
+                    <TabSource tabName={"A"} heuristic="topleft" />
+                    <TabSource tabName={"B"} heuristic="topleft" />
+                    <TabSource tabName={"C"} heuristic="topleft" />
                 </div>
                 <div style={{position: "relative", height: "calc(100vh - 64px)", display: "flex"}}>
                     <div
@@ -82,9 +81,9 @@ export default function App() {
                             justifyContent: "center",
                         }}
                     >
-                        <TabSource tabName={"D"} />
-                        <TabSource tabName={"E"} />
-                        <TabSource tabName={"F"} />
+                        <TabSource tabName={"D"} heuristic="topright" />
+                        <TabSource tabName={"E"} heuristic="topright" />
+                        <TabSource tabName={"F"} heuristic="topright" />
                     </div>
                     <div
                         style={{
