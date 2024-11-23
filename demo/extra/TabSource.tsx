@@ -20,6 +20,15 @@ export default function TabSource({tabName}: {tabName: string}) {
         setGlobalDragging(isDragging);
     }, [isDragging, setGlobalDragging]);
 
+    const handleDoubleClick = () => {
+        // // Add tab to the top left window
+        // layoutDispatch({
+        //     type: "addTabWithHeuristic",
+        //     tab: new TabData(tabName),
+        //     heuristic: "topleft",
+        // });
+    };
+
     return (
         <div
             ref={drag}
@@ -27,16 +36,15 @@ export default function TabSource({tabName}: {tabName: string}) {
             style={{
                 width: 48,
                 height: 48,
-                fontSize: 12,
                 display: "grid",
                 placeContent: "center",
                 textAlign: "center",
                 borderRadius: 8,
-                backgroundColor: "#feadf2",
+                backgroundColor: "#babbf1",
                 margin: 4,
                 opacity: isDragging ? 0.5 : 1,
-                cursor: isDragging ? "grabbing" : "grab",
             }}
+            onDoubleClick={handleDoubleClick}
         >
             {tabName}
         </div>

@@ -2,6 +2,7 @@ import {LaymanProvider, LaymanLayout, Layman} from "../src";
 import {TabData} from "../src/TabData";
 import Pane from "./Pane";
 import TabSource from "./extra/TabSource";
+import NullLayout from "./extra/NullLayout";
 
 export default function App() {
     const initialLayout: LaymanLayout = {
@@ -44,15 +45,23 @@ export default function App() {
     const renderTab = (tab: TabData) => tab.name;
 
     return (
-        <LaymanProvider initialLayout={initialLayout} renderPane={renderPane} renderTab={renderTab}>
-            <div>
+        <LaymanProvider
+            initialLayout={initialLayout}
+            renderPane={renderPane}
+            renderTab={renderTab}
+            renderNull={<NullLayout />}
+        >
+            <div
+                style={{
+                    backgroundColor: "#232634",
+                }}
+            >
                 <div
                     style={{
                         top: 0,
                         left: 0,
                         width: "100%",
                         height: 64,
-                        backgroundColor: "blue",
                         display: "flex",
                         justifyContent: "center",
                     }}
@@ -68,7 +77,6 @@ export default function App() {
                             left: 0,
                             height: "100%",
                             width: 64,
-                            backgroundColor: "green",
                             display: "flex",
                             flexDirection: "column",
                             justifyContent: "center",

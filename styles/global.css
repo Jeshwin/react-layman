@@ -1,5 +1,4 @@
 .layman-root {
-    background-color: var(--layout-bg-color, #000000);
     overflow: hidden;
     position: relative;
     width: 100%;

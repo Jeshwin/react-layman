@@ -22,18 +22,20 @@ const defaultContextValue: LaymanContextType = {
     setWindowDragStartPosition: () => {},
     renderPane: () => <></>,
     renderTab: () => <></>,
+    renderNull: <></>,
 };
 
 type LaymanProviderProps = {
     initialLayout: LaymanLayout;
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
+    renderNull: JSX.Element;
     children: React.ReactNode;
 };
 
 export const LaymanContext = createContext<LaymanContextType>(defaultContextValue);
 
-export const LaymanProvider = ({initialLayout, renderPane, renderTab, children}: LaymanProviderProps) => {
+export const LaymanProvider = ({initialLayout, renderPane, renderTab, renderNull, children}: LaymanProviderProps) => {
     const [layout, layoutDispatch] = useReducer(LaymanReducer, initialLayout);
     // Size of Layman container
     const [globalContainerSize, setGlobalContainerSize] = useState<Position>({
@@ -71,6 +73,7 @@ export const LaymanProvider = ({initialLayout, renderPane, renderTab, children}:
                 setWindowDragStartPosition,
                 renderPane,
                 renderTab,
+                renderNull,
             }}
         >
             <DndProvider backend={HTML5Backend}>
