@@ -6,4 +6,8 @@ export default defineConfig({
     // Set the root to the demo folder
     root: "./demo",
     plugins: [react()],
+    base: "/react-layman/",
+    build: {
+        outDir: "./demo/dist",
+    },
 });
