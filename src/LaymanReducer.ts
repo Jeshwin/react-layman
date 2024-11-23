@@ -24,6 +24,12 @@ const getLayoutAtPath = (layout: LaymanLayout, path: LaymanPath) => {
 };
 
 const addTab = (layout: LaymanLayout, action: AddTabAction) => {
+    if (!layout) {
+        // Add a tab to a null path
+        return {
+            tabs: [action.tab],
+        };
+    }
     const lodashPath = "children." + action.path.join(".children.");
     const window: LaymanLayout = getLayoutAtPath(layout, action.path);
     if (!window || !("tabs" in window)) return layout;
@@ -41,6 +47,7 @@ const addTab = (layout: LaymanLayout, action: AddTabAction) => {
 };
 
 const removeTab = (layout: LaymanLayout, action: RemoveTabAction) => {
+    if (!layout) return layout;
     const lodashPath = "children." + action.path.join(".children.");
     const window: LaymanLayout = getLayoutAtPath(layout, action.path);
     if (!window || !("tabs" in window)) return layout;
@@ -79,6 +86,7 @@ const removeTab = (layout: LaymanLayout, action: RemoveTabAction) => {
 };
 
 const selectTab = (layout: LaymanLayout, action: SelectTabAction) => {
+    if (!layout) return layout;
     const lodashPath = "children." + action.path.join(".children.");
     const window: LaymanLayout = getLayoutAtPath(layout, action.path);
     if (!window || !("tabs" in window)) return layout;
@@ -97,14 +105,20 @@ const selectTab = (layout: LaymanLayout, action: SelectTabAction) => {
 };
 
 const moveTab = (layout: LaymanLayout, action: MoveTabAction) => {
-    const window: LaymanLayout = getLayoutAtPath(layout, action.path);
+    if (!layout) return layout;
+    const window: LaymanLayout = getLayoutAtPath(layout, action.newPath);
     if (!window || !("tabs" in window)) return layout;
 
-    const removeTabLayout = LaymanReducer(layout, {
-        type: "removeTab",
-        path: action.path,
-        tab: action.tab,
-    });
+    // Remove tab from original path if it came from within the layout
+    // If it was added externally, action.path must be [-1], so we skip
+    let removeTabLayout = layout;
+    if (!(action.path.length === 1 && action.path[0] != -1)) {
+        removeTabLayout = LaymanReducer(layout, {
+            type: "removeTab",
+            path: action.path,
+            tab: action.tab,
+        })!;
+    }
 
     if (action.placement === "center") {
         return addTab(removeTabLayout, {
@@ -126,10 +140,14 @@ const moveTab = (layout: LaymanLayout, action: MoveTabAction) => {
 };
 
 const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
+    if (!layout) return layout;
     const parentPath = _.dropRight(action.path);
     const parentLodashPath = "children." + parentPath.join(".children.");
     const parent: LaymanLayout = getLayoutAtPath(layout, parentPath);
-    if (!parent || !("children" in parent)) return layout;
+    if (!parent || !("children" in parent)) {
+        // Parent is the base layout, delete the layout
+        return undefined;
+    }
 
     // Get split percentage of dragged window to calculate new split percentages
     const removedWindow = parent.children.find((_child, index) => index === _.last(action.path));
@@ -139,20 +157,8 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
     const newChildren = parent.children
         .filter((_value, index) => index !== _.last(action.path))
         .map((child) => {
-            console.dir({
-                viewPercent: child.viewPercent,
-                removed: removedWindowSplitPercentage,
-            });
-            console.log(
-                `${child.viewPercent} => ${
-                    removedWindowSplitPercentage
-                        ? ((child.viewPercent ? child.viewPercent : 100 / parent.children.length) * 100) /
-                          (100 - removedWindowSplitPercentage)
-                        : ((child.viewPercent ? child.viewPercent : 100 / parent.children.length) *
-                              parent.children.length) /
-                          (parent.children.length - 1)
-                }`
-            );
+            if (!child) return;
+
             return {
                 ...child,
                 viewPercent: removedWindowSplitPercentage
@@ -174,7 +180,7 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
         }
         return _.set(_.cloneDeep(layout), parentLodashPath, updatedLayout);
     }
-    const onlyChild = newChildren[0];
+    const onlyChild = newChildren[0]!;
     // If the only child is a window, replace parent with it
     if ("tabs" in onlyChild) {
         if (parentPath.length == 0) {
@@ -192,28 +198,37 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
     // Merge with grandparent if they are the same direction
     if (grandparent.direction === onlyChild.direction) {
         const parentIndex = _.last(parentPath)!;
-        const updatedLayout = {
+        const updatedLayout: LaymanLayout = {
             ...grandparent,
             children: [
-                ...grandparent.children.slice(0, parentIndex).map((child) => ({
-                    ...child,
-                    viewPercent: child.viewPercent
-                        ? (child.viewPercent * grandparent.children.length) / (grandparent.children.length - 1)
-                        : child.viewPercent,
-                })),
-                ...onlyChild.children.map((child) => ({
-                    ...child,
-                    viewPercent:
-                        child.viewPercent && parent.viewPercent
-                            ? (child.viewPercent * parent.viewPercent) / 100
+                ...grandparent.children.slice(0, parentIndex).map((child) => {
+                    if (!child) return;
+                    return {
+                        ...child,
+                        viewPercent: child.viewPercent
+                            ? (child.viewPercent * grandparent.children.length) / (grandparent.children.length - 1)
                             : child.viewPercent,
-                })),
-                ...grandparent.children.slice(parentIndex + 1).map((child) => ({
-                    ...child,
-                    viewPercent: child.viewPercent
-                        ? (child.viewPercent * grandparent.children.length) / (grandparent.children.length - 1)
-                        : child.viewPercent,
-                })),
+                    };
+                }),
+                ...onlyChild.children.map((child) => {
+                    if (!child) return;
+                    return {
+                        ...child,
+                        viewPercent:
+                            child.viewPercent && parent.viewPercent
+                                ? (child.viewPercent * parent.viewPercent) / 100
+                                : child.viewPercent,
+                    };
+                }),
+                ...grandparent.children.slice(parentIndex + 1).map((child) => {
+                    if (!child) return;
+                    return {
+                        ...child,
+                        viewPercent: child.viewPercent
+                            ? (child.viewPercent * grandparent.children.length) / (grandparent.children.length - 1)
+                            : child.viewPercent,
+                    };
+                }),
             ] as Children<LaymanLayout>,
         };
         if (grandparentPath.length == 0) {
@@ -228,6 +243,7 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
     }
 };
 const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
+    if (!layout) return layout;
     const parentLodashPath = "children." + _.dropRight(action.path).join(".children.");
     const parent: LaymanLayout = getLayoutAtPath(layout, _.dropRight(action.path));
     if (!parent) return layout;
@@ -254,22 +270,28 @@ const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
         const updatedLayout = {
             ...parent,
             children: [
-                ...parent.children.slice(0, index).map((child) => ({
-                    ...child,
-                    viewPercent: child.viewPercent
-                        ? (child.viewPercent * parent.children.length) / (parent.children.length + 1)
-                        : child.viewPercent,
-                })),
+                ...parent.children.slice(0, index).map((child) => {
+                    if (!child) return;
+                    return {
+                        ...child,
+                        viewPercent: child.viewPercent
+                            ? (child.viewPercent * parent.children.length) / (parent.children.length + 1)
+                            : child.viewPercent,
+                    };
+                }),
                 {...action.window, viewPercent: 100 / (parent.children.length + 1)},
-                ...parent.children.slice(index).map((child) => ({
-                    ...child,
-                    viewPercent: child.viewPercent
-                        ? (child.viewPercent * parent.children.length) / (parent.children.length + 1)
-                        : child.viewPercent,
-                })),
+                ...parent.children.slice(index).map((child) => {
+                    if (!child) return;
+                    return {
+                        ...child,
+                        viewPercent: child.viewPercent
+                            ? (child.viewPercent * parent.children.length) / (parent.children.length + 1)
+                            : child.viewPercent,
+                    };
+                }),
             ] as Children<LaymanLayout>,
         };
-        if (_.dropRight(action.path).length == 0) {
+        if (action.path.length == 1) {
             return updatedLayout;
         } else {
             return _.set(_.cloneDeep(layout), parentLodashPath, updatedLayout);
@@ -293,7 +315,7 @@ const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
                     : child
             ) as Children<LaymanLayout>,
         };
-        if (_.dropRight(action.path).length == 0) {
+        if (action.path.length == 1) {
             return updatedLayout;
         } else {
             return _.set(_.cloneDeep(layout), parentLodashPath, updatedLayout);
@@ -420,6 +442,7 @@ const moveWindow = (layout: LaymanLayout, action: MoveWindowAction) => {
 };
 
 const moveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction) => {
+    if (!layout) return layout;
     const node: LaymanLayout = getLayoutAtPath(layout, action.path);
     if (!node || !("children" in node)) return layout;
 
@@ -427,8 +450,8 @@ const moveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction) => {
 
     // Get existing view percents
     const numChildren = node.children.length;
-    const leftViewPercent = node.children[action.index].viewPercent ?? 100 / numChildren;
-    const rightViewPercent = node.children[action.index + 1].viewPercent ?? 100 / numChildren;
+    const leftViewPercent = node.children[action.index]!.viewPercent ?? 100 / numChildren;
+    const rightViewPercent = node.children[action.index + 1]!.viewPercent ?? 100 / numChildren;
 
     // Calculate new view percents based on the action's new split percentage
     const newLeftViewPercent = action.newSplitPercentage;
@@ -438,8 +461,8 @@ const moveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction) => {
     const updatedNode = _.cloneDeep(node);
 
     // Update the viewPercent for the left and right children
-    updatedNode.children[action.index].viewPercent = newLeftViewPercent;
-    updatedNode.children[action.index + 1].viewPercent = newRightViewPercent;
+    updatedNode.children[action.index]!.viewPercent = newLeftViewPercent;
+    updatedNode.children[action.index + 1]!.viewPercent = newRightViewPercent;
 
     // Use Lodash set to apply the updated node at the correct path in the layout
     if (action.path.length == 0) {
@@ -468,6 +491,6 @@ export const LaymanReducer = (layout: LaymanLayout, action: LaymanLayoutAction):
         case "moveSeparator":
             return moveSeparator(layout, action);
         default:
-            throw new Error("Unknown action: " + action);
+            throw new Error("Unknown action: " + action.type);
     }
 };

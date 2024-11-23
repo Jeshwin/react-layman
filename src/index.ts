@@ -9,6 +9,9 @@ export type {
     LaymanContextType,
 } from "./types";
 
+export {TabType, WindowType} from "./types";
+export {TabData} from "./TabData";
+
 export {LaymanContext, LaymanProvider} from "./LaymanContext";
 export {WindowContext, useWindowContext} from "./WindowContext";
 

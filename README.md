@@ -1,6 +1,10 @@
 # react-layman
 
 <div align="center">
+<img src="/images/logo.svg" width="350" height="350" />
+</div>
+
+<div align="center">
     
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/Jeshwin/react-layman)](https://github.com/Jeshwin/react-layman)
@@ -29,7 +33,7 @@ You can play around with Layman through [this demo](https://github.com/Jeshwin/r
 -   [ ] Extra features
     -   [ ] Auto Arrange
     -   [ ] "Add to corner" hueristic
-    -   [ ] Add tabs from sources external to layout
+    -   [x] Add tabs from sources external to layout
 
 ## Usage
 

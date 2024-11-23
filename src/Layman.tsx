@@ -9,7 +9,7 @@ import {Separator} from "./Separator";
  * Entry point for Layman Window Manager
  */
 export function Layman() {
-    const {setLaymanRef, layout, draggedWindowTabs} = useContext(LaymanContext);
+    const {setGlobalContainerSize, layout, renderNull, draggedWindowTabs} = useContext(LaymanContext);
     // Local state for component lists
     const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
     const [windows, setWindows] = useState<WindowProps[]>([]);
@@ -18,10 +18,9 @@ export function Layman() {
     const laymanRef = useRef<HTMLDivElement | null>(null);
 
     // Size of Layman container
-    const [containerSize, setContainerSize] = useState<{
-        width: number;
-        height: number;
-    }>({
+    const [containerSize, setContainerSize] = useState<Position>({
+        top: 0,
+        left: 0,
         width: 0,
         height: 0,
     });
@@ -29,14 +28,12 @@ export function Layman() {
     // Function to update container size
     const updateContainerSize = () => {
         if (laymanRef.current) {
-            const {width, height} = laymanRef.current.getBoundingClientRect();
-            setContainerSize({width, height});
+            const {x, y, width, height} = laymanRef.current.getBoundingClientRect();
+            setContainerSize({top: x, left: y, width, height});
         }
     };
 
     useEffect(() => {
-        setLaymanRef(laymanRef);
-
         // Get the initial dimensions of the container when the component mounts
         updateContainerSize();
 
@@ -47,7 +44,12 @@ export function Layman() {
         return () => {
             window.removeEventListener("resize", updateContainerSize);
         };
-    }, [setLaymanRef]);
+    }, []);
+
+    // Set global container size in context
+    useEffect(() => {
+        setGlobalContainerSize(containerSize);
+    }, [containerSize, setGlobalContainerSize]);
 
     // Calculate component lists whenever layout changes
     useMemo(() => {
@@ -56,6 +58,7 @@ export function Layman() {
         const calculatedSeparators: SeparatorProps[] = [];
 
         function traverseLayout(layout: LaymanLayout, position: Position, path: LaymanPath) {
+            if (!layout) return;
             // Check if it's a window (LaymanWindow) or a layout split
             if ("tabs" in layout) {
                 // If it's a window, handle the tabs and panes
@@ -81,13 +84,15 @@ export function Layman() {
                 // Check if this split contains the dragged window
                 const containsDraggedWindow =
                     draggedWindowTabs.length > 0 &&
-                    children.some((child) => "tabs" in child && child.tabs == draggedWindowTabs);
+                    children.some((child) => child && "tabs" in child && child.tabs == draggedWindowTabs);
 
                 if (!containsDraggedWindow) {
                     // Accumulate pixel offsets for children positioning
                     let accumulatedPixels = 0;
 
                     children.forEach((child, index) => {
+                        if (!child) return;
+
                         const viewPercent = child.viewPercent ?? 100 / children.length;
 
                         const splitPixels =
@@ -133,12 +138,15 @@ export function Layman() {
                     });
                 } else {
                     // Get split percentage of dragged window to calculate new split percentages
-                    const draggedWindow = children.find((child) => "tabs" in child && child.tabs == draggedWindowTabs);
+                    const draggedWindow = children.find(
+                        (child) => child && "tabs" in child && child.tabs == draggedWindowTabs
+                    );
                     const draggedWindowSplitPercentage = draggedWindow ? draggedWindow.viewPercent : undefined;
                     // Render non-dragged tabs as if dragged tab wasn't there
                     let accumulatedPixels = 0;
 
                     children.forEach((child, index) => {
+                        if (!child) return;
                         // Skip over dragged tab
                         if ("tabs" in child && child.tabs == draggedWindowTabs) return;
                         const viewPercent = draggedWindowSplitPercentage
@@ -194,6 +202,8 @@ export function Layman() {
                     // Render dragged window as if it was still in the layout
                     accumulatedPixels = 0;
                     children.forEach((child, index) => {
+                        if (!child) return;
+
                         const viewPercent = child.viewPercent ?? 100 / children.length;
 
                         const splitPixels =
@@ -263,19 +273,25 @@ export function Layman() {
 
     return (
         <div ref={laymanRef} className="layman-root">
-            {toolbars.map((props) => (
-                <WindowToolbar key={props.path.length != 0 ? props.path.join(":") : "root"} {...props} />
-            ))}
-            {windows.map((props) => (
-                <Window key={props.tab.id} {...props} />
-            ))}
-            {separators.map((props) => (
-                <Separator
-                    key={props.path.length != 0 ? props.path.join(":") : "root"}
-                    separators={separators} // Pass the full list
-                    {...props}
-                />
-            ))}
+            {layout ? (
+                <>
+                    {toolbars.map((props) => (
+                        <WindowToolbar key={props.path.length != 0 ? props.path.join(":") : "root"} {...props} />
+                    ))}
+                    {windows.map((props) => (
+                        <Window key={props.tab.id} {...props} />
+                    ))}
+                    {separators.map((props) => (
+                        <Separator
+                            key={props.path.length != 0 ? props.path.join(":") : "root"}
+                            separators={separators} // Pass the full list
+                            {...props}
+                        />
+                    ))}
+                </>
+            ) : (
+                renderNull
+            )}
         </div>
     );
 }

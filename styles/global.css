@@ -219,8 +219,7 @@
     border-radius: var(--border-radius, 4px);
     margin-top: 0px;
     position: absolute;
-    transition: width 150ms ease-in-out, height 150ms ease-in-out,
-        top 150ms ease-in-out, left 150ms ease-in-out,
+    transition: width 150ms ease-in-out, height 150ms ease-in-out, top 150ms ease-in-out, left 150ms ease-in-out,
         opacity 150ms ease-in-out 200ms;
     z-index: 11;
     background-color: var(--indicator-color, #f97316);

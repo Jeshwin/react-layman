@@ -22,7 +22,7 @@ export interface LaymanNode {
     children: Children<LaymanLayout>;
 }
 
-export type LaymanLayout = LaymanWindow | LaymanNode;
+export type LaymanLayout = LaymanWindow | LaymanNode | undefined;
 
 // Define the common attributes for all actions
 export interface BaseLaymanLayoutAction {
@@ -76,6 +76,31 @@ export interface MoveWindowAction extends BaseLaymanLayoutAction {
     placement: "top" | "bottom" | "left" | "right" | "center";
 }
 
+export type LaymanHeuristic =
+    | "top"
+    | "bottom"
+    | "left"
+    | "right"
+    | "topleft"
+    | "topright"
+    | "bottomleft"
+    | "bottomright";
+
+export interface BaseLaymanLayoutActionWithHeuristic {
+    type: string;
+    heuristic: LaymanHeuristic;
+}
+
+export interface AddTabActionWithHeuristic extends BaseLaymanLayoutActionWithHeuristic {
+    type: "addTabWithHeuristic";
+    tab: TabData;
+}
+
+export interface AddWindowActionWithHeuristic extends BaseLaymanLayoutActionWithHeuristic {
+    type: "addWindowWithHeuristic";
+    window: LaymanWindow;
+}
+
 // Union type of all possible actions
 export type LaymanLayoutAction =
     | AddTabAction
@@ -85,7 +110,9 @@ export type LaymanLayoutAction =
     | MoveSeparatorAction
     | AddWindowAction
     | RemoveWindowAction
-    | MoveWindowAction;
+    | MoveWindowAction
+    | AddTabActionWithHeuristic
+    | AddWindowActionWithHeuristic;
 
 export interface Position {
     top: number;
@@ -99,7 +126,7 @@ export const WindowType = "WINDOW";
 
 interface DragTab {
     tab: TabData;
-    path: LaymanPath;
+    path?: LaymanPath;
 }
 
 interface DragWindow {
@@ -136,8 +163,8 @@ export type PaneRenderer = (arg0: TabData) => JSX.Element;
 export type TabRenderer = (arg0: TabData) => string | JSX.Element;
 
 export interface LaymanContextType {
-    laymanRef: React.RefObject<HTMLElement> | undefined;
-    setLaymanRef: Dispatch<SetStateAction<React.RefObject<HTMLElement> | undefined>>;
+    globalContainerSize: Position;
+    setGlobalContainerSize: Dispatch<SetStateAction<Position>>;
     layout: LaymanLayout;
     layoutDispatch: React.Dispatch<LaymanLayoutAction>;
     setDropHighlightPosition: React.Dispatch<Position>;
@@ -149,4 +176,5 @@ export interface LaymanContextType {
     setWindowDragStartPosition: React.Dispatch<{x: number; y: number}>;
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
+    renderNull: JSX.Element;
 }
