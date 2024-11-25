@@ -2,6 +2,8 @@
     "name": "react-layman",
     "version": "0.1.0",
     "type": "module",
+    "description": "A dynamic tiling layout manager made for React",
+    "main": "src/index.ts",
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
@@ -9,6 +11,23 @@
         "preview": "vite preview",
         "test": "exit 0"
     },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Jeshwin/react-layman.git"
+    },
+    "keywords": [
+        "react",
+        "typescript",
+        "react-layman",
+        "window-manager",
+        "tiling-window-manager"
+    ],
+    "author": "Jeshwin Prince",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Jeshwin/react-layman/issues"
+    },
+    "homepage": "https://github.com/Jeshwin/react-layman#readme",
     "dependencies": {
         "@dnd-kit/core": "^6.1.0",
         "lodash": "^4.17.21",
