@@ -6,6 +6,7 @@
         "declaration": true /* Concatenate & emit output to single file.*/,
         "outDir": "lib" /* Redirect output to the directory. */,
         "rootDir": "src",
+        "allowImportingTsExtensions": false,
         "noEmit": false
     },
     "exclude": ["demo", "lib", "node_modules"],
