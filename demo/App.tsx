@@ -3,7 +3,7 @@ import Pane from "./Pane";
 import TabSource from "./extra/TabSource";
 import NullLayout from "./extra/NullLayout";
 import AutoArrangeButton from "./extra/AutoArrangeButton";
-import {LaymanLayout} from "../src/types";
+import {LaymanLayout} from "../src";
 
 export default function App() {
     const initialLayout: LaymanLayout = {
