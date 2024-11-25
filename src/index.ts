@@ -1,16 +1,3 @@
-export type {
-    LaymanDirection,
-    LaymanPath,
-    LaymanWindow,
-    LaymanNode,
-    LaymanLayout,
-    PaneRenderer,
-    TabRenderer,
-    LaymanContextType,
-    LaymanHeuristic,
-} from "./types";
-
-export {TabType, WindowType} from "./types";
 export {TabData} from "./TabData";
 
 export {LaymanContext, LaymanProvider} from "./LaymanContext";

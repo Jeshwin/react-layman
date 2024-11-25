@@ -1,5 +1,5 @@
 import {createContext, useContext} from "react";
-import {WindowProps} from "./types";
+import {WindowProps} from ".";
 import {TabData} from "./TabData";
 
 // Create WindowContext

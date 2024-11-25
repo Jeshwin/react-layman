@@ -132,7 +132,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(<App />);
 
 ### Type Definitions
 
-Please see [types.ts](src/types.ts) for the full details.
+Please see [index.d.ts](src/index.d.ts) for the full details.
 
 #### Common Types
 

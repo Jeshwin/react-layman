@@ -1,6 +1,6 @@
 import {useContext, useEffect, useRef, useState} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {Position, ToolBarProps, WindowType} from "./types";
+import {Position, ToolBarProps, WindowType} from ".";
 import {SingleTab, Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";

@@ -1,6 +1,6 @@
 import {useContext, useEffect, useState} from "react";
 import {LaymanContext} from "./LaymanContext";
-import {Position, WindowProps} from "./types";
+import {Position, WindowProps} from ".";
 import {useDragLayer} from "react-dnd";
 import {createPortal} from "react-dom";
 import {WindowContext} from "./WindowContext";

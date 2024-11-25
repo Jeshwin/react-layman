@@ -1,12 +1,6 @@
-import {Position} from "./types";
+import {Position} from ".";
 
-export function DropHighlight({
-    position,
-    isDragging,
-}: {
-    position: Position;
-    isDragging: boolean;
-}) {
+export function DropHighlight({position, isDragging}: {position: Position; isDragging: boolean}) {
     return (
         <div
             className="layman-drop-highlight"

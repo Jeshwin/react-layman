@@ -1,5 +1,5 @@
 import {useDrop} from "react-dnd";
-import {DragData, LaymanPath, Position, TabType, WindowType} from "./types";
+import {DragData, LaymanPath, Position, TabType, WindowType} from ".";
 import {useContext, useEffect, useRef} from "react";
 import {LaymanContext} from "./LaymanContext";
 

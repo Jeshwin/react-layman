@@ -1,5 +1,5 @@
 import {MouseEventHandler, useContext, useEffect, useState} from "react";
-import {SeparatorProps} from "./types";
+import {SeparatorProps} from ".";
 import {LaymanContext} from "./LaymanContext";
 import _ from "lodash";
 
