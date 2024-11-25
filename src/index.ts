@@ -1,5 +1,8 @@
 export {TabData} from "./TabData";
 
+export const TabType = "TAB";
+export const WindowType = "WINDOW";
+
 export {LaymanContext, LaymanProvider} from "./LaymanContext";
 export {WindowContext, useWindowContext} from "./WindowContext";
 

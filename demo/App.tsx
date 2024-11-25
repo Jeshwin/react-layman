@@ -1,8 +1,9 @@
-import {LaymanProvider, LaymanLayout, Layman, TabData} from "../src";
+import {LaymanProvider, Layman, TabData} from "../src";
 import Pane from "./Pane";
 import TabSource from "./extra/TabSource";
 import NullLayout from "./extra/NullLayout";
 import AutoArrangeButton from "./extra/AutoArrangeButton";
+import {LaymanLayout} from "../src/types";
 
 export default function App() {
     const initialLayout: LaymanLayout = {

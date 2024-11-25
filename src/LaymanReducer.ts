@@ -12,7 +12,7 @@ import {
     RemoveTabAction,
     RemoveWindowAction,
     SelectTabAction,
-} from ".";
+} from "./types";
 import _ from "lodash";
 
 /**

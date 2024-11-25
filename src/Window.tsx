@@ -1,9 +1,9 @@
 import {useContext, useEffect, useState} from "react";
 import {LaymanContext} from "./LaymanContext";
-import {Position, WindowProps} from ".";
 import {useDragLayer} from "react-dnd";
 import {createPortal} from "react-dom";
 import {WindowContext} from "./WindowContext";
+import {Position, WindowProps} from "./types";
 
 export function Window({position, path, tab, isSelected}: WindowProps) {
     const {globalContainerSize, renderPane, draggedWindowTabs, windowDragStartPosition} = useContext(LaymanContext);

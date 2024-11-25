@@ -1,7 +1,7 @@
 import {useContext, useEffect, useMemo, useRef, useState} from "react";
 import {WindowToolbar} from "./WindowToolbar";
 import {Window} from "./Window";
-import {LaymanLayout, LaymanPath, ToolBarProps, WindowProps, Position, SeparatorProps} from ".";
+import {LaymanLayout, LaymanPath, ToolBarProps, WindowProps, Position, SeparatorProps} from "./types";
 import {LaymanContext} from "./LaymanContext";
 import {Separator} from "./Separator";
 

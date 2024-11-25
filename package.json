@@ -1,10 +1,10 @@
 {
     "name": "react-layman",
-    "version": "0.1.3",
+    "version": "0.2.0",
     "type": "module",
     "description": "A dynamic tiling layout manager made for React",
     "main": "src/index.ts",
-    "types": "src/index.d.ts",
+    "types": "src/types.ts",
     "style": "src/style/global.css",
     "scripts": {
         "dev": "vite",

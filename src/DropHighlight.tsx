@@ -1,4 +1,4 @@
-import {Position} from ".";
+import {Position} from "./types";
 
 export function DropHighlight({position, isDragging}: {position: Position; isDragging: boolean}) {
     return (

@@ -109,9 +109,6 @@ export interface Position {
     height: number;
 }
 
-export const TabType = "TAB";
-export const WindowType = "WINDOW";
-
 interface DragTab {
     tab: TabData;
     path?: LaymanPath;
@@ -166,3 +163,5 @@ export interface LaymanContextType {
     renderTab: TabRenderer;
     renderNull: JSX.Element;
 }
+
+export {TabData};

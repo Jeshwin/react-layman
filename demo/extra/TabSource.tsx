@@ -1,6 +1,7 @@
 import {useDrag} from "react-dnd";
 import {useContext, useEffect} from "react";
-import {LaymanContext, TabType, TabData, LaymanHeuristic} from "../../src";
+import {LaymanContext, TabData, TabType} from "../../src";
+import {LaymanHeuristic} from "../..";
 
 export default function TabSource({tabName, heuristic}: {tabName: string; heuristic: LaymanHeuristic}) {
     const {setGlobalDragging, layoutDispatch} = useContext(LaymanContext);

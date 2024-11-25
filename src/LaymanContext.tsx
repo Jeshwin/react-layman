@@ -1,5 +1,5 @@
 import {createContext, useReducer, useState} from "react";
-import {LaymanContextType, LaymanLayout, PaneRenderer, TabRenderer, Position} from ".";
+import {LaymanContextType, LaymanLayout, PaneRenderer, TabRenderer, Position} from "./types";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
 import React from "react";

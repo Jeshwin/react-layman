@@ -3,7 +3,8 @@ import {useContext, useEffect} from "react";
 import {ConnectDragSource, useDrag} from "react-dnd";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
-import {LaymanPath, TabType} from ".";
+import {TabType} from ".";
+import {LaymanPath} from "./types";
 
 interface TabProps {
     tab: TabData;

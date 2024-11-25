@@ -1,7 +1,8 @@
 import {useDrop} from "react-dnd";
-import {DragData, LaymanPath, Position, TabType, WindowType} from ".";
+import {TabType, WindowType} from ".";
 import {useContext, useEffect, useRef} from "react";
 import {LaymanContext} from "./LaymanContext";
+import {DragData, LaymanPath, Position} from "./types";
 
 interface WindowDropTargetProps {
     path: LaymanPath;

@@ -1,7 +1,7 @@
 import {MouseEventHandler, useContext, useEffect, useState} from "react";
-import {SeparatorProps} from ".";
 import {LaymanContext} from "./LaymanContext";
 import _ from "lodash";
+import {SeparatorProps} from "./types";
 
 export function Separator({nodePosition, position, index, direction, path, separators}: SeparatorProps) {
     const {globalContainerSize, layoutDispatch} = useContext(LaymanContext);

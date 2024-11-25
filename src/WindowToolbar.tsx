@@ -1,12 +1,13 @@
 import {useContext, useEffect, useRef, useState} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
-import {Position, ToolBarProps, WindowType} from ".";
+import {WindowType} from ".";
 import {SingleTab, Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {WindowDropTarget} from "./WindowDropTarget";
 import {useDrag, useDragLayer} from "react-dnd";
+import {Position, ToolBarProps} from "./types";
 
 function usePrevious(value: number) {
     const ref = useRef(0);
