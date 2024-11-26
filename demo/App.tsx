@@ -4,6 +4,7 @@ import TabSource from "./extra/TabSource";
 import NullLayout from "./extra/NullLayout";
 import AutoArrangeButton from "./extra/AutoArrangeButton";
 import {LaymanLayout} from "../src";
+import ResizeTester from "./extra/ResizeTester";
 
 export default function App() {
     const initialLayout: LaymanLayout = {
@@ -96,8 +97,10 @@ export default function App() {
                         style={{
                             width: "calc(100vw - 64px)",
                             height: "calc(100vh - 64px)",
+                            display: "flex",
                         }}
                     >
+                        <ResizeTester />
                         <Layman />
                     </div>
                 </div>

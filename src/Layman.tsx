@@ -9,7 +9,8 @@ import {Separator} from "./Separator";
  * Entry point for Layman Window Manager
  */
 export function Layman() {
-    const {setGlobalContainerSize, layout, renderNull, draggedWindowTabs} = useContext(LaymanContext);
+    const {globalContainerSize, setGlobalContainerSize, layout, renderNull, draggedWindowTabs} =
+        useContext(LaymanContext);
     // Local state for component lists
     const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
     const [windows, setWindows] = useState<WindowProps[]>([]);
@@ -17,23 +18,15 @@ export function Layman() {
     // Reference for parent div
     const laymanRef = useRef<HTMLDivElement | null>(null);
 
-    // Size of Layman container
-    const [containerSize, setContainerSize] = useState<Position>({
-        top: 0,
-        left: 0,
-        width: 0,
-        height: 0,
-    });
-
-    // Function to update container size
-    const updateContainerSize = () => {
-        if (laymanRef.current) {
-            const {x, y, width, height} = laymanRef.current.getBoundingClientRect();
-            setContainerSize({top: y, left: x, width, height});
-        }
-    };
-
     useEffect(() => {
+        // Function to update container size
+        const updateContainerSize = () => {
+            if (laymanRef.current) {
+                const {top, left, width, height} = laymanRef.current.getBoundingClientRect();
+                setGlobalContainerSize({top, left, width, height});
+            }
+        };
+
         // Get the initial dimensions of the container when the component mounts
         updateContainerSize();
 
@@ -44,25 +37,32 @@ export function Layman() {
         return () => {
             window.removeEventListener("resize", updateContainerSize);
         };
-    }, []);
+    }, [setGlobalContainerSize]);
 
     useEffect(() => {
         if (!laymanRef.current) return;
         const laymanContainer = laymanRef.current;
 
-        // Add window resize event listener
-        laymanContainer.addEventListener("resize", updateContainerSize);
+        // Create a ResizeObserver to monitor size changes
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const {width, height} = entry.contentRect;
+                setGlobalContainerSize({
+                    ...globalContainerSize,
+                    width,
+                    height,
+                }); // Update context with new size
+            }
+        });
 
-        // Cleanup resize event listener on unmount
+        // Observe the root element
+        resizeObserver.observe(laymanContainer);
+
+        // Cleanup observer on unmount
         return () => {
-            laymanContainer.removeEventListener("resize", updateContainerSize);
+            resizeObserver.disconnect();
         };
-    }, [laymanRef]);
-
-    // Set global container size in context
-    useEffect(() => {
-        setGlobalContainerSize(containerSize);
-    }, [containerSize, setGlobalContainerSize]);
+    }, [globalContainerSize, laymanRef, setGlobalContainerSize]);
 
     // Calculate component lists whenever layout changes
     useMemo(() => {
@@ -272,8 +272,8 @@ export function Layman() {
             {
                 top: 0,
                 left: 0,
-                width: containerSize.width,
-                height: containerSize.height,
+                width: globalContainerSize.width,
+                height: globalContainerSize.height,
             },
             []
         );
@@ -282,7 +282,7 @@ export function Layman() {
         setToolbars(calculatedToolbars);
         setWindows(calculatedWindows);
         setSeparators(calculatedSeparators);
-    }, [containerSize, draggedWindowTabs, layout]);
+    }, [globalContainerSize, draggedWindowTabs, layout]);
 
     return (
         <div ref={laymanRef} className="layman-root">
