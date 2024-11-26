@@ -29,7 +29,7 @@ export function Layman() {
     const updateContainerSize = () => {
         if (laymanRef.current) {
             const {x, y, width, height} = laymanRef.current.getBoundingClientRect();
-            setContainerSize({top: x, left: y, width, height});
+            setContainerSize({top: y, left: x, width, height});
         }
     };
 
@@ -45,6 +45,19 @@ export function Layman() {
             window.removeEventListener("resize", updateContainerSize);
         };
     }, []);
+
+    useEffect(() => {
+        if (!laymanRef.current) return;
+        const laymanContainer = laymanRef.current;
+
+        // Add window resize event listener
+        laymanContainer.addEventListener("resize", updateContainerSize);
+
+        // Cleanup resize event listener on unmount
+        return () => {
+            laymanContainer.removeEventListener("resize", updateContainerSize);
+        };
+    }, [laymanRef]);
 
     // Set global container size in context
     useEffect(() => {
