@@ -42,7 +42,7 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
                 left: 0,
             });
         }
-    }, [draggedWindowTabs, windowDragStartPosition, tab, clientOffset, isDragging]);
+    }, [clientOffset, isDragging, windowDragStartPosition.x, windowDragStartPosition.y]);
 
     const [portalElement, setPortalElement] = useState<HTMLElement | null>(null);
 
@@ -70,7 +70,7 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
     const borderPosition: Position = {
         top: position.top + (windowToolbarHeight / 2) * scale + currentMousePosition.top + globalContainerSize.top,
         left: position.left * scale + currentMousePosition.left + globalContainerSize.left,
-        width: position.width - separatorThickness,
+        width: position.width - separatorThickness + 2, // +2 for thickness of the border itself
         height: position.height - separatorThickness / 2,
     };
 

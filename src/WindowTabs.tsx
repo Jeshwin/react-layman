@@ -1,10 +1,10 @@
-import {VscClose} from "react-icons/vsc";
 import {useContext, useEffect} from "react";
 import {ConnectDragSource, useDrag} from "react-dnd";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {TabType} from ".";
 import {LaymanPath} from "./types";
+import {LuX} from "react-icons/lu";
 
 interface TabProps {
     tab: TabData;
@@ -45,7 +45,7 @@ export const Tab = ({tab, path, isSelected, onDelete, onMouseDown}: TabProps) =>
                 {renderTab(tab)}
             </button>
             <button className="close-tab" onClick={onDelete}>
-                <VscClose color="white" />
+                <LuX color="white" />
             </button>
         </div>
     );
@@ -68,7 +68,7 @@ export const SingleTab = ({dragRef, tab, onDelete, onMouseDown}: SingleTabProps)
                 {renderTab(tab)}
             </button>
             <button className="close-tab" onClick={onDelete}>
-                <VscClose color="white" />
+                <LuX color="white" />
             </button>
         </div>
     );

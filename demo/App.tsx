@@ -66,36 +66,48 @@ export default function App() {
                         width: "100%",
                         height: 64,
                         display: "flex",
-                        justifyContent: "center",
+                        justifyContent: "space-around",
                         alignItems: "center",
                     }}
                 >
-                    <AutoArrangeButton />
-                    <TabSource tabName={"A"} heuristic="topleft" />
-                    <TabSource tabName={"B"} heuristic="topleft" />
-                    <TabSource tabName={"C"} heuristic="topleft" />
-                    <div style={{fontSize: 10}}>Top Left Heuristic</div>
-                </div>
-                <div style={{position: "relative", height: "calc(100vh - 64px)", display: "flex"}}>
                     <div
                         style={{
-                            top: 0,
-                            left: 0,
-                            height: "100%",
-                            width: 64,
+                            border: "1px solid #8aadf4",
+                            borderRadius: 8,
+                            padding: 8,
+                            marginLeft: 8,
+                            marginRight: 8,
                             display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
+                            alignItems: "center",
                         }}
                     >
-                        <div style={{fontSize: 10}}>Top Right Heuristic</div>
+                        <TabSource tabName={"A"} heuristic="topleft" />
+                        <TabSource tabName={"B"} heuristic="topleft" />
+                        <TabSource tabName={"C"} heuristic="topleft" />
+                        <div>Add to Top Left: </div>
+                    </div>
+                    <AutoArrangeButton />
+                    <div
+                        style={{
+                            border: "1px solid #ee99a0",
+                            borderRadius: 8,
+                            padding: 8,
+                            marginLeft: 8,
+                            marginRight: 8,
+                            display: "flex",
+                            alignItems: "center",
+                        }}
+                    >
+                        <div>Add to Top Right</div>
                         <TabSource tabName={"D"} heuristic="topright" />
                         <TabSource tabName={"E"} heuristic="topright" />
                         <TabSource tabName={"F"} heuristic="topright" />
                     </div>
+                </div>
+                <div style={{position: "relative", height: "calc(100vh - 64px)", display: "flex"}}>
                     <div
                         style={{
-                            width: "calc(100vw - 64px)",
+                            width: "100vw",
                             height: "calc(100vh - 64px)",
                             display: "flex",
                         }}

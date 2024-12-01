@@ -12,7 +12,7 @@ dist
 demo/dist
 dist-ssr
 *.local
-tsconfig-build.tsbuildinfo
+tsconfig*.tsbuildinfo
 lib/
 
 # Editor directories and files
