@@ -46,12 +46,8 @@ export function Layman() {
         // Create a ResizeObserver to monitor size changes
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
-                const {width, height} = entry.contentRect;
-                setGlobalContainerSize((prevState) => ({
-                    ...prevState,
-                    width,
-                    height,
-                })); // Update context with new size
+                const {top, left, width, height} = entry.target.getBoundingClientRect();
+                setGlobalContainerSize({top, left, width, height}); // Update context with new size
             }
         });
 
