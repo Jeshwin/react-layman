@@ -34,8 +34,8 @@ export default function TabSource({tabName, heuristic}: {tabName: string; heuris
             ref={drag}
             className="tab-source"
             style={{
-                width: 48,
-                height: 48,
+                width: 32,
+                height: 32,
                 display: "grid",
                 placeContent: "center",
                 textAlign: "center",

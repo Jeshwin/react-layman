@@ -1,7 +1,7 @@
 import {MouseEventHandler, useEffect, useRef, useState} from "react";
 
 export default function ResizeTester() {
-    const [width, setWidth] = useState(100);
+    const [width, setWidth] = useState(300);
     const [isDragging, setIsDragging] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const minWidth = 100;
@@ -48,7 +48,7 @@ export default function ResizeTester() {
             style={{
                 width: width,
                 flex: "none",
-                border: "2px solid var(--indicator-color)",
+                border: "1px dashed white",
                 borderRadius: 8,
                 padding: 16,
                 position: "relative",
