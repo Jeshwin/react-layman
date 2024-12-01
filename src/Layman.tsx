@@ -47,11 +47,11 @@ export function Layman() {
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 const {width, height} = entry.contentRect;
-                setGlobalContainerSize({
-                    ...globalContainerSize,
+                setGlobalContainerSize((prevState) => ({
+                    ...prevState,
                     width,
                     height,
-                }); // Update context with new size
+                })); // Update context with new size
             }
         });
 

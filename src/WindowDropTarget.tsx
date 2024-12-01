@@ -54,12 +54,15 @@ export function WindowDropTarget({path, position, placement}: WindowDropTargetPr
 
         newDropHighlightPosition.current = dropPosition;
     }, [
-        position,
-        windowToolbarHeight,
-        separatorThickness,
-        placement,
-        globalContainerSize.top,
         globalContainerSize.left,
+        globalContainerSize.top,
+        placement,
+        position.height,
+        position.left,
+        position.top,
+        position.width,
+        separatorThickness,
+        windowToolbarHeight,
     ]);
 
     const [, drop] = useDrop(() => ({

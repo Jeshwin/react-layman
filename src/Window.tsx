@@ -42,7 +42,7 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
                 left: 0,
             });
         }
-    }, [draggedWindowTabs, windowDragStartPosition, tab, clientOffset, isDragging]);
+    }, [clientOffset, isDragging, windowDragStartPosition.x, windowDragStartPosition.y]);
 
     const [portalElement, setPortalElement] = useState<HTMLElement | null>(null);
 

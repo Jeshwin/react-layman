@@ -1,4 +1,4 @@
-import {useContext, useEffect, useRef, useState} from "react";
+import {useContext, useEffect, useMemo, useRef, useState} from "react";
 import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
 import {WindowType} from ".";
 import {SingleTab, Tab} from "./WindowTabs";
@@ -17,10 +17,6 @@ function usePrevious(value: number) {
     return ref.current;
 }
 
-// 1x1 transparent image for empty drag preview
-const transparentImage = new Image(); // Create a transparent image
-transparentImage.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; // 1x1 pixel transparent GIF
-
 export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProps) {
     const {layoutDispatch, globalDragging, setGlobalDragging, setWindowDragStartPosition, setDraggedWindowTabs} =
         useContext(LaymanContext);
@@ -31,6 +27,12 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
+    // 1x1 transparent image for empty drag preview
+    const emptyImage = useMemo(() => {
+        const img = new Image();
+        img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; // 1x1 transparent GIF
+        return img;
+    }, []);
 
     // useEffect to handle scrolling when the number of tabs changes
     useEffect(() => {
@@ -87,12 +89,12 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
 
     // Hide default drag previews
     useEffect(() => {
-        dragPreview(transparentImage);
-    }, [dragPreview]);
+        dragPreview(emptyImage);
+    }, [dragPreview, emptyImage]);
 
     useEffect(() => {
-        singleTabDragPreview(transparentImage);
-    }, [singleTabDragPreview]);
+        singleTabDragPreview(emptyImage);
+    }, [singleTabDragPreview, emptyImage]);
 
     // Custom drag layer to track mouse position during dragging
     const {clientOffset} = useDragLayer((monitor) => ({
@@ -111,7 +113,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                 left: 0,
             });
         }
-    }, [clientOffset, dragStartPosition, isDragging, position, singleTabIsDragging]);
+    }, [clientOffset, dragStartPosition.x, dragStartPosition.y, isDragging, singleTabIsDragging]);
 
     useEffect(() => {
         setGlobalDragging(isDragging || singleTabIsDragging);

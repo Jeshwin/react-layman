@@ -95,12 +95,16 @@ export function Separator({nodePosition, position, index, direction, path, separ
         };
     }, [
         direction,
-        globalContainerSize,
+        globalContainerSize.left,
+        globalContainerSize.top,
         index,
         isDragging,
         layoutDispatch,
         nextSeparator,
-        nodePosition,
+        nodePosition.height,
+        nodePosition.left,
+        nodePosition.top,
+        nodePosition.width,
         path,
         previousSeparator,
         separatorThickness,
