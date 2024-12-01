@@ -1,6 +1,6 @@
 {
     "name": "react-layman",
-    "version": "0.2.6",
+    "version": "0.2.7",
     "type": "module",
     "description": "A dynamic tiling layout manager made for React",
     "main": "lib/react-layman.js",
@@ -15,7 +15,7 @@
         "dev": "vite",
         "build:demo": "tsc && vite build",
         "preview": "vite preview",
-        "build:lib": "tsc && vite build --config vite.lib.config.ts",
+        "build:lib": "tsc --project tsconfig-build.json && vite build --config vite.lib.config.ts",
         "clean": "rm -rf lib/",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "test": "exit 0",
