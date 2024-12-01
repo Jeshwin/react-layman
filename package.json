@@ -1,6 +1,6 @@
 {
     "name": "react-layman",
-    "version": "0.2.8",
+    "version": "0.2.9",
     "type": "module",
     "description": "A dynamic tiling layout manager made for React",
     "main": "lib/react-layman.js",
@@ -66,8 +66,8 @@
         "vite": "^5.2.0",
         "vite-plugin-dts": "^4.3.0",
         "vite-plugin-lib-inject-css": "^2.1.1",
-        "react": "18",
-        "react-dom": "18"
+        "react": "^18",
+        "react-dom": "^18"
     },
     "peerDependencies": {
         "react": "^18",

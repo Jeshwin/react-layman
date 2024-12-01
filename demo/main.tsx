@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "../styles/global.css";
-import "./custom_theme.css";
+import "./custom-theme.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
