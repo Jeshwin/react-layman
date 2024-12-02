@@ -1,5 +1,5 @@
 import {useContext, useEffect, useMemo, useRef, useState} from "react";
-import {VscAdd, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
+import {VscAdd, VscEllipsis, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
 import {WindowType} from ".";
 import {SingleTab, Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
@@ -209,16 +209,18 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                     )}
                 </div>
                 {/** Button to add a new blank menu */}
-                <ToolbarButton
-                    icon={<VscAdd />}
-                    onClick={() =>
-                        layoutDispatch({
-                            type: "addTab",
-                            path: path,
-                            tab: new TabData("blank"),
-                        })
-                    }
-                />
+                <div style={{display: "flex"}}>
+                    <ToolbarButton
+                        icon={<VscAdd />}
+                        onClick={() =>
+                            layoutDispatch({
+                                type: "addTab",
+                                path: path,
+                                tab: new TabData("blank"),
+                            })
+                        }
+                    />
+                </div>
                 {/** Draggable area to move window */}
                 <div
                     ref={drag}
@@ -260,6 +262,8 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                             })
                         }
                     />
+                    {/* Button to open a menu for extra toolbar features */}
+                    <ToolbarButton icon={<VscEllipsis />} onClick={() => {}} />
                 </div>
             </div>
             {!(isDragging || singleTabIsDragging) && (
