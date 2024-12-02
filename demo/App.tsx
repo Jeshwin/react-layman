@@ -84,7 +84,7 @@ export default function App() {
                         <TabSource tabName={"A"} heuristic="topleft" />
                         <TabSource tabName={"B"} heuristic="topleft" />
                         <TabSource tabName={"C"} heuristic="topleft" />
-                        <div>Add to Top Left: </div>
+                        <div>← Add to Top Left</div>
                     </div>
                     <AutoArrangeButton />
                     <div
@@ -98,7 +98,7 @@ export default function App() {
                             alignItems: "center",
                         }}
                     >
-                        <div>Add to Top Right</div>
+                        <div>Add to Top Right →</div>
                         <TabSource tabName={"D"} heuristic="topright" />
                         <TabSource tabName={"E"} heuristic="topright" />
                         <TabSource tabName={"F"} heuristic="topright" />
