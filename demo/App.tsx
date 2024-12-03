@@ -1,10 +1,11 @@
-import {LaymanProvider, Layman, TabData} from "../src";
+import {LaymanLayout, LaymanProvider, Layman, TabData} from "../src";
 import Pane from "./Pane";
 import TabSource from "./extra/TabSource";
 import NullLayout from "./extra/NullLayout";
 import AutoArrangeButton from "./extra/AutoArrangeButton";
-import {LaymanLayout} from "../src";
 import ResizeTester from "./extra/ResizeTester";
+import MutableToggle from "./extra/MutableToggle";
+import {useState} from "react";
 
 export default function App() {
     const initialLayout: LaymanLayout = {
@@ -46,12 +47,17 @@ export default function App() {
      */
     const renderTab = (tab: TabData) => tab.name;
 
+    // State to edit mutability of layout
+    const [mutable, setMutable] = useState(true);
+
     return (
         <LaymanProvider
             initialLayout={initialLayout}
             renderPane={renderPane}
             renderTab={renderTab}
             renderNull={<NullLayout />}
+            mutable={mutable}
+            toolbarButtons={["splitBottom", "splitRight", "misc"]}
         >
             <div
                 style={{
@@ -84,9 +90,12 @@ export default function App() {
                         <TabSource tabName={"A"} heuristic="topleft" />
                         <TabSource tabName={"B"} heuristic="topleft" />
                         <TabSource tabName={"C"} heuristic="topleft" />
-                        <div>Add to Top Left: </div>
+                        <div>← Add to Top Left</div>
                     </div>
-                    <AutoArrangeButton />
+                    <div style={{display: "flex", justifyItems: "center", alignItems: "center"}}>
+                        <AutoArrangeButton />
+                        <MutableToggle mutable={mutable} setMutable={setMutable} />
+                    </div>
                     <div
                         style={{
                             border: "1px solid #ee99a0",
@@ -98,7 +107,7 @@ export default function App() {
                             alignItems: "center",
                         }}
                     >
-                        <div>Add to Top Right</div>
+                        <div>Add to Top Right →</div>
                         <TabSource tabName={"D"} heuristic="topright" />
                         <TabSource tabName={"E"} heuristic="topright" />
                         <TabSource tabName={"F"} heuristic="topright" />

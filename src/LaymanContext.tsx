@@ -1,5 +1,5 @@
 import {createContext, useReducer, useState} from "react";
-import {LaymanContextType, LaymanLayout, PaneRenderer, TabRenderer, Position} from "./types";
+import {LaymanContextType, LaymanLayout, PaneRenderer, TabRenderer, Position, ToolbarButtonType} from "./types";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
 import React from "react";
@@ -22,6 +22,8 @@ const defaultContextValue: LaymanContextType = {
     setWindowDragStartPosition: () => {},
     renderPane: () => <></>,
     renderTab: () => <></>,
+    mutable: false,
+    toolbarButtons: [],
     renderNull: <></>,
 };
 
@@ -30,12 +32,22 @@ type LaymanProviderProps = {
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
     renderNull: JSX.Element;
+    mutable?: boolean;
+    toolbarButtons?: Array<ToolbarButtonType>;
     children: React.ReactNode;
 };
 
 export const LaymanContext = createContext<LaymanContextType>(defaultContextValue);
 
-export const LaymanProvider = ({initialLayout, renderPane, renderTab, renderNull, children}: LaymanProviderProps) => {
+export const LaymanProvider = ({
+    initialLayout,
+    renderPane,
+    renderTab,
+    renderNull,
+    mutable = false,
+    toolbarButtons = [],
+    children,
+}: LaymanProviderProps) => {
     const [layout, layoutDispatch] = useReducer(LaymanReducer, initialLayout);
     // Size of Layman container
     const [globalContainerSize, setGlobalContainerSize] = useState<Position>({
@@ -73,6 +85,8 @@ export const LaymanProvider = ({initialLayout, renderPane, renderTab, renderNull
                 setWindowDragStartPosition,
                 renderPane,
                 renderTab,
+                mutable,
+                toolbarButtons,
                 renderNull,
             }}
         >

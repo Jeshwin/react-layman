@@ -113,7 +113,7 @@ const moveTab = (layout: LaymanLayout, action: MoveTabAction) => {
     // Remove tab from original path if it came from within the layout
     // If it was added externally, action.path must be [-1], so we skip
     let removeTabLayout = layout;
-    if (!(action.path.length === 1 && action.path[0] != -1)) {
+    if (!(action.path.length === 1 && action.path[0] === -1)) {
         removeTabLayout = LaymanReducer(layout, {
             type: "removeTab",
             path: action.path,
@@ -207,7 +207,8 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
                     return {
                         ...child,
                         viewPercent: child.viewPercent
-                            ? (child.viewPercent * grandparent.children.length) / (grandparent.children.length - 1)
+                            ? (child.viewPercent * grandparent.children.length) /
+                              (grandparent.children.length + onlyChild.children.length - 1)
                             : child.viewPercent,
                     };
                 }),
@@ -215,10 +216,10 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
                     if (!child) return;
                     return {
                         ...child,
-                        viewPercent:
-                            child.viewPercent && parent.viewPercent
-                                ? (child.viewPercent * parent.viewPercent) / 100
-                                : child.viewPercent,
+                        viewPercent: child.viewPercent
+                            ? (child.viewPercent * onlyChild.children.length) /
+                              (grandparent.children.length + onlyChild.children.length - 1)
+                            : child.viewPercent,
                     };
                 }),
                 ...grandparent.children.slice(parentIndex + 1).map((child) => {
@@ -226,7 +227,8 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
                     return {
                         ...child,
                         viewPercent: child.viewPercent
-                            ? (child.viewPercent * grandparent.children.length) / (grandparent.children.length - 1)
+                            ? (child.viewPercent * grandparent.children.length) /
+                              (grandparent.children.length + onlyChild.children.length - 1)
                             : child.viewPercent,
                     };
                 }),
@@ -330,9 +332,6 @@ const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
 const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
     const originalPath = action.path;
     const newPath = action.newPath;
-    console.log("originalPath: ", originalPath.join("."));
-    console.log("newPath: ", newPath.join("."));
-
     const commonLength = _.takeWhile(originalPath, (val, idx) => val === newPath[idx]).length;
 
     if (commonLength != originalPath.length - 1) {
@@ -416,8 +415,6 @@ const moveWindow = (layout: LaymanLayout, action: MoveWindowAction) => {
 
     // Handle removing window causes newPath to change
     const newPath = adjustPath(layout, action);
-
-    console.log("new newPath: ", newPath.join("."));
 
     if (action.placement === "center") {
         // Add all tabs
