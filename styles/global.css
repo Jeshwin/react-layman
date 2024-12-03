@@ -78,12 +78,14 @@
     margin: calc(var(--separator-thickness, 8px) / 2);
     margin-bottom: 0px;
     display: flex;
+    justify-content: flex-end;
     z-index: 7;
     transition: transform 150ms;
     background-color: var(--toolbar-bg-color, #1c1917);
     color: var(--tab-text-color, #ffffff);
     border-top-left-radius: var(--border-radius, 8px);
     border-top-right-radius: var(--border-radius, 8px);
+    overflow: hidden;
     .tab-container {
         display: flex;
         overflow: scroll hidden;
@@ -114,8 +116,9 @@
                     place-content: center;
                     width: calc(var(--toolbar-height, 32px) * 0.75);
                     height: var(--toolbar-height, 32px);
-                    opacity: 1;
+                    color: var(--tab-text-color, #ffffff);
                     background-color: transparent;
+                    opacity: 1;
                     &:hover {
                         background-color: var(--close-tab-color, #ef444488);
                     }
@@ -133,6 +136,7 @@
                 place-content: center;
                 width: calc(var(--toolbar-height, 32px) * 0.75);
                 height: var(--toolbar-height, 32px);
+                color: var(--tab-text-color, #ffffff);
                 background-color: inherit;
                 opacity: 0;
                 &:hover {
@@ -143,7 +147,6 @@
     }
     .drag-area {
         flex: 1 1 0%;
-        min-width: calc(var(--toolbar-height, 32px) / 2);
         cursor: grab;
         &:active {
             cursor: grabbing;
@@ -162,12 +165,13 @@
     }
 
     button.toolbar-button {
-        width: var(--toolbar-height, 32px);
+        min-width: var(--toolbar-height, 32px);
         height: var(--toolbar-height, 32px);
-        display: grid;
-        place-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         color: var(--tab-text-color, #ffffff);
-        background-color: transparent;
+        background-color: var(--toolbar-bg-color, #1c1917);
         &:hover {
             cursor: pointer;
             background-color: var(--toolbar-button-hover-bg-color, #292524);
@@ -176,6 +180,8 @@
 
     .toolbar-button-container {
         display: flex;
+        /* position: absolute;
+        right: 0; */
         border-top-right-radius: var(--border-radius, 8px);
     }
 }

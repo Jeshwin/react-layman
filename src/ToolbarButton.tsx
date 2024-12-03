@@ -1,13 +1,10 @@
 export function ToolbarButton({
-    icon,
-    onClick,
-}: {
-    icon: JSX.Element;
-    onClick: React.MouseEventHandler<HTMLButtonElement>;
-}) {
+    children,
+    ...props // Spread operator for capturing all additional props
+}: React.ComponentProps<"button">) {
     return (
-        <button className="toolbar-button" onClick={onClick}>
-            {icon}
+        <button className="toolbar-button" {...props}>
+            {children}
         </button>
     );
 }
