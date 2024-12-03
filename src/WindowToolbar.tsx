@@ -1,5 +1,12 @@
 import {useContext, useEffect, useMemo, useRef, useState} from "react";
-import {VscAdd, VscEllipsis, VscSplitHorizontal, VscSplitVertical} from "react-icons/vsc";
+import {
+    VscAdd,
+    VscClose,
+    VscEllipsis,
+    VscLayoutPanel,
+    VscLayoutSidebarLeft,
+    VscLayoutSidebarRight,
+} from "react-icons/vsc";
 import {WindowType} from ".";
 import {SingleTab, Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
@@ -7,7 +14,8 @@ import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {WindowDropTarget} from "./WindowDropTarget";
 import {useDrag, useDragLayer} from "react-dnd";
-import {Position, ToolBarProps} from "./types";
+import {Position, ToolbarButtonType, ToolBarProps} from "./types";
+import {LuMaximize, LuMinimize} from "react-icons/lu";
 
 function usePrevious(value: number) {
     const ref = useRef(0);
@@ -18,8 +26,15 @@ function usePrevious(value: number) {
 }
 
 export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProps) {
-    const {layoutDispatch, globalDragging, setGlobalDragging, setWindowDragStartPosition, setDraggedWindowTabs} =
-        useContext(LaymanContext);
+    const {
+        layoutDispatch,
+        globalDragging,
+        setGlobalDragging,
+        setWindowDragStartPosition,
+        setDraggedWindowTabs,
+        mutable,
+        toolbarButtons,
+    } = useContext(LaymanContext);
     const tabContainerRef = useRef<HTMLDivElement>(null);
     // Track the previous length of the tabs array
     const previousTabCount = usePrevious(tabs.length);
@@ -142,6 +157,119 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
         height: position.height - windowToolbarHeight - separatorThickness / 2,
     };
 
+    const createToolbarButton = (child: ToolbarButtonType, index: number) => {
+        switch (child) {
+            case "splitTop":
+                return (
+                    <ToolbarButton
+                        key={index}
+                        onClick={() =>
+                            layoutDispatch({
+                                type: "addWindow",
+                                path: path,
+                                window: {
+                                    tabs: [new TabData("blank")],
+                                    selectedIndex: 0,
+                                },
+                                placement: "top",
+                            })
+                        }
+                    >
+                        <VscLayoutPanel style={{transform: "rotate(180deg)"}} />
+                    </ToolbarButton>
+                );
+            case "splitBottom":
+                return (
+                    <ToolbarButton
+                        key={index}
+                        onClick={() =>
+                            layoutDispatch({
+                                type: "addWindow",
+                                path: path,
+                                window: {
+                                    tabs: [new TabData("blank")],
+                                    selectedIndex: 0,
+                                },
+                                placement: "bottom",
+                            })
+                        }
+                    >
+                        <VscLayoutPanel />
+                    </ToolbarButton>
+                );
+            case "splitLeft":
+                return (
+                    <ToolbarButton
+                        key={index}
+                        onClick={() =>
+                            layoutDispatch({
+                                type: "addWindow",
+                                path: path,
+                                window: {
+                                    tabs: [new TabData("blank")],
+                                    selectedIndex: 0,
+                                },
+                                placement: "left",
+                            })
+                        }
+                    >
+                        <VscLayoutSidebarLeft />
+                    </ToolbarButton>
+                );
+            case "splitRight":
+                return (
+                    <ToolbarButton
+                        key={index}
+                        onClick={() =>
+                            layoutDispatch({
+                                type: "addWindow",
+                                path: path,
+                                window: {
+                                    tabs: [new TabData("blank")],
+                                    selectedIndex: 0,
+                                },
+                                placement: "right",
+                            })
+                        }
+                    >
+                        <VscLayoutSidebarRight />
+                    </ToolbarButton>
+                );
+            case "maximize":
+                return (
+                    <ToolbarButton key={index} onClick={() => {}}>
+                        <LuMaximize />
+                    </ToolbarButton>
+                );
+            case "minimize":
+                return (
+                    <ToolbarButton key={index} onClick={() => {}}>
+                        <LuMinimize />
+                    </ToolbarButton>
+                );
+            case "close":
+                return (
+                    <ToolbarButton
+                        key={index}
+                        onClick={() => {
+                            layoutDispatch({
+                                type: "removeWindow",
+                                path: path,
+                            });
+                        }}
+                    >
+                        <VscClose />
+                    </ToolbarButton>
+                );
+            case "misc":
+                return (
+                    <ToolbarButton key={index} onClick={() => {}}>
+                        <VscEllipsis />
+                    </ToolbarButton>
+                );
+        }
+    };
+
     return (
         <>
             <div
@@ -211,7 +339,6 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                 {/** Button to add a new blank menu */}
                 <div style={{display: "flex"}}>
                     <ToolbarButton
-                        icon={<VscAdd />}
                         onClick={() =>
                             layoutDispatch({
                                 type: "addTab",
@@ -219,7 +346,9 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                                 tab: new TabData("blank"),
                             })
                         }
-                    />
+                    >
+                        <VscAdd />
+                    </ToolbarButton>
                 </div>
                 {/** Draggable area to move window */}
                 <div
@@ -234,36 +363,11 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                 ></div>
                 {/** Buttons to add convert window to a row or column */}
                 <div className="toolbar-button-container">
-                    <ToolbarButton
-                        icon={<VscSplitVertical />}
-                        onClick={() =>
-                            layoutDispatch({
-                                type: "addWindow",
-                                path: path,
-                                window: {
-                                    tabs: [new TabData("blank")],
-                                    selectedIndex: 0,
-                                },
-                                placement: "bottom",
-                            })
-                        }
-                    />
-                    <ToolbarButton
-                        icon={<VscSplitHorizontal />}
-                        onClick={() =>
-                            layoutDispatch({
-                                type: "addWindow",
-                                path: path,
-                                window: {
-                                    tabs: [new TabData("blank")],
-                                    selectedIndex: 0,
-                                },
-                                placement: "right",
-                            })
-                        }
-                    />
-                    {/* Button to open a menu for extra toolbar features */}
-                    <ToolbarButton icon={<VscEllipsis />} onClick={() => {}} />
+                    {mutable
+                        ? toolbarButtons?.map((child, index) => createToolbarButton(child, index))
+                        : (["maximize", "minimize", "misc"] as Array<ToolbarButtonType>).map((child, index) =>
+                              createToolbarButton(child, index)
+                          )}
                 </div>
             </div>
             {!(isDragging || singleTabIsDragging) && (

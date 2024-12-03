@@ -78,6 +78,7 @@
     margin: calc(var(--separator-thickness, 8px) / 2);
     margin-bottom: 0px;
     display: flex;
+    justify-content: flex-end;
     z-index: 7;
     transition: transform 150ms;
     background-color: var(--toolbar-bg-color, #1c1917);
@@ -164,7 +165,7 @@
     }
 
     button.toolbar-button {
-        width: var(--toolbar-height, 32px);
+        min-width: var(--toolbar-height, 32px);
         height: var(--toolbar-height, 32px);
         display: flex;
         align-items: center;
@@ -179,8 +180,8 @@
 
     .toolbar-button-container {
         display: flex;
-        position: absolute;
-        right: 0;
+        /* position: absolute;
+        right: 0; */
         border-top-right-radius: var(--border-radius, 8px);
     }
 }
