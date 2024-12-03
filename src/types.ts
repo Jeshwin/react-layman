@@ -147,6 +147,16 @@ export interface WindowProps {
 export type PaneRenderer = (arg0: TabData) => JSX.Element;
 export type TabRenderer = (arg0: TabData) => string | JSX.Element;
 
+export type ToolbarButtonType =
+    | "splitLeft"
+    | "splitRight"
+    | "splitTop"
+    | "splitBottom"
+    | "maximize"
+    | "minimize"
+    | "close"
+    | "misc";
+
 export interface LaymanContextType {
     globalContainerSize: Position;
     setGlobalContainerSize: Dispatch<SetStateAction<Position>>;
@@ -161,6 +171,8 @@ export interface LaymanContextType {
     setWindowDragStartPosition: React.Dispatch<{x: number; y: number}>;
     renderPane: PaneRenderer;
     renderTab: TabRenderer;
+    mutable: boolean;
+    toolbarButtons?: Array<ToolbarButtonType>;
     renderNull: JSX.Element;
 }
 

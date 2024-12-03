@@ -4,7 +4,7 @@ import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {TabType} from ".";
 import {LaymanPath} from "./types";
-import {LuX} from "react-icons/lu";
+import {VscClose} from "react-icons/vsc";
 
 interface TabProps {
     tab: TabData;
@@ -15,7 +15,7 @@ interface TabProps {
 }
 
 export const Tab = ({tab, path, isSelected, onDelete, onMouseDown}: TabProps) => {
-    const {renderTab, setGlobalDragging} = useContext(LaymanContext);
+    const {renderTab, setGlobalDragging, mutable} = useContext(LaymanContext);
     const [{isDragging}, drag] = useDrag({
         type: TabType,
         item: {
@@ -44,9 +44,11 @@ export const Tab = ({tab, path, isSelected, onDelete, onMouseDown}: TabProps) =>
             <button className="tab-selector" onMouseDown={onMouseDown}>
                 {renderTab(tab)}
             </button>
-            <button className="close-tab" onClick={onDelete}>
-                <LuX color="white" />
-            </button>
+            {mutable && (
+                <button className="close-tab" onClick={onDelete}>
+                    <VscClose />
+                </button>
+            )}
         </div>
     );
 };
@@ -59,7 +61,7 @@ interface SingleTabProps {
 }
 
 export const SingleTab = ({dragRef, tab, onDelete, onMouseDown}: SingleTabProps) => {
-    const {renderTab} = useContext(LaymanContext);
+    const {renderTab, mutable} = useContext(LaymanContext);
 
     return (
         <div ref={dragRef} className={`tab selected`}>
@@ -67,9 +69,11 @@ export const SingleTab = ({dragRef, tab, onDelete, onMouseDown}: SingleTabProps)
             <button className="tab-selector" onMouseDown={onMouseDown}>
                 {renderTab(tab)}
             </button>
-            <button className="close-tab" onClick={onDelete}>
-                <LuX color="white" />
-            </button>
+            {mutable && (
+                <button className="close-tab" onClick={onDelete}>
+                    <VscClose />
+                </button>
+            )}
         </div>
     );
 };
