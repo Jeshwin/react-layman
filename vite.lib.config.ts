@@ -19,15 +19,7 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: [
-                "react",
-                "react-dom",
-                "lodash",
-                "react-dnd",
-                "react-dnd-html5-backend",
-                /^react-icons\//,
-                "uuid",
-            ],
+            external: ["react", "react-dom", "lodash", "react-dnd", "react-dnd-html5-backend", "uuid"],
             output: {
                 globals: {
                     react: "React",

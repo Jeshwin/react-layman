@@ -1,5 +1,4 @@
 import {useContext} from "react";
-import {LuBedDouble} from "react-icons/lu";
 import {LaymanContext, TabData} from "../../src";
 
 export default function NullLayout() {
@@ -16,12 +15,6 @@ export default function NullLayout() {
                 color: "#51576d",
             }}
         >
-            <LuBedDouble
-                style={{
-                    width: 192,
-                    height: 192,
-                }}
-            />
             <div style={{margin: 16, fontSize: 32}}>Add a window to get started!</div>
             <button
                 style={{
