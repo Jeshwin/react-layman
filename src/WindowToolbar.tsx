@@ -1,12 +1,4 @@
 import {useContext, useEffect, useMemo, useRef, useState} from "react";
-import {
-    VscAdd,
-    VscClose,
-    VscEllipsis,
-    VscLayoutPanel,
-    VscLayoutSidebarLeft,
-    VscLayoutSidebarRight,
-} from "react-icons/vsc";
 import {WindowType} from ".";
 import {SingleTab, Tab} from "./WindowTabs";
 import {ToolbarButton} from "./ToolbarButton";
@@ -15,7 +7,17 @@ import {TabData} from "./TabData";
 import {WindowDropTarget} from "./WindowDropTarget";
 import {useDrag, useDragLayer} from "react-dnd";
 import {Position, ToolbarButtonType, ToolBarProps} from "./types";
-import {LuMaximize, LuMinimize} from "react-icons/lu";
+import {
+    AddIcon,
+    BottomSplitIcon,
+    CloseIcon,
+    EllipsisIcon,
+    LeftSplitIcon,
+    MaximizeIcon,
+    MinimizeIcon,
+    RightSplitIcon,
+    TopSplitIcon,
+} from "./Icons";
 
 function usePrevious(value: number) {
     const ref = useRef(0);
@@ -175,7 +177,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                             })
                         }
                     >
-                        <VscLayoutPanel style={{transform: "rotate(180deg)"}} />
+                        <TopSplitIcon />
                     </ToolbarButton>
                 );
             case "splitBottom":
@@ -194,7 +196,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                             })
                         }
                     >
-                        <VscLayoutPanel />
+                        <BottomSplitIcon />
                     </ToolbarButton>
                 );
             case "splitLeft":
@@ -213,7 +215,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                             })
                         }
                     >
-                        <VscLayoutSidebarLeft />
+                        <LeftSplitIcon />
                     </ToolbarButton>
                 );
             case "splitRight":
@@ -232,19 +234,19 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                             })
                         }
                     >
-                        <VscLayoutSidebarRight />
+                        <RightSplitIcon />
                     </ToolbarButton>
                 );
             case "maximize":
                 return (
                     <ToolbarButton key={index} onClick={() => {}}>
-                        <LuMaximize />
+                        <MaximizeIcon />
                     </ToolbarButton>
                 );
             case "minimize":
                 return (
                     <ToolbarButton key={index} onClick={() => {}}>
-                        <LuMinimize />
+                        <MinimizeIcon />
                     </ToolbarButton>
                 );
             case "close":
@@ -258,13 +260,13 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                             });
                         }}
                     >
-                        <VscClose />
+                        <CloseIcon />
                     </ToolbarButton>
                 );
             case "misc":
                 return (
                     <ToolbarButton key={index} onClick={() => {}}>
-                        <VscEllipsis />
+                        <EllipsisIcon />
                     </ToolbarButton>
                 );
         }
@@ -347,7 +349,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                             })
                         }
                     >
-                        <VscAdd />
+                        <AddIcon />
                     </ToolbarButton>
                 </div>
                 {/** Draggable area to move window */}

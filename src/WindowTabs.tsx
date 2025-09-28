@@ -4,7 +4,7 @@ import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {TabType} from ".";
 import {LaymanPath} from "./types";
-import {VscClose} from "react-icons/vsc";
+import {CloseIcon} from "./Icons";
 
 interface TabProps {
     tab: TabData;
@@ -46,7 +46,7 @@ export const Tab = ({tab, path, isSelected, onDelete, onMouseDown}: TabProps) =>
             </button>
             {mutable && (
                 <button className="close-tab" onClick={onDelete}>
-                    <VscClose />
+                    <CloseIcon />
                 </button>
             )}
         </div>
@@ -71,7 +71,7 @@ export const SingleTab = ({dragRef, tab, onDelete, onMouseDown}: SingleTabProps)
             </button>
             {mutable && (
                 <button className="close-tab" onClick={onDelete}>
-                    <VscClose />
+                    <CloseIcon />
                 </button>
             )}
         </div>
