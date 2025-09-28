@@ -46,7 +46,6 @@
         "react-dnd": "^16.0.1",
         "react-dnd-html5-backend": "^16.0.1",
         "react-dom": "^18",
-        "react-icons": "^5.1.0",
         "uuid": "^10.0.0"
     },
     "devDependencies": {
@@ -61,13 +60,13 @@
         "eslint-plugin-react": "^7.34.1",
         "eslint-plugin-react-hooks": "^4.6.0",
         "eslint-plugin-react-refresh": "^0.4.6",
+        "react": "^18",
+        "react-dom": "^18",
         "ts-loader": "^9.5.1",
         "typescript": "^5.7.2",
-        "vite": "^5.2.0",
+        "vite": "^7.1.7",
         "vite-plugin-dts": "^4.3.0",
-        "vite-plugin-lib-inject-css": "^2.1.1",
-        "react": "^18",
-        "react-dom": "^18"
+        "vite-plugin-lib-inject-css": "^2.1.1"
     },
     "peerDependencies": {
         "react": "^18",
