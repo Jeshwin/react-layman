@@ -19,7 +19,16 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: ["react", "react-dom", "react-dnd", "react-dnd-html5-backend", "klona", "dequal"],
+            external: [
+                "react",
+                "react-dom",
+                "react-dnd",
+                "react-dnd-html5-backend",
+                "klona",
+                "dequal",
+                "react/jsx-runtime",
+                "react/jsx-dev-runtime",
+            ],
             output: {
                 globals: {
                     react: "React",

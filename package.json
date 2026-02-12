@@ -47,6 +47,7 @@
         "react-dnd-html5-backend": "^16.0.1"
     },
     "devDependencies": {
+        "@types/node": "^25.2.3",
         "@types/react": "^18.2.66",
         "@types/react-dom": "^18.2.22",
         "@typescript-eslint/eslint-plugin": "^7.2.0",
