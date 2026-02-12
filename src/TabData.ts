@@ -1,5 +1,3 @@
-import {v4 as uuidv4} from "uuid";
-
 interface TabOptions {
     [key: string]: unknown; // Allows any custom data
 }
@@ -19,7 +17,7 @@ export class TabData {
 
     /** Creates an instance of the TabData class. */
     constructor(name: string, options: TabOptions = {}) {
-        this.id = uuidv4();
+        this.id = crypto.randomUUID();
         this.isSelected = false;
         this.name = name;
         this.options = options;

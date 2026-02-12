@@ -1,4 +1,4 @@
-import {useContext, useEffect, useMemo, useRef, useState} from "react";
+import {useContext, useEffect, useMemo, useRef} from "react";
 import {WindowToolbar} from "./WindowToolbar";
 import {Window} from "./Window";
 import {LaymanLayout, LaymanPath, ToolBarProps, WindowProps, Position, SeparatorProps} from "./types";
@@ -11,10 +11,6 @@ import {Separator} from "./Separator";
 export function Layman() {
     const {globalContainerSize, setGlobalContainerSize, layout, renderNull, draggedWindowTabs} =
         useContext(LaymanContext);
-    // Local state for component lists
-    const [toolbars, setToolbars] = useState<ToolBarProps[]>([]);
-    const [windows, setWindows] = useState<WindowProps[]>([]);
-    const [separators, setSeparators] = useState<SeparatorProps[]>([]);
     // Reference for parent div
     const laymanRef = useRef<HTMLDivElement | null>(null);
 
@@ -60,8 +56,8 @@ export function Layman() {
         };
     }, [globalContainerSize, laymanRef, setGlobalContainerSize]);
 
-    // Calculate component lists whenever layout changes
-    useMemo(() => {
+    // Derive component lists from layout
+    const {toolbars, windows, separators} = useMemo(() => {
         const calculatedToolbars: ToolBarProps[] = [];
         const calculatedWindows: WindowProps[] = [];
         const calculatedSeparators: SeparatorProps[] = [];
@@ -274,10 +270,11 @@ export function Layman() {
             []
         );
 
-        // Set the calculated arrays
-        setToolbars(calculatedToolbars);
-        setWindows(calculatedWindows);
-        setSeparators(calculatedSeparators);
+        return {
+            toolbars: calculatedToolbars,
+            windows: calculatedWindows,
+            separators: calculatedSeparators,
+        };
     }, [globalContainerSize, draggedWindowTabs, layout]);
 
     return (

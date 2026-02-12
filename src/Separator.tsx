@@ -1,6 +1,6 @@
 import {MouseEventHandler, useContext, useEffect, useState} from "react";
 import {LaymanContext} from "./LaymanContext";
-import _ from "lodash";
+import {dequal} from "dequal";
 import {SeparatorProps} from "./types";
 
 export function Separator({nodePosition, position, index, direction, path, separators}: SeparatorProps) {
@@ -16,14 +16,14 @@ export function Separator({nodePosition, position, index, direction, path, separ
     const previousSeparator = separators!.find((sep) => {
         const prevPath = [...path];
         prevPath[prevPath.length - 1] -= 1;
-        return _.isEqual(sep.path, prevPath);
+        return dequal(sep.path, prevPath);
     })?.position;
 
     // Find the next separator
     const nextSeparator = separators!.find((sep) => {
         const prevPath = [...path];
         prevPath[prevPath.length - 1] += 1;
-        return _.isEqual(sep.path, prevPath);
+        return dequal(sep.path, prevPath);
     })?.position;
 
     // Toggle isDragging when holding separator
@@ -62,7 +62,7 @@ export function Separator({nodePosition, position, index, direction, path, separ
                       (((nextSeparator ? nextSeparator.left : nodePosition.left + nodePosition.width) -
                           (previousSeparator ? previousSeparator.left : nodePosition.left)) /
                           nodePosition.width)) - minSplitPercentage;
-            return _.clamp(splitPercentage, minSplitPercentage, maxSplitPercentage);
+            return Math.min(Math.max(splitPercentage, minSplitPercentage), maxSplitPercentage);
         };
 
         const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {

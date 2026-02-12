@@ -13,15 +13,35 @@ import {
     RemoveWindowAction,
     SelectTabAction,
 } from "./types";
-import _ from "lodash";
+import {klona} from "klona";
 
 /**
- * Helper function to get nested layout object at a path
+ * Helper function to get nested layout object at a path.
+ * Path [0, 1] means layout.children[0].children[1]
  */
-const getLayoutAtPath = (layout: LaymanLayout, path: LaymanPath) => {
-    if (path.length === 0) return layout;
-    const lodashPath = "children." + path.join(".children.");
-    return _.get(layout, lodashPath);
+const getLayoutAtPath = (layout: LaymanLayout, path: LaymanPath): LaymanLayout => {
+    let current = layout;
+    for (let i = 0; i < path.length; i++) {
+        if (!current || !("children" in current)) return undefined;
+        current = current.children[path[i]];
+    }
+    return current;
+};
+
+/**
+ * Helper function to set a value at a nested path, returning a new cloned layout.
+ * Path [0, 1] sets layout.children[0].children[1] = value
+ */
+const setAtPath = (layout: LaymanLayout, path: LaymanPath, value: LaymanLayout): LaymanLayout => {
+    const cloned = klona(layout);
+    let current = cloned;
+    for (let i = 0; i < path.length - 1; i++) {
+        if (!current || !("children" in current)) return cloned;
+        current = current.children[path[i]];
+    }
+    if (!current || !("children" in current)) return cloned;
+    current.children[path[path.length - 1]] = value;
+    return cloned;
 };
 
 const addTab = (layout: LaymanLayout, action: AddTabAction) => {
@@ -31,7 +51,6 @@ const addTab = (layout: LaymanLayout, action: AddTabAction) => {
             tabs: [action.tab],
         };
     }
-    const lodashPath = "children." + action.path.join(".children.");
     const window: LaymanLayout = getLayoutAtPath(layout, action.path);
     if (!window || !("tabs" in window)) return layout;
 
@@ -43,13 +62,12 @@ const addTab = (layout: LaymanLayout, action: AddTabAction) => {
     if (action.path.length == 0) {
         return updatedLayout;
     } else {
-        return _.set(_.cloneDeep(layout), lodashPath, updatedLayout);
+        return setAtPath(layout, action.path, updatedLayout);
     }
 };
 
 const removeTab = (layout: LaymanLayout, action: RemoveTabAction) => {
     if (!layout) return layout;
-    const lodashPath = "children." + action.path.join(".children.");
     const window: LaymanLayout = getLayoutAtPath(layout, action.path);
     if (!window || !("tabs" in window)) return layout;
 
@@ -59,7 +77,7 @@ const removeTab = (layout: LaymanLayout, action: RemoveTabAction) => {
     // Adjust selectedIndex only if the removed tab is
     // to the left of the selected one
     let updatedSelectedIndex = window.selectedIndex;
-    const removedTabIndex = _.indexOf(window.tabs, action.tab);
+    const removedTabIndex = window.tabs.indexOf(action.tab);
 
     if (window.selectedIndex && removedTabIndex <= window.selectedIndex) {
         updatedSelectedIndex = Math.max(0, window.selectedIndex - 1);
@@ -82,13 +100,12 @@ const removeTab = (layout: LaymanLayout, action: RemoveTabAction) => {
     if (action.path.length == 0) {
         return updatedLayout;
     } else {
-        return _.set(_.cloneDeep(layout), lodashPath, updatedLayout);
+        return setAtPath(layout, action.path, updatedLayout);
     }
 };
 
 const selectTab = (layout: LaymanLayout, action: SelectTabAction) => {
     if (!layout) return layout;
-    const lodashPath = "children." + action.path.join(".children.");
     const window: LaymanLayout = getLayoutAtPath(layout, action.path);
     if (!window || !("tabs" in window)) return layout;
 
@@ -101,7 +118,7 @@ const selectTab = (layout: LaymanLayout, action: SelectTabAction) => {
     if (action.path.length == 0) {
         return updatedLayout;
     } else {
-        return _.set(_.cloneDeep(layout), lodashPath, updatedLayout);
+        return setAtPath(layout, action.path, updatedLayout);
     }
 };
 
@@ -142,8 +159,7 @@ const moveTab = (layout: LaymanLayout, action: MoveTabAction) => {
 
 const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
     if (!layout) return layout;
-    const parentPath = _.dropRight(action.path);
-    const parentLodashPath = "children." + parentPath.join(".children.");
+    const parentPath = action.path.slice(0, -1);
     const parent: LaymanLayout = getLayoutAtPath(layout, parentPath);
     if (!parent || !("children" in parent)) {
         // Parent is the base layout, delete the layout
@@ -151,12 +167,13 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
     }
 
     // Get split percentage of dragged window to calculate new split percentages
-    const removedWindow = parent.children.find((_child, index) => index === _.last(action.path));
+    const lastIndex = action.path[action.path.length - 1];
+    const removedWindow = parent.children.find((_child, index) => index === lastIndex);
     const removedWindowSplitPercentage = removedWindow ? removedWindow.viewPercent : undefined;
 
     // Remove the child layout since it has no tabs
     const newChildren = parent.children
-        .filter((_value, index) => index !== _.last(action.path))
+        .filter((_value, index) => index !== lastIndex)
         .map((child) => {
             if (!child) return;
 
@@ -179,7 +196,7 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
         if (parentPath.length == 0) {
             return updatedLayout;
         }
-        return _.set(_.cloneDeep(layout), parentLodashPath, updatedLayout);
+        return setAtPath(layout, parentPath, updatedLayout);
     }
     const onlyChild = newChildren[0]!;
     // If the only child is a window, replace parent with it
@@ -187,18 +204,17 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
         if (parentPath.length == 0) {
             return {...onlyChild, viewPercent: parent.viewPercent};
         }
-        return _.set(_.cloneDeep(layout), parentLodashPath, {...onlyChild, viewPercent: parent.viewPercent});
+        return setAtPath(layout, parentPath, {...onlyChild, viewPercent: parent.viewPercent});
     }
 
     // Check if "grandparent" is same direction as new parent
-    const grandparentPath = _.dropRight(parentPath);
-    const grandparentLodashPath = "children." + grandparentPath.join(".children.");
+    const grandparentPath = parentPath.slice(0, -1);
     const grandparent: LaymanLayout = getLayoutAtPath(layout, grandparentPath);
     if (!grandparent || !("children" in grandparent)) return layout;
 
     // Merge with grandparent if they are the same direction
     if (grandparent.direction === onlyChild.direction) {
-        const parentIndex = _.last(parentPath)!;
+        const parentIndex = parentPath[parentPath.length - 1];
         const updatedLayout: LaymanLayout = {
             ...grandparent,
             children: [
@@ -237,18 +253,18 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
         if (grandparentPath.length == 0) {
             return updatedLayout;
         }
-        return _.set(_.cloneDeep(layout), grandparentLodashPath, updatedLayout);
+        return setAtPath(layout, grandparentPath, updatedLayout);
     } else {
         if (grandparentPath.length == 0) {
             return newChildren[0];
         }
-        return _.set(_.cloneDeep(layout), parentLodashPath, newChildren[0]);
+        return setAtPath(layout, parentPath, newChildren[0]);
     }
 };
 const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
     if (!layout) return layout;
-    const parentLodashPath = "children." + _.dropRight(action.path).join(".children.");
-    const parent: LaymanLayout = getLayoutAtPath(layout, _.dropRight(action.path));
+    const parentPath = action.path.slice(0, -1);
+    const parent: LaymanLayout = getLayoutAtPath(layout, parentPath);
     if (!parent) return layout;
 
     if (!("children" in parent)) {
@@ -265,8 +281,9 @@ const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
     }
 
     const isColumnPlacement = action.placement === "top" || action.placement === "bottom";
+    const lastPathIndex = action.path[action.path.length - 1];
     const index =
-        action.placement === "bottom" || action.placement === "right" ? _.last(action.path)! + 1 : _.last(action.path)!;
+        action.placement === "bottom" || action.placement === "right" ? lastPathIndex + 1 : lastPathIndex;
 
     if ((isColumnPlacement && parent.direction === "column") || (!isColumnPlacement && parent.direction === "row")) {
         // View percent of new window based on length of parent
@@ -297,7 +314,7 @@ const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
         if (action.path.length == 1) {
             return updatedLayout;
         } else {
-            return _.set(_.cloneDeep(layout), parentLodashPath, updatedLayout);
+            return setAtPath(layout, parentPath, updatedLayout);
         }
     } else {
         const window: LaymanLayout = getLayoutAtPath(layout, action.path);
@@ -309,7 +326,7 @@ const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
         const updatedLayout = {
             ...parent,
             children: parent.children.map((child, index) =>
-                index === _.last(action.path)
+                index === lastPathIndex
                     ? {
                           direction: isColumnPlacement ? "column" : "row",
                           children: newChildren,
@@ -321,7 +338,7 @@ const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
         if (action.path.length == 1) {
             return updatedLayout;
         } else {
-            return _.set(_.cloneDeep(layout), parentLodashPath, updatedLayout);
+            return setAtPath(layout, parentPath, updatedLayout);
         }
     }
 };
@@ -332,24 +349,28 @@ const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
 const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
     const originalPath = action.path;
     const newPath = action.newPath;
-    const commonLength = _.takeWhile(originalPath, (val, idx) => val === newPath[idx]).length;
+    let commonLength = 0;
+    for (let i = 0; i < originalPath.length; i++) {
+        if (originalPath[i] !== newPath[i]) break;
+        commonLength++;
+    }
 
     if (commonLength != originalPath.length - 1) {
         if (commonLength != originalPath.length - 2) {
             return newPath;
         }
 
-        const adjustedPath = _.clone(newPath);
+        const adjustedPath = [...newPath];
 
-        const parentPath = _.dropRight(action.path);
+        const parentPath = action.path.slice(0, -1);
         const parent = getLayoutAtPath(layout, parentPath);
         if (!parent || !("children" in parent)) return adjustedPath;
 
-        const grandparentPath = _.dropRight(parentPath);
+        const grandparentPath = parentPath.slice(0, -1);
         const grandparent = getLayoutAtPath(layout, grandparentPath);
         if (!grandparent || !("children" in grandparent)) return adjustedPath;
 
-        const onlyChild = parent.children[_.last(originalPath) == 1 ? 0 : 1];
+        const onlyChild = parent.children[originalPath[originalPath.length - 1] == 1 ? 0 : 1];
 
         if (!onlyChild || !("children" in onlyChild)) {
             return adjustedPath;
@@ -362,7 +383,7 @@ const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
             return adjustedPath;
         }
     }
-    const adjustedPath = _.clone(newPath);
+    const adjustedPath = [...newPath];
 
     // If the original path is further into the parent split,
     // decrement the index in newPath
@@ -371,7 +392,7 @@ const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
     }
 
     // originalPath's parent had two children, only child moved up
-    const parentPath = _.dropRight(originalPath);
+    const parentPath = originalPath.slice(0, -1);
     const parent = getLayoutAtPath(layout, parentPath);
     if (!parent || !("children" in parent)) {
         return adjustedPath;
@@ -382,13 +403,13 @@ const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
         adjustedPath.splice(commonLength, 1);
 
         // Grandparent and only child share direction, moves up again
-        const grandparentPath = _.dropRight(parentPath);
+        const grandparentPath = parentPath.slice(0, -1);
         const grandparent = getLayoutAtPath(layout, grandparentPath);
         if (!grandparent || !("children" in grandparent)) {
             return adjustedPath;
         }
 
-        const onlyChild = parent.children[_.last(originalPath) == 1 ? 0 : 1];
+        const onlyChild = parent.children[originalPath[originalPath.length - 1] == 1 ? 0 : 1];
 
         if (!onlyChild || !("children" in onlyChild)) {
             return adjustedPath;
@@ -418,7 +439,7 @@ const moveWindow = (layout: LaymanLayout, action: MoveWindowAction) => {
 
     if (action.placement === "center") {
         // Add all tabs
-        let updatedLayout = _.cloneDeep(removeWindowLayout);
+        let updatedLayout = klona(removeWindowLayout);
 
         action.window.tabs.forEach((tab) => {
             updatedLayout = addTab(updatedLayout, {
@@ -444,8 +465,6 @@ const moveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction) => {
     const node: LaymanLayout = getLayoutAtPath(layout, action.path);
     if (!node || !("children" in node)) return layout;
 
-    const lodashPath = "children." + action.path.join(".children.");
-
     // Get existing view percents
     const numChildren = node.children.length;
     const leftViewPercent = node.children[action.index]!.viewPercent ?? 100 / numChildren;
@@ -456,17 +475,17 @@ const moveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction) => {
     const newRightViewPercent = leftViewPercent + rightViewPercent - newLeftViewPercent;
 
     // Create a deep clone of the node to avoid mutating the original object directly
-    const updatedNode = _.cloneDeep(node);
+    const updatedNode = klona(node);
 
     // Update the viewPercent for the left and right children
     updatedNode.children[action.index]!.viewPercent = newLeftViewPercent;
     updatedNode.children[action.index + 1]!.viewPercent = newRightViewPercent;
 
-    // Use Lodash set to apply the updated node at the correct path in the layout
+    // Apply the updated node at the correct path in the layout
     if (action.path.length == 0) {
         return updatedNode;
     } else {
-        return _.set(_.cloneDeep(layout), lodashPath, updatedNode);
+        return setAtPath(layout, action.path, updatedNode);
     }
 };
 

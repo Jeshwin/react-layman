@@ -1,6 +1,6 @@
 {
     "name": "react-layman",
-    "version": "0.2.11",
+    "version": "0.2.12",
     "type": "module",
     "description": "A dynamic tiling layout manager made for React",
     "main": "lib/react-layman.js",
@@ -41,18 +41,14 @@
     },
     "homepage": "https://github.com/Jeshwin/react-layman#readme",
     "dependencies": {
-        "lodash": "^4.17.21",
-        "react": "^18",
+        "dequal": "^2.0.3",
+        "klona": "^2.0.6",
         "react-dnd": "^16.0.1",
-        "react-dnd-html5-backend": "^16.0.1",
-        "react-dom": "^18",
-        "uuid": "^10.0.0"
+        "react-dnd-html5-backend": "^16.0.1"
     },
     "devDependencies": {
-        "@types/lodash": "^4.17.0",
         "@types/react": "^18.2.66",
         "@types/react-dom": "^18.2.22",
-        "@types/uuid": "^10.0.0",
         "@typescript-eslint/eslint-plugin": "^7.2.0",
         "@typescript-eslint/parser": "^7.2.0",
         "@vitejs/plugin-react-swc": "^3.5.0",
@@ -62,7 +58,6 @@
         "eslint-plugin-react-refresh": "^0.4.6",
         "react": "^18",
         "react-dom": "^18",
-        "ts-loader": "^9.5.1",
         "typescript": "^5.7.2",
         "vite": "^7.1.7",
         "vite-plugin-dts": "^4.3.0",
