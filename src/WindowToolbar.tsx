@@ -341,13 +341,19 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                 {/** Button to add a new blank menu */}
                 <div style={{display: "flex"}}>
                     <ToolbarButton
-                        onClick={() =>
+                        onClick={() => {
+                            const newTab = new TabData("blank");
                             layoutDispatch({
                                 type: "addTab",
                                 path: path,
-                                tab: new TabData("blank"),
-                            })
-                        }
+                                tab: newTab,
+                            });
+                            layoutDispatch({
+                                type: "selectTab",
+                                path: path,
+                                tab: newTab,
+                            });
+                        }}
                     >
                         <AddIcon />
                     </ToolbarButton>
