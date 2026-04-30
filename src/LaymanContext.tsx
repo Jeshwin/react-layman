@@ -1,4 +1,4 @@
-import {createContext, useReducer, useState} from "react";
+import {createContext, useEffect, useReducer, useRef, useState} from "react";
 import {LaymanContextType, LaymanLayout, PaneRenderer, TabRenderer, Position, ToolbarButtonType} from "./types";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
@@ -6,6 +6,7 @@ import React from "react";
 import {DropHighlight} from "./DropHighlight";
 import {TabData} from "./TabData";
 import {LaymanReducer} from "./LaymanReducer";
+import {loadLayout, saveLayout} from "./persistence";
 
 // Define default values for the context
 const defaultContextValue: LaymanContextType = {
@@ -34,6 +35,7 @@ type LaymanProviderProps = {
     renderNull: JSX.Element;
     mutable?: boolean;
     toolbarButtons?: Array<ToolbarButtonType>;
+    storageKey?: string;
     children: React.ReactNode;
 };
 
@@ -46,9 +48,33 @@ export const LaymanProvider = ({
     renderNull,
     mutable = false,
     toolbarButtons = [],
+    storageKey,
     children,
 }: LaymanProviderProps) => {
-    const [layout, layoutDispatch] = useReducer(LaymanReducer, initialLayout);
+    const [layout, layoutDispatch] = useReducer(
+        LaymanReducer,
+        initialLayout,
+        (init) => loadLayout(storageKey, init),
+    );
+
+    const saveTimeoutRef = useRef<number | undefined>(undefined);
+    useEffect(() => {
+        if (!storageKey) return;
+        if (saveTimeoutRef.current !== undefined) {
+            window.clearTimeout(saveTimeoutRef.current);
+        }
+        saveTimeoutRef.current = window.setTimeout(() => {
+            saveLayout(storageKey, layout);
+            saveTimeoutRef.current = undefined;
+        }, 150);
+        return () => {
+            if (saveTimeoutRef.current !== undefined) {
+                window.clearTimeout(saveTimeoutRef.current);
+                saveTimeoutRef.current = undefined;
+                saveLayout(storageKey, layout);
+            }
+        };
+    }, [layout, storageKey]);
     // Size of Layman container
     const [globalContainerSize, setGlobalContainerSize] = useState<Position>({
         top: 0,

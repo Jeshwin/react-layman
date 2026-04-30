@@ -177,3 +177,26 @@ export interface LaymanContextType {
 }
 
 export {TabData};
+
+// Serialization Types
+
+export type LaymanSerializedTab = {
+    name: string;
+    options: Record<string, unknown>;
+};
+
+export type LaymanSerializedWindow = {
+    kind: "window";
+    tabs: LaymanSerializedTab[];
+    selectedIndex: number;
+    viewPercent?: number;
+};
+
+export type LaymanSerializedNode = {
+    kind: "node";
+    direction: "row" | "column";
+    viewPercent?: number;
+    children: LaymanSerializedLayout[];
+};
+
+export type LaymanSerializedLayout = LaymanSerializedWindow | LaymanSerializedNode | null;

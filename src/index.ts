@@ -17,6 +17,10 @@ export type {
     ToolBarProps,
     WindowProps,
     SeparatorProps,
+    LaymanSerializedLayout,
+    LaymanSerializedNode,
+    LaymanSerializedTab,
+    LaymanSerializedWindow,
 } from "./types";
 
 export {TabData} from "./TabData";
@@ -33,3 +37,4 @@ export {Window} from "./Window";
 export {ToolbarButton} from "./ToolbarButton";
 export {WindowToolbar} from "./WindowToolbar";
 export {Tab} from "./WindowTabs";
+export {serializeLayout, deserializeLayout, deserializeTab} from "./Serializer";
