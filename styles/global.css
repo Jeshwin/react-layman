@@ -88,9 +88,19 @@
     overflow: hidden;
     .tab-container {
         display: flex;
-        overflow: scroll hidden;
+        /* Only scroll horizontally when the tabs actually overflow, and keep the
+           scrollbar hidden so it never paints over the tabs (issue #12). */
+        overflow: auto hidden;
         scroll-behavior: smooth;
+        /* Firefox */
+        scrollbar-width: none;
+        /* Legacy Edge / IE */
+        -ms-overflow-style: none;
         border-top-left-radius: var(--border-radius, 8px);
+        /* Chromium / WebKit */
+        &::-webkit-scrollbar {
+            display: none;
+        }
         .tab {
             display: flex;
             align-items: center;
