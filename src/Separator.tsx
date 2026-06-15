@@ -1,6 +1,6 @@
 import {MouseEventHandler, useContext, useEffect, useState} from "react";
 import {LaymanContext} from "./LaymanContext";
-import {dequal} from "dequal";
+import {deepEqual} from "./utils";
 import {SeparatorProps} from "./types";
 
 export function Separator({nodePosition, position, index, direction, path, separators}: SeparatorProps) {
@@ -16,14 +16,14 @@ export function Separator({nodePosition, position, index, direction, path, separ
     const previousSeparator = separators!.find((sep) => {
         const prevPath = [...path];
         prevPath[prevPath.length - 1] -= 1;
-        return dequal(sep.path, prevPath);
+        return deepEqual(sep.path, prevPath);
     })?.position;
 
     // Find the next separator
     const nextSeparator = separators!.find((sep) => {
         const prevPath = [...path];
         prevPath[prevPath.length - 1] += 1;
-        return dequal(sep.path, prevPath);
+        return deepEqual(sep.path, prevPath);
     })?.position;
 
     // Toggle isDragging when holding separator

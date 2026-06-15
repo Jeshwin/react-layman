@@ -24,8 +24,6 @@ export default defineConfig({
                 "react-dom",
                 "react-dnd",
                 "react-dnd-html5-backend",
-                "klona",
-                "dequal",
                 "react/jsx-runtime",
                 "react/jsx-dev-runtime",
             ],
