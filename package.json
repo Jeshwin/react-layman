@@ -18,7 +18,8 @@
         "build:lib": "tsc --project tsconfig-build.json && vite build --config vite.lib.config.ts",
         "clean": "rm -rf lib/",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-        "test": "exit 0",
+        "test": "vitest run",
+        "test:watch": "vitest",
         "prepublishOnly": "npm run build:lib"
     },
     "repository": {
@@ -57,12 +58,14 @@
         "eslint-plugin-react": "^7.34.1",
         "eslint-plugin-react-hooks": "^4.6.0",
         "eslint-plugin-react-refresh": "^0.4.6",
+        "jsdom": "^29.1.1",
         "react": "^18",
         "react-dom": "^18",
         "typescript": "^5.7.2",
         "vite": "^7.1.7",
         "vite-plugin-dts": "^4.3.0",
-        "vite-plugin-lib-inject-css": "^2.1.1"
+        "vite-plugin-lib-inject-css": "^2.1.1",
+        "vitest": "^4.1.8"
     },
     "peerDependencies": {
         "react": "^18",
