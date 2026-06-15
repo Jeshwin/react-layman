@@ -154,6 +154,8 @@ export type ToolbarButtonType =
     | "splitBottom"
     | "maximize"
     | "minimize"
+    | "float"
+    | "unfloat"
     | "close"
     | "misc";
 
@@ -174,6 +176,22 @@ export interface LaymanContextType {
     mutable: boolean;
     toolbarButtons?: Array<ToolbarButtonType>;
     renderNull: JSX.Element;
+    // Path of the currently maximized window, or null if none. Ephemeral state.
+    maximizedPath: LaymanPath | null;
+    setMaximizedPath: React.Dispatch<React.SetStateAction<LaymanPath | null>>;
+    // Windows that have been floated out of the layout. Ephemeral state.
+    floatingWindows: FloatingWindowData[];
+    setFloatingWindows: React.Dispatch<React.SetStateAction<FloatingWindowData[]>>;
+}
+
+// A window that has been "floated" out of the layout tree and is rendered as a
+// free-floating, draggable/resizable overlay.
+export interface FloatingWindowData {
+    id: string;
+    tabs: TabData[];
+    selectedIndex: number;
+    position: Position;
+    zIndex: number;
 }
 
 export {TabData};

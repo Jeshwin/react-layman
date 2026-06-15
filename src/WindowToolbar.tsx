@@ -12,12 +12,14 @@ import {
     BottomSplitIcon,
     CloseIcon,
     EllipsisIcon,
+    FloatIcon,
     LeftSplitIcon,
     MaximizeIcon,
     MinimizeIcon,
     RightSplitIcon,
     TopSplitIcon,
 } from "./Icons";
+import {deepEqual} from "./utils";
 
 function usePrevious(value: number) {
     const ref = useRef(0);
@@ -27,17 +29,27 @@ function usePrevious(value: number) {
     return ref.current;
 }
 
-export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProps) {
+export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}: ToolBarProps) {
     const {
         layoutDispatch,
+        globalContainerSize,
         globalDragging,
         setGlobalDragging,
         setWindowDragStartPosition,
         setDraggedWindowTabs,
         mutable,
         toolbarButtons,
+        maximizedPath,
+        setMaximizedPath,
+        setFloatingWindows,
     } = useContext(LaymanContext);
     const tabContainerRef = useRef<HTMLDivElement>(null);
+
+    // A maximized window overrides its layout position to fill the whole container.
+    const isMaximized = maximizedPath !== null && deepEqual(maximizedPath, path);
+    const position = isMaximized
+        ? {top: 0, left: 0, width: globalContainerSize.width, height: globalContainerSize.height}
+        : rawPosition;
     // Track the previous length of the tabs array
     const previousTabCount = usePrevious(tabs.length);
     const windowToolbarHeight =
@@ -159,6 +171,31 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
         height: position.height - windowToolbarHeight - separatorThickness / 2,
     };
 
+    // Remove this window from the layout and add it to the floating layer,
+    // keeping its current calculated size/position.
+    const floatWindow = () => {
+        if (isMaximized) setMaximizedPath(null);
+        setFloatingWindows((prev) => {
+            const topZ = prev.reduce((max, fw) => Math.max(max, fw.zIndex), 29);
+            return [
+                ...prev,
+                {
+                    id: crypto.randomUUID(),
+                    tabs,
+                    selectedIndex,
+                    position: {
+                        top: rawPosition.top,
+                        left: rawPosition.left,
+                        width: rawPosition.width,
+                        height: rawPosition.height,
+                    },
+                    zIndex: topZ + 1,
+                },
+            ];
+        });
+        layoutDispatch({type: "removeWindow", path});
+    };
+
     const createToolbarButton = (child: ToolbarButtonType, index: number) => {
         switch (child) {
             case "splitTop":
@@ -237,16 +274,22 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                         <RightSplitIcon />
                     </ToolbarButton>
                 );
+            // "maximize" is a toggle: it becomes "minimize" while this window is
+            // maximized. "minimize" behaves identically so either type works.
             case "maximize":
-                return (
-                    <ToolbarButton key={index} onClick={() => {}}>
-                        <MaximizeIcon />
-                    </ToolbarButton>
-                );
             case "minimize":
                 return (
-                    <ToolbarButton key={index} onClick={() => {}}>
-                        <MinimizeIcon />
+                    <ToolbarButton
+                        key={index}
+                        onClick={() => setMaximizedPath(isMaximized ? null : path)}
+                    >
+                        {isMaximized ? <MinimizeIcon /> : <MaximizeIcon />}
+                    </ToolbarButton>
+                );
+            case "float":
+                return (
+                    <ToolbarButton key={index} onClick={() => floatWindow()}>
+                        <FloatIcon />
                     </ToolbarButton>
                 );
             case "close":
@@ -280,7 +323,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                     ...windowToolbarPosition,
                     transform: `scale(${scale})`,
                     transformOrigin: `${dragStartPosition.x}px bottom`,
-                    zIndex: isDragging || singleTabIsDragging ? 13 : 7,
+                    zIndex: isMaximized ? 21 : isDragging || singleTabIsDragging ? 13 : 7,
                     pointerEvents: isDragging || singleTabIsDragging ? "none" : "auto",
                     userSelect: isDragging || singleTabIsDragging ? "none" : "auto",
                 }}
@@ -373,7 +416,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                 <div className="toolbar-button-container">
                     {mutable
                         ? toolbarButtons?.map((child, index) => createToolbarButton(child, index))
-                        : (["maximize", "minimize", "misc"] as Array<ToolbarButtonType>).map((child, index) =>
+                        : (["float", "maximize", "misc"] as Array<ToolbarButtonType>).map((child, index) =>
                               createToolbarButton(child, index)
                           )}
                 </div>

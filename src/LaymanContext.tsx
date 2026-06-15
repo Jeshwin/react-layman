@@ -1,5 +1,14 @@
 import {createContext, useEffect, useReducer, useRef, useState} from "react";
-import {LaymanContextType, LaymanLayout, PaneRenderer, TabRenderer, Position, ToolbarButtonType} from "./types";
+import {
+    LaymanContextType,
+    LaymanLayout,
+    LaymanPath,
+    PaneRenderer,
+    TabRenderer,
+    Position,
+    ToolbarButtonType,
+    FloatingWindowData,
+} from "./types";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
 import React from "react";
@@ -26,6 +35,10 @@ const defaultContextValue: LaymanContextType = {
     mutable: false,
     toolbarButtons: [],
     renderNull: <></>,
+    maximizedPath: null,
+    setMaximizedPath: () => {},
+    floatingWindows: [],
+    setFloatingWindows: () => {},
 };
 
 type LaymanProviderProps = {
@@ -94,6 +107,9 @@ export const LaymanProvider = ({
         y: 0,
     });
     const [globalDragging, setGlobalDragging] = useState<boolean>(false);
+    // Ephemeral window controls: which window is maximized, and floated windows.
+    const [maximizedPath, setMaximizedPath] = useState<LaymanPath | null>(null);
+    const [floatingWindows, setFloatingWindows] = useState<FloatingWindowData[]>([]);
 
     return (
         <LaymanContext.Provider
@@ -114,6 +130,10 @@ export const LaymanProvider = ({
                 mutable,
                 toolbarButtons,
                 renderNull,
+                maximizedPath,
+                setMaximizedPath,
+                floatingWindows,
+                setFloatingWindows,
             }}
         >
             <DndProvider backend={HTML5Backend}>

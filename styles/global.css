@@ -186,6 +186,118 @@
     }
 }
 
+.layman-floating-window {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--border-radius, 8px);
+    background-color: var(--window-bg-color, #44403c);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    .layman-floating-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        height: var(--toolbar-height, 32px);
+        background-color: var(--toolbar-bg-color, #1c1917);
+        color: var(--tab-text-color, #ffffff);
+        cursor: grab;
+        &:active {
+            cursor: grabbing;
+        }
+        .layman-floating-tabs {
+            display: flex;
+            overflow: auto hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            &::-webkit-scrollbar {
+                display: none;
+            }
+            .layman-floating-tab {
+                padding: calc(var(--toolbar-height, 32px) / 4);
+                background-color: var(--toolbar-bg-color, #1c1917);
+                color: var(--tab-text-color, #ffffff);
+                font-size: var(--tab-font-size, 14px);
+                white-space: nowrap;
+                &:hover {
+                    background-color: var(--toolbar-hover-bg-color, #292524);
+                }
+                &.selected {
+                    background-color: var(--window-bg-color, #44403c);
+                }
+            }
+        }
+        .layman-floating-controls {
+            display: flex;
+        }
+    }
+    .layman-floating-content {
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+    }
+    /* Resize handles */
+    .layman-floating-resize {
+        position: absolute;
+        --handle: 8px;
+        &.n {
+            top: 0;
+            left: var(--handle);
+            right: var(--handle);
+            height: var(--handle);
+            cursor: ns-resize;
+        }
+        &.s {
+            bottom: 0;
+            left: var(--handle);
+            right: var(--handle);
+            height: var(--handle);
+            cursor: ns-resize;
+        }
+        &.e {
+            top: var(--handle);
+            bottom: var(--handle);
+            right: 0;
+            width: var(--handle);
+            cursor: ew-resize;
+        }
+        &.w {
+            top: var(--handle);
+            bottom: var(--handle);
+            left: 0;
+            width: var(--handle);
+            cursor: ew-resize;
+        }
+        &.ne {
+            top: 0;
+            right: 0;
+            width: var(--handle);
+            height: var(--handle);
+            cursor: nesw-resize;
+        }
+        &.nw {
+            top: 0;
+            left: 0;
+            width: var(--handle);
+            height: var(--handle);
+            cursor: nwse-resize;
+        }
+        &.se {
+            bottom: 0;
+            right: 0;
+            width: var(--handle);
+            height: var(--handle);
+            cursor: nwse-resize;
+        }
+        &.sw {
+            bottom: 0;
+            left: 0;
+            width: var(--handle);
+            height: var(--handle);
+            cursor: nesw-resize;
+        }
+    }
+}
+
 .layman-window-drop-target {
     position: absolute;
     &.top {

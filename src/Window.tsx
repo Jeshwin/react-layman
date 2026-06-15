@@ -4,15 +4,23 @@ import {useDragLayer} from "react-dnd";
 import {createPortal} from "react-dom";
 import {WindowContext} from "./WindowContext";
 import {Position, WindowProps} from "./types";
+import {deepEqual} from "./utils";
 
-export function Window({position, path, tab, isSelected}: WindowProps) {
-    const {globalContainerSize, renderPane, draggedWindowTabs, windowDragStartPosition} = useContext(LaymanContext);
+export function Window({position: rawPosition, path, tab, isSelected}: WindowProps) {
+    const {globalContainerSize, renderPane, draggedWindowTabs, windowDragStartPosition, maximizedPath} =
+        useContext(LaymanContext);
 
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
 
     const windowToolbarHeight =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
+
+    // A maximized window overrides its layout position to fill the whole container.
+    const isMaximized = maximizedPath !== null && deepEqual(maximizedPath, path);
+    const position: Position = isMaximized
+        ? {top: 0, left: 0, width: globalContainerSize.width, height: globalContainerSize.height}
+        : rawPosition;
     const isDragging = draggedWindowTabs.includes(tab);
     const scale = isDragging ? 0.7 : 1;
 
@@ -81,7 +89,7 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
                 ...adjustedWindowPosition,
                 transform: `scale(${scale})`,
                 transformOrigin: `${windowDragStartPosition.x}px top`,
-                zIndex: isDragging ? 12 : 5,
+                zIndex: isMaximized ? 20 : isDragging ? 12 : 5,
                 pointerEvents: isDragging ? "none" : "auto",
             }}
             className={`layman-window ${isSelected ? "selected" : "unselected"}`}

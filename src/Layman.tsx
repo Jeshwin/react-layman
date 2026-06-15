@@ -4,6 +4,7 @@ import {Window} from "./Window";
 import {LaymanLayout, LaymanPath, ToolBarProps, WindowProps, Position, SeparatorProps} from "./types";
 import {LaymanContext} from "./LaymanContext";
 import {Separator} from "./Separator";
+import {FloatingLayer} from "./FloatingWindow";
 
 /**
  * Entry point for Layman Window Manager
@@ -298,6 +299,8 @@ export function Layman() {
             ) : (
                 renderNull
             )}
+            {/* Floating windows render above the layout, even when it is empty. */}
+            <FloatingLayer />
         </div>
     );
 }

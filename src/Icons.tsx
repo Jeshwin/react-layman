@@ -158,3 +158,44 @@ export function MinimizeIcon() {
         </svg>
     );
 }
+
+export function FloatIcon() {
+    // A small window lifting off a larger one (float out of layout).
+    return (
+        <svg
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            height="1em"
+            width="1em"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <rect x="3" y="3" width="13" height="13" rx="2"></rect>
+            <path d="M9 21h10a2 2 0 0 0 2-2V9"></path>
+        </svg>
+    );
+}
+
+export function UnfloatIcon() {
+    // A window dropping back into a container (return to layout).
+    return (
+        <svg
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            height="1em"
+            width="1em"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <polyline points="8 12 12 16 16 12"></polyline>
+            <line x1="12" x2="12" y1="8" y2="16"></line>
+        </svg>
+    );
+}
