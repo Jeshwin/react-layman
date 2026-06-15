@@ -50,6 +50,12 @@ export default function App() {
     // State to edit mutability of layout
     const [mutable, setMutable] = useState(true);
 
+    const storageKey = "layman-demo-layout";
+    const handleReset = () => {
+        window.localStorage.removeItem(storageKey);
+        window.location.reload();
+    };
+
     return (
         <LaymanProvider
             initialLayout={initialLayout}
@@ -58,6 +64,7 @@ export default function App() {
             renderNull={<NullLayout />}
             mutable={mutable}
             toolbarButtons={["splitBottom", "splitRight", "misc"]}
+            storageKey={storageKey}
         >
             <div
                 style={{
@@ -95,6 +102,22 @@ export default function App() {
                     <div style={{display: "flex", justifyItems: "center", alignItems: "center"}}>
                         <AutoArrangeButton />
                         <MutableToggle mutable={mutable} setMutable={setMutable} />
+                        <button
+                            style={{
+                                height: 32,
+                                borderRadius: 8,
+                                backgroundColor: "#7f849c",
+                                padding: 8,
+                                margin: 4,
+                                display: "grid",
+                                placeContent: "center",
+                                textAlign: "center",
+                                color: "white",
+                            }}
+                            onClick={handleReset}
+                        >
+                            Reset Layout
+                        </button>
                     </div>
                     <div
                         style={{

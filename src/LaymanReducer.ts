@@ -13,7 +13,7 @@ import {
     RemoveWindowAction,
     SelectTabAction,
 } from "./types";
-import {klona} from "klona";
+import {deepClone} from "./utils";
 
 /**
  * Helper function to get nested layout object at a path.
@@ -33,7 +33,7 @@ const getLayoutAtPath = (layout: LaymanLayout, path: LaymanPath): LaymanLayout =
  * Path [0, 1] sets layout.children[0].children[1] = value
  */
 const setAtPath = (layout: LaymanLayout, path: LaymanPath, value: LaymanLayout): LaymanLayout => {
-    const cloned = klona(layout);
+    const cloned = deepClone(layout);
     let current = cloned;
     for (let i = 0; i < path.length - 1; i++) {
         if (!current || !("children" in current)) return cloned;
@@ -439,7 +439,7 @@ const moveWindow = (layout: LaymanLayout, action: MoveWindowAction) => {
 
     if (action.placement === "center") {
         // Add all tabs
-        let updatedLayout = klona(removeWindowLayout);
+        let updatedLayout = deepClone(removeWindowLayout);
 
         action.window.tabs.forEach((tab) => {
             updatedLayout = addTab(updatedLayout, {
@@ -475,7 +475,7 @@ const moveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction) => {
     const newRightViewPercent = leftViewPercent + rightViewPercent - newLeftViewPercent;
 
     // Create a deep clone of the node to avoid mutating the original object directly
-    const updatedNode = klona(node);
+    const updatedNode = deepClone(node);
 
     // Update the viewPercent for the left and right children
     updatedNode.children[action.index]!.viewPercent = newLeftViewPercent;
