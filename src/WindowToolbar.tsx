@@ -5,6 +5,7 @@ import {ToolbarButton} from "./ToolbarButton";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {WindowDropTarget} from "./WindowDropTarget";
+import {WindowMenu} from "./WindowMenu";
 import {useDrag, useDragLayer} from "react-dnd";
 import {Position, ToolbarButtonType, ToolBarProps} from "./types";
 import {
@@ -36,14 +37,22 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
         setDraggedWindowTabs,
         mutable,
         toolbarButtons,
+        maxDepth,
+        showTabs,
     } = useContext(LaymanContext);
     const tabContainerRef = useRef<HTMLDivElement>(null);
+    // Whether to collapse the controls into an ellipsis popover instead of a full toolbar.
+    const [menuOpen, setMenuOpen] = useState(false);
     // Track the previous length of the tabs array
     const previousTabCount = usePrevious(tabs.length);
-    const windowToolbarHeight =
+    const cssToolbarHeight =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
+    // When the tab row is hidden the toolbar occupies no vertical space.
+    const windowToolbarHeight = showTabs ? cssToolbarHeight : 0;
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
+    // Splits create a deeper window (path.length + 1); block them at the limit.
+    const atMaxDepth = path.length >= maxDepth;
     // 1x1 transparent image for empty drag preview
     const emptyImage = useMemo(() => {
         const img = new Image();
@@ -160,6 +169,10 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
     };
 
     const createToolbarButton = (child: ToolbarButtonType, index: number) => {
+        // Hide split buttons once the maximum nesting depth is reached.
+        if (atMaxDepth && (child === "splitTop" || child === "splitBottom" || child === "splitLeft" || child === "splitRight")) {
+            return null;
+        }
         switch (child) {
             case "splitTop":
                 return (
@@ -272,20 +285,28 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
         }
     };
 
+    // The window control buttons (shared by the toolbar and the ellipsis menu).
+    const controlButtons = mutable
+        ? toolbarButtons?.map((child, index) => createToolbarButton(child, index))
+        : (["maximize", "minimize", "misc"] as Array<ToolbarButtonType>).map((child, index) =>
+              createToolbarButton(child, index)
+          );
+
     return (
         <>
-            <div
-                id={path.join(":")}
-                style={{
-                    ...windowToolbarPosition,
-                    transform: `scale(${scale})`,
-                    transformOrigin: `${dragStartPosition.x}px bottom`,
-                    zIndex: isDragging || singleTabIsDragging ? 13 : 7,
-                    pointerEvents: isDragging || singleTabIsDragging ? "none" : "auto",
-                    userSelect: isDragging || singleTabIsDragging ? "none" : "auto",
-                }}
-                className="layman-toolbar"
-            >
+            {showTabs ? (
+                <div
+                    id={path.join(":")}
+                    style={{
+                        ...windowToolbarPosition,
+                        transform: `scale(${scale})`,
+                        transformOrigin: `${dragStartPosition.x}px bottom`,
+                        zIndex: isDragging || singleTabIsDragging ? 13 : 7,
+                        pointerEvents: isDragging || singleTabIsDragging ? "none" : "auto",
+                        userSelect: isDragging || singleTabIsDragging ? "none" : "auto",
+                    }}
+                    className="layman-toolbar"
+                >
                 {/** Render each tab */}
                 <div ref={tabContainerRef} className="tab-container">
                     {tabs.length > 1 ? (
@@ -370,14 +391,19 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                     }}
                 ></div>
                 {/** Buttons to add convert window to a row or column */}
-                <div className="toolbar-button-container">
-                    {mutable
-                        ? toolbarButtons?.map((child, index) => createToolbarButton(child, index))
-                        : (["maximize", "minimize", "misc"] as Array<ToolbarButtonType>).map((child, index) =>
-                              createToolbarButton(child, index)
-                          )}
+                <div className="toolbar-button-container">{controlButtons}</div>
                 </div>
-            </div>
+            ) : (
+                <WindowMenu
+                    path={path}
+                    position={position}
+                    tabs={tabs}
+                    selectedIndex={selectedIndex}
+                    open={menuOpen}
+                    setOpen={setMenuOpen}
+                    controlButtons={controlButtons}
+                />
+            )}
             {!(isDragging || singleTabIsDragging) && (
                 <div
                     style={{

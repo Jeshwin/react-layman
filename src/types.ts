@@ -174,6 +174,13 @@ export interface LaymanContextType {
     mutable: boolean;
     toolbarButtons?: Array<ToolbarButtonType>;
     renderNull: JSX.Element;
+    // Maximum split-nesting depth. depth = path.length (a single root window is
+    // depth 0; each split adds 1). Splits that would exceed this are blocked.
+    // Defaults to Infinity (no limit).
+    maxDepth: number;
+    // Whether the window tab row (toolbar) is shown. When false, windows are
+    // chromeless and controls move into a compact ellipsis popover.
+    showTabs: boolean;
 }
 
 export {TabData};

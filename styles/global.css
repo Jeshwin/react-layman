@@ -186,6 +186,71 @@
     }
 }
 
+.layman-window-menu {
+    .layman-window-menu-trigger {
+        border-radius: var(--border-radius, 8px);
+        background-color: var(--toolbar-bg-color, #1c1917);
+        color: var(--tab-text-color, #ffffff);
+        opacity: 0.85;
+        &:hover {
+            opacity: 1;
+            background-color: var(--toolbar-button-hover-bg-color, #292524);
+        }
+    }
+    .layman-window-menu-popover {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: calc(var(--separator-thickness, 8px) / 2);
+        display: flex;
+        flex-direction: column;
+        min-width: max-content;
+        background-color: var(--toolbar-bg-color, #1c1917);
+        color: var(--tab-text-color, #ffffff);
+        border-radius: var(--border-radius, 8px);
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        .layman-window-menu-tabs {
+            display: flex;
+            flex-direction: column;
+            .layman-window-menu-tab {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                &.selected {
+                    background-color: var(--window-bg-color, #44403c);
+                }
+                &:hover {
+                    background-color: var(--toolbar-hover-bg-color, #292524);
+                }
+                .tab-selector {
+                    flex: 1;
+                    text-align: left;
+                    padding: calc(var(--toolbar-height, 32px) / 4);
+                    background-color: transparent;
+                    color: var(--tab-text-color, #ffffff);
+                    font-size: var(--tab-font-size, 14px);
+                }
+                .close-tab {
+                    display: grid;
+                    place-content: center;
+                    width: calc(var(--toolbar-height, 32px) * 0.75);
+                    height: var(--toolbar-height, 32px);
+                    color: var(--tab-text-color, #ffffff);
+                    background-color: transparent;
+                    &:hover {
+                        background-color: var(--close-tab-color, #ef444488);
+                    }
+                }
+            }
+        }
+        .layman-window-menu-controls {
+            display: flex;
+            justify-content: flex-end;
+        }
+    }
+}
+
 .layman-window-drop-target {
     position: absolute;
     &.top {
