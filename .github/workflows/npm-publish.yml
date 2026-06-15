@@ -1,44 +1,59 @@
-name: Publish NPM Package
+name: Publish Package to npmjs
 
 # Triggers for the workflow
 on:
-  # Automatically run when a new release is created
+  # Publish when a GitHub release is published
   release:
-    types: [created]
-  # Allow manual triggering of the workflow
+    types: [published]
+  # Allow manual triggering of the workflow from the Actions tab
   workflow_dispatch:
 
 jobs:
-  publish:
-    # Runs on the latest Ubuntu runner
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required for npm Trusted Publishing (OIDC). No NPM_TOKEN secret is needed;
+      # npm mints a short-lived credential by verifying this workflow's identity
+      # against the trusted publisher configured on npmjs.com.
+      id-token: write
     steps:
       # Step 1: Checkout the repository code
-      # This brings the repository contents into the GitHub Actions runner
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      # Step 2: Set up Node.js environment
-      # Configures Node.js version 20 and sets up NPM registry
+      # Step 2: Set up Node.js and configure the npm registry
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
 
-      # Step 3: Install project dependencies
-      # Uses npm ci for clean, reproducible installations
+      # Step 3: Upgrade npm to a version that supports Trusted Publishing (OIDC).
+      # Node 22.x ships npm 10.x; Trusted Publishing requires npm >= 11.5.1.
+      - name: Upgrade npm for Trusted Publishing
+        run: npm install -g npm@latest
+
+      # Step 4: Install dependencies cleanly and reproducibly
       - name: Install dependencies
         run: npm ci
 
-      # Step 4: Build the TypeScript library
-      # Runs the build script to compile TypeScript to JavaScript
-      - name: Build TypeScript
+      # Step 5: Verification gate - all must pass before publishing
+      - name: Run unit tests
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build library
         run: npm run build:lib
 
-      # Step 5: Publish the package to NPM
-      # Uses the NPM_TOKEN secret for authentication
-      - name: Publish to NPM
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Step 6: Verify the version increased; auto-bump the patch digit if not
+      - name: Verify / auto-bump version
+        run: node scripts/auto-version-publish.mjs
+
+      # Step 7: Publish to npm via Trusted Publishing.
+      # Authentication is handled by OIDC (no NODE_AUTH_TOKEN). Provenance is
+      # generated and published automatically when using Trusted Publishing.
+      - name: Publish to npm
+        run: npm publish --provenance --access public
