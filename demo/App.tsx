@@ -162,8 +162,8 @@ export default function App() {
                         >
                             <h3 style={{marginTop: 0}}>Sidebar</h3>
                             <p>
-                                Toggle me to verify the layout recomputes window geometry as the
-                                available container width changes.
+                                Toggle me to verify the layout recomputes window geometry as the available container
+                                width changes.
                             </p>
                         </div>
                     )}
@@ -175,7 +175,7 @@ export default function App() {
                             display: "flex",
                         }}
                     >
-                        <ResizeTester />
+                        {/* <ResizeTester /> */}
                         <Layman />
                     </div>
                 </div>
