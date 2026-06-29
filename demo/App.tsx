@@ -50,6 +50,9 @@ export default function App() {
     // State to edit mutability of layout
     const [mutable, setMutable] = useState(true);
 
+    // Demo-only: toggle a sidebar to exercise the layout's resize handling.
+    const [showSidebar, setShowSidebar] = useState(false);
+
     const storageKey = "layman-demo-layout";
     const handleReset = () => {
         window.localStorage.removeItem(storageKey);
@@ -102,6 +105,14 @@ export default function App() {
                     <div style={{display: "flex", justifyItems: "center", alignItems: "center"}}>
                         <AutoArrangeButton />
                         <MutableToggle mutable={mutable} setMutable={setMutable} />
+                        <label style={{margin: 4}}>
+                            <input
+                                type="checkbox"
+                                checked={showSidebar}
+                                onChange={() => setShowSidebar(!showSidebar)}
+                            />
+                            <span>Sidebar?</span>
+                        </label>
                         <button
                             style={{
                                 height: 32,
@@ -137,9 +148,29 @@ export default function App() {
                     </div>
                 </div>
                 <div style={{position: "relative", height: "calc(100vh - 64px)", display: "flex"}}>
+                    {showSidebar && (
+                        <div
+                            style={{
+                                width: 240,
+                                flexShrink: 0,
+                                height: "calc(100vh - 64px)",
+                                backgroundColor: "#1e2030",
+                                borderRight: "1px solid #494d64",
+                                padding: 16,
+                                boxSizing: "border-box",
+                            }}
+                        >
+                            <h3 style={{marginTop: 0}}>Sidebar</h3>
+                            <p>
+                                Toggle me to verify the layout recomputes window geometry as the
+                                available container width changes.
+                            </p>
+                        </div>
+                    )}
                     <div
                         style={{
-                            width: "100vw",
+                            flex: 1,
+                            minWidth: 0,
                             height: "calc(100vh - 64px)",
                             display: "flex",
                         }}
