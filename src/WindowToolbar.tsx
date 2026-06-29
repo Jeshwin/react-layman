@@ -279,10 +279,7 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
             case "maximize":
             case "minimize":
                 return (
-                    <ToolbarButton
-                        key={index}
-                        onClick={() => setMaximizedPath(isMaximized ? null : path)}
-                    >
+                    <ToolbarButton key={index} onClick={() => setMaximizedPath(isMaximized ? null : path)}>
                         {isMaximized ? <MinimizeIcon /> : <MaximizeIcon />}
                     </ToolbarButton>
                 );

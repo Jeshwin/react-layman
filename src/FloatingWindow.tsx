@@ -19,16 +19,12 @@ interface Interaction {
     startPos: Position;
 }
 
-interface FloatingWindowProps {
-    data: FloatingWindowData;
-}
-
 /**
  * A window that has been floated out of the layout. It can be dragged by its
  * top bar, resized from any edge/corner, raised to the front on focus, and
  * un-floated back into the layout window under its center.
  */
-export function FloatingWindow({data}: FloatingWindowProps) {
+export function FloatingWindow({data}: {data: FloatingWindowData}) {
     const {layout, globalContainerSize, layoutDispatch, renderPane, renderTab, setFloatingWindows} =
         useContext(LaymanContext);
 
@@ -76,7 +72,11 @@ export function FloatingWindow({data}: FloatingWindowProps) {
         data.tabs.forEach((tab) => {
             layoutDispatch({type: "addTab", path: targetPath as number[], tab});
         });
-        layoutDispatch({type: "selectTab", path: targetPath as number[], tab: data.tabs[selectedIndex] ?? data.tabs[0]});
+        layoutDispatch({
+            type: "selectTab",
+            path: targetPath as number[],
+            tab: data.tabs[selectedIndex] ?? data.tabs[0],
+        });
         removeSelf();
     };
 
@@ -169,18 +169,10 @@ export function FloatingWindow({data}: FloatingWindowProps) {
                     ))}
                 </div>
                 <div className="layman-floating-controls">
-                    <ToolbarButton
-                        onMouseDown={(event) => event.stopPropagation()}
-                        onClick={unfloat}
-                        title="Unfloat"
-                    >
+                    <ToolbarButton onMouseDown={(event) => event.stopPropagation()} onClick={unfloat} title="Unfloat">
                         <UnfloatIcon />
                     </ToolbarButton>
-                    <ToolbarButton
-                        onMouseDown={(event) => event.stopPropagation()}
-                        onClick={removeSelf}
-                        title="Close"
-                    >
+                    <ToolbarButton onMouseDown={(event) => event.stopPropagation()} onClick={removeSelf} title="Close">
                         <CloseIcon />
                     </ToolbarButton>
                 </div>
@@ -189,9 +181,7 @@ export function FloatingWindow({data}: FloatingWindowProps) {
             {/* Pane content */}
             <div className="layman-floating-content">
                 {selectedTab && (
-                    <WindowContext.Provider
-                        value={{position: pos, path: [], tab: selectedTab, isSelected: true}}
-                    >
+                    <WindowContext.Provider value={{position: pos, path: [], tab: selectedTab, isSelected: true}}>
                         {renderPane(selectedTab)}
                     </WindowContext.Provider>
                 )}

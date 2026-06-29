@@ -7,9 +7,9 @@ maximize/minimize and float/unfloat window controls.
 ## Branch structure
 
 - `issues/main` — this TODO + integration branch
-  - `issues/bugfix/scrollbars` — Issue #12 (tab bar scrollbar)
-  - `issues/feature/props` — Issue #14 (subset: maxDepth, showTabs)
-  - `issues/feature/maximize-and-float` — new window toolbar controls
+    - `issues/bugfix/scrollbars` — Issue #12 (tab bar scrollbar)
+    - `issues/feature/props` — Issue #14 (subset: maxDepth, showTabs)
+    - `issues/feature/maximize-and-float` — new window toolbar controls
 
 ---
 
@@ -21,9 +21,9 @@ the tabs.
 
 - [ ] Change `.tab-container` overflow from `scroll hidden` to `auto hidden` (`styles/global.css`)
 - [ ] Hide the scrollbar visually across browsers:
-  - [ ] `scrollbar-width: none` (Firefox)
-  - [ ] `::-webkit-scrollbar { display: none }` (Chromium / WebKit)
-  - [ ] `-ms-overflow-style: none` (legacy Edge)
+    - [ ] `scrollbar-width: none` (Firefox)
+    - [ ] `::-webkit-scrollbar { display: none }` (Chromium / WebKit)
+    - [ ] `-ms-overflow-style: none` (legacy Edge)
 - [ ] Verify the auto-scroll-to-new-tab effect still works (`WindowToolbar.tsx:54-67`)
 - [ ] (Optional) Map vertical wheel → horizontal scroll for mouse-only users
 
@@ -98,6 +98,10 @@ context state + setters: `maximizedPath`, `floatingWindows`, focus order.
 
 - [x] A single logical control slot that swaps maximize↔minimize and float↔unfloat
       based on state (rather than separate static entries)
+
+### Progress Prompt
+
+For this branch's float feature, we need to make a few changes. First, the floating window and toolbar should not be so different from the regular window panes and toolbars, currently they have their own style and layout, and don't look like regular window that float! Instead, re-use as much as possible from the existing Window, WindowTabs, and WindowToolbar components in the floating windows. Secondly, when floating windows are dragged, there should be 5 types of "anchor" zones that should appear. The first 4 anchor zones are on each of the 4 sides of the complete Layman instance, top bottom left and right. These zones will be 100x200 pixels, of course rotated so top and bottom zones are 200 wide, while left and right zones are 100 wide and 200 high. The fifth anchor zone is one PER window in the layout! It is a single zone that appears on the window that the CURSOR is currently on top of! This zone will be in the middle of the window, and will be 200x200, or the dimensions of the window, whichever is smallest. For any of these zones, if the floating window being dragged is dropped on any of these zones, then the window should go back into the layout at the specified zone. So, if the floating window is dragged onto the top anchor zone, then it should be added to the vertical top of the layout, making a split only if necessary! If dragged onto the fifth per-window zone, the tabs from the floating window get added into that layout window's tabs. Finally, make sure that the tabs within a window aren't destroyed and re-created when they are floated! That is the current implementation, which is not the desired behavior! The tabs within the floating window should be the same tabs as in the window before it was floated, preserving their current state! Think carefully about how to implement the floating windows feature to make sure that this condition holds!
 
 ---
 
