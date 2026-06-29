@@ -63,7 +63,7 @@ export default function App() {
             renderTab={renderTab}
             renderNull={<NullLayout />}
             mutable={mutable}
-            toolbarButtons={["splitBottom", "splitRight", "misc"]}
+            toolbarButtons={["splitBottom", "splitRight", "maximize", "float", "misc"]}
             storageKey={storageKey}
         >
             <div
