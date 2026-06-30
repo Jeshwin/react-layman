@@ -19,13 +19,13 @@ The tab strip (`.tab-container`) uses `overflow: scroll hidden`, which forces a
 horizontal scrollbar to always render and, on some OS/browsers, paints it over
 the tabs.
 
-- [ ] Change `.tab-container` overflow from `scroll hidden` to `auto hidden` (`styles/global.css`)
-- [ ] Hide the scrollbar visually across browsers:
-  - [ ] `scrollbar-width: none` (Firefox)
-  - [ ] `::-webkit-scrollbar { display: none }` (Chromium / WebKit)
-  - [ ] `-ms-overflow-style: none` (legacy Edge)
-- [ ] Verify the auto-scroll-to-new-tab effect still works (`WindowToolbar.tsx:54-67`)
-- [ ] (Optional) Map vertical wheel → horizontal scroll for mouse-only users
+- [x] Change `.tab-container` overflow from `scroll hidden` to `auto hidden` (`styles/global.css`)
+- [x] Hide the scrollbar visually across browsers:
+  - [x] `scrollbar-width: none` (Firefox)
+  - [x] `::-webkit-scrollbar { display: none }` (Chromium / WebKit)
+  - [x] `-ms-overflow-style: none` (legacy Edge)
+- [x] Verify the auto-scroll-to-new-tab effect still works (`WindowToolbar.tsx:54-67`)
+- [x] (Optional) Map vertical wheel → horizontal scroll for mouse-only users
 
 ---
 
