@@ -3,8 +3,9 @@ import Pane from "./Pane";
 import TabSource from "./extra/TabSource";
 import NullLayout from "./extra/NullLayout";
 import AutoArrangeButton from "./extra/AutoArrangeButton";
-import ResizeTester from "./extra/ResizeTester";
-import MutableToggle from "./extra/MutableToggle";
+import Toggle from "./extra/Toggle";
+import Button from "./extra/Button";
+import NumberStepper from "./extra/NumberStepper";
 import {useState} from "react";
 
 export default function App() {
@@ -53,6 +54,12 @@ export default function App() {
     // Demo-only: toggle a sidebar to exercise the layout's resize handling.
     const [showSidebar, setShowSidebar] = useState(false);
 
+    // State to toggle between tab bar and compact window menu.
+    const [showTabs, setShowTabs] = useState(false);
+
+    // State to control the maximum split-nesting depth of the layout.
+    const [maxDepth, setMaxDepth] = useState(4);
+
     const storageKey = "layman-demo-layout";
     const handleReset = () => {
         window.localStorage.removeItem(storageKey);
@@ -68,6 +75,8 @@ export default function App() {
             mutable={mutable}
             toolbarButtons={["splitBottom", "splitRight", "misc"]}
             storageKey={storageKey}
+            showTabs={showTabs}
+            maxDepth={maxDepth}
         >
             <div
                 style={{
@@ -104,31 +113,15 @@ export default function App() {
                     </div>
                     <div style={{display: "flex", justifyItems: "center", alignItems: "center"}}>
                         <AutoArrangeButton />
-                        <MutableToggle mutable={mutable} setMutable={setMutable} />
-                        <label style={{margin: 4}}>
-                            <input
-                                type="checkbox"
-                                checked={showSidebar}
-                                onChange={() => setShowSidebar(!showSidebar)}
-                            />
-                            <span>Sidebar?</span>
-                        </label>
-                        <button
-                            style={{
-                                height: 32,
-                                borderRadius: 8,
-                                backgroundColor: "#7f849c",
-                                padding: 8,
-                                margin: 4,
-                                display: "grid",
-                                placeContent: "center",
-                                textAlign: "center",
-                                color: "white",
-                            }}
-                            onClick={handleReset}
-                        >
-                            Reset Layout
-                        </button>
+                        <Toggle checked={mutable} onCheck={() => setMutable(!mutable)} spanText="Mutable?" />
+                        <Toggle checked={showTabs} onCheck={() => setShowTabs(!showTabs)} spanText="Show Tabs?" />
+                        <Toggle
+                            checked={showSidebar}
+                            onCheck={() => setShowSidebar(!showSidebar)}
+                            spanText="Sidebar?"
+                        />
+                        <NumberStepper label="Max Depth" value={maxDepth} onChange={setMaxDepth} min={1} max={10} />
+                        <Button onClick={handleReset}>Reset Layout</Button>
                     </div>
                     <div
                         style={{
