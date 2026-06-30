@@ -74,6 +74,18 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
         }
     }, [tabs.length, previousTabCount]); // Run when the length of tabs changes
 
+    // Map vertical wheel scrolling to horizontal scrolling so mouse-only users
+    // can scroll through overflowing tabs (issue #12, optional).
+    const handleTabContainerWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+        const tabContainer = tabContainerRef.current;
+        if (!tabContainer) return;
+        // Only translate vertical wheel motion when the tabs actually overflow and
+        // the gesture is predominantly vertical (trackpads send deltaX directly).
+        if (tabContainer.scrollWidth <= tabContainer.clientWidth) return;
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        tabContainer.scrollLeft += event.deltaY;
+    };
+
     useEffect(() => {
         layoutDispatch({
             type: "selectTab",
