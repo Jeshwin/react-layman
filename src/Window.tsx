@@ -7,14 +7,17 @@ import {Position, WindowProps} from "./types";
 import {deepEqual} from "./utils";
 
 export function Window({position: rawPosition, path, tab, isSelected}: WindowProps) {
-    const {globalContainerSize, renderPane, draggedWindowTabs, windowDragStartPosition, maximizedPath} =
+    const {globalContainerSize, renderPane, draggedWindowTabs, windowDragStartPosition, maximizedPath, showTabs} =
         useContext(LaymanContext);
 
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
 
-    const windowToolbarHeight =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
+    // When the tab row is hidden the toolbar takes no vertical space, so the pane
+    // fills the entire window region.
+    const windowToolbarHeight = showTabs
+        ? parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64
+        : 0;
 
     // A maximized window overrides its layout position to fill the whole container.
     const isMaximized = maximizedPath !== null && deepEqual(maximizedPath, path);

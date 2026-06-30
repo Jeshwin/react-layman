@@ -19,13 +19,13 @@ The tab strip (`.tab-container`) uses `overflow: scroll hidden`, which forces a
 horizontal scrollbar to always render and, on some OS/browsers, paints it over
 the tabs.
 
-- [ ] Change `.tab-container` overflow from `scroll hidden` to `auto hidden` (`styles/global.css`)
-- [ ] Hide the scrollbar visually across browsers:
-    - [ ] `scrollbar-width: none` (Firefox)
-    - [ ] `::-webkit-scrollbar { display: none }` (Chromium / WebKit)
-    - [ ] `-ms-overflow-style: none` (legacy Edge)
-- [ ] Verify the auto-scroll-to-new-tab effect still works (`WindowToolbar.tsx:54-67`)
-- [ ] (Optional) Map vertical wheel → horizontal scroll for mouse-only users
+- [x] Change `.tab-container` overflow from `scroll hidden` to `auto hidden` (`styles/global.css`)
+- [x] Hide the scrollbar visually across browsers:
+  - [x] `scrollbar-width: none` (Firefox)
+  - [x] `::-webkit-scrollbar { display: none }` (Chromium / WebKit)
+  - [x] `-ms-overflow-style: none` (legacy Edge)
+- [x] Verify the auto-scroll-to-new-tab effect still works (`WindowToolbar.tsx:54-67`)
+- [x] (Optional) Map vertical wheel → horizontal scroll for mouse-only users
 
 ---
 
@@ -37,27 +37,27 @@ provider value, `defaultContextValue` (`LaymanContext.tsx`), and
 
 ### `maxDepth?: number`
 
-- [ ] Add prop + context plumbing
-- [ ] Depth convention: `depth = path.length` (a single root window = depth 0; each split +1)
-- [ ] Hide split buttons in `WindowToolbar` when `path.length >= maxDepth`
-- [ ] Disable edge drop placements in `WindowDropTarget` when `path.length >= maxDepth` (center always allowed)
+- [x] Add prop + context plumbing
+- [x] Depth convention: `depth = path.length` (a single root window = depth 0; each split +1)
+- [x] Hide split buttons in `WindowToolbar` when `path.length >= maxDepth`
+- [x] Disable edge drop placements in `WindowDropTarget` when `path.length >= maxDepth` (center always allowed)
 - [ ] (Optional) hard guard in the reducer
 
 ### `showTabs?: boolean` (default `true`)
 
-- [ ] Add prop + context plumbing
-- [ ] When `false`: set effective toolbar height to `0` so the pane fills the window
+- [x] Add prop + context plumbing
+- [x] When `false`: set effective toolbar height to `0` so the pane fills the window
       (`Window.tsx:63-68`, `WindowToolbar.tsx:148-160`, `Layman.tsx` offsets)
-- [ ] Render a compact square ellipsis button as an absolute overlay in the window's top-right corner
-- [ ] Clicking the ellipsis opens a popover hosting the window controls
-- [ ] Popover lists tabs for selection when `tabs.length > 1` (replaces the hidden strip)
-- [ ] Window dragging is disabled in this mode (drag handle lived in the toolbar)
+- [x] Render a compact square ellipsis button as an absolute overlay in the window's top-right corner
+- [x] Clicking the ellipsis opens a popover hosting the window controls
+- [x] Popover lists tabs for selection when `tabs.length > 1` (replaces the hidden strip)
+- [x] Window dragging is disabled in this mode (drag handle lived in the toolbar)
 - [ ] NOTE: the popover hosts the maximize/float buttons from the maximize-and-float
       branch — integrate at `issues/main`
 
 ### Demo-only
 
-- [ ] Add a show/hide sidebar toggle in `demo/App.tsx` (NOT in the library)
+- [x] Add a show/hide sidebar toggle in `demo/App.tsx` (NOT in the library)
 
 ### Out of scope
 

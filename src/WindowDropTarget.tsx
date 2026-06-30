@@ -11,7 +11,8 @@ interface WindowDropTargetProps {
 }
 
 export function WindowDropTarget({path, position, placement}: WindowDropTargetProps) {
-    const {globalContainerSize, layoutDispatch, setDropHighlightPosition} = useContext(LaymanContext);
+    const {globalContainerSize, layoutDispatch, setDropHighlightPosition, maxDepth, showTabs} =
+        useContext(LaymanContext);
     const newDropHighlightPosition = useRef<Position>({
         top: 0,
         left: 0,
@@ -19,8 +20,13 @@ export function WindowDropTarget({path, position, placement}: WindowDropTargetPr
         height: 0,
     });
 
-    const windowToolbarHeight =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
+    // Edge placements create a new split (depth + 1). Block them once the depth
+    // limit is reached; "center" only adds a tab and is always allowed.
+    const wouldExceedMaxDepth = placement !== "center" && path.length >= maxDepth;
+
+    const windowToolbarHeight = showTabs
+        ? parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64
+        : 0;
 
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
@@ -93,6 +99,9 @@ export function WindowDropTarget({path, position, placement}: WindowDropTargetPr
         },
         hover: () => setDropHighlightPosition(newDropHighlightPosition.current),
     }));
+
+    // Don't render a drop zone for edge placements past the depth limit.
+    if (wouldExceedMaxDepth) return null;
 
     return <div ref={drop} className={`layman-window-drop-target ${placement}`}></div>;
 }

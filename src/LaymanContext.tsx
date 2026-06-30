@@ -39,6 +39,8 @@ const defaultContextValue: LaymanContextType = {
     setMaximizedPath: () => {},
     floatingWindows: [],
     setFloatingWindows: () => {},
+    maxDepth: Infinity,
+    showTabs: true,
 };
 
 type LaymanProviderProps = {
@@ -49,6 +51,10 @@ type LaymanProviderProps = {
     mutable?: boolean;
     toolbarButtons?: Array<ToolbarButtonType>;
     storageKey?: string;
+    // Maximum split-nesting depth (depth = path.length). Default: no limit.
+    maxDepth?: number;
+    // Show/hide the window tab row. Default: true.
+    showTabs?: boolean;
     children: React.ReactNode;
 };
 
@@ -62,6 +68,8 @@ export const LaymanProvider = ({
     mutable = false,
     toolbarButtons = [],
     storageKey,
+    maxDepth = Infinity,
+    showTabs = true,
     children,
 }: LaymanProviderProps) => {
     const [layout, layoutDispatch] = useReducer(
@@ -134,6 +142,8 @@ export const LaymanProvider = ({
                 setMaximizedPath,
                 floatingWindows,
                 setFloatingWindows,
+                maxDepth,
+                showTabs,
             }}
         >
             <DndProvider backend={HTML5Backend}>

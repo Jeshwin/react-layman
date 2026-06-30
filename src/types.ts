@@ -182,6 +182,13 @@ export interface LaymanContextType {
     // Windows that have been floated out of the layout. Ephemeral state.
     floatingWindows: FloatingWindowData[];
     setFloatingWindows: React.Dispatch<React.SetStateAction<FloatingWindowData[]>>;
+    // Maximum split-nesting depth. depth = path.length (a single root window is
+    // depth 0; each split adds 1). Splits that would exceed this are blocked.
+    // Defaults to Infinity (no limit).
+    maxDepth: number;
+    // Whether the window tab row (toolbar) is shown. When false, windows are
+    // chromeless and controls move into a compact ellipsis popover.
+    showTabs: boolean;
 }
 
 // A window that has been "floated" out of the layout tree and is rendered as a
