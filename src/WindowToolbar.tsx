@@ -354,14 +354,14 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
                         ...windowToolbarPosition,
                         transform: `scale(${scale})`,
                         transformOrigin: `${dragStartPosition.x}px bottom`,
-                        zIndex: isDragging || singleTabIsDragging ? 13 : 7,
+                        zIndex: isMaximized ? 20 : isDragging || singleTabIsDragging ? 13 : 7,
                         pointerEvents: isDragging || singleTabIsDragging ? "none" : "auto",
                         userSelect: isDragging || singleTabIsDragging ? "none" : "auto",
                     }}
                     className="layman-toolbar"
                 >
                     {/** Render each tab */}
-                    <div ref={tabContainerRef} className="tab-container">
+                    <div ref={tabContainerRef} className="tab-container" onWheel={handleTabContainerWheel}>
                         {tabs.length > 1 ? (
                             tabs.map((tab: TabData, index: number) => {
                                 return (

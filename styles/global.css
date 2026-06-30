@@ -235,6 +235,20 @@
         }
         .layman-floating-controls {
             display: flex;
+
+            button.toolbar-button {
+                min-width: var(--toolbar-height, 32px);
+                height: var(--toolbar-height, 32px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--tab-text-color, #ffffff);
+                background-color: var(--toolbar-bg-color, #1c1917);
+                &:hover {
+                    cursor: pointer;
+                    background-color: var(--toolbar-button-hover-bg-color, #292524);
+                }
+            }
         }
     }
     .layman-floating-content {
