@@ -6,13 +6,17 @@ import {WindowContext} from "./WindowContext";
 import {Position, WindowProps} from "./types";
 
 export function Window({position, path, tab, isSelected}: WindowProps) {
-    const {globalContainerSize, renderPane, draggedWindowTabs, windowDragStartPosition} = useContext(LaymanContext);
+    const {globalContainerSize, renderPane, draggedWindowTabs, windowDragStartPosition, showTabs} =
+        useContext(LaymanContext);
 
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
 
-    const windowToolbarHeight =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
+    // When the tab row is hidden the toolbar takes no vertical space, so the pane
+    // fills the entire window region.
+    const windowToolbarHeight = showTabs
+        ? parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64
+        : 0;
     const isDragging = draggedWindowTabs.includes(tab);
     const scale = isDragging ? 0.7 : 1;
 
