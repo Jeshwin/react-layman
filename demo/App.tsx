@@ -6,7 +6,18 @@ import AutoArrangeButton from "./extra/AutoArrangeButton";
 import Toggle from "./extra/Toggle";
 import Button from "./extra/Button";
 import NumberStepper from "./extra/NumberStepper";
-import {useState} from "react";
+import FloatingPanel from "./extra/FloatingPanel";
+import {ReactNode, useState} from "react";
+
+/** Labeled row used to group related controls inside the floating panel. */
+function PanelSection({label, children}: {label: string; children: ReactNode}) {
+    return (
+        <div style={{display: "flex", flexDirection: "column", gap: 6}}>
+            <span style={{fontSize: 11, fontWeight: 600, textTransform: "uppercase", opacity: 0.6}}>{label}</span>
+            <div style={{display: "flex", alignItems: "center"}}>{children}</div>
+        </div>
+    );
+}
 
 export default function App() {
     const initialLayout: LaymanLayout = {
@@ -84,69 +95,45 @@ export default function App() {
                     backgroundColor: "#232634",
                 }}
             >
-                <div
-                    style={{
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: 64,
-                        display: "flex",
-                        justifyContent: "space-around",
-                        alignItems: "center",
-                    }}
-                >
-                    <div
-                        style={{
-                            border: "1px solid #8aadf4",
-                            borderRadius: 8,
-                            padding: 8,
-                            marginLeft: 8,
-                            marginRight: 8,
-                            display: "flex",
-                            alignItems: "center",
-                        }}
-                    >
+                <FloatingPanel title="Layman Controls">
+                    {/* Tab sources */}
+                    <PanelSection label="Add to Top Left">
                         <TabSource tabName={"A"} heuristic="topleft" />
                         <TabSource tabName={"B"} heuristic="topleft" />
                         <TabSource tabName={"C"} heuristic="topleft" />
-                        <div>← Add to Top Left</div>
-                    </div>
-                    <div style={{display: "flex", justifyItems: "center", alignItems: "center"}}>
-                        <AutoArrangeButton />
-                        <Toggle checked={mutable} onCheck={() => setMutable(!mutable)} spanText="Mutable?" />
-                        <Toggle checked={showTabs} onCheck={() => setShowTabs(!showTabs)} spanText="Show Tabs?" />
-                        <Toggle
-                            checked={showSidebar}
-                            onCheck={() => setShowSidebar(!showSidebar)}
-                            spanText="Sidebar?"
-                        />
-                        <NumberStepper label="Max Depth" value={maxDepth} onChange={setMaxDepth} min={1} max={10} />
-                        <Button onClick={handleReset}>Reset Layout</Button>
-                    </div>
-                    <div
-                        style={{
-                            border: "1px solid #ee99a0",
-                            borderRadius: 8,
-                            padding: 8,
-                            marginLeft: 8,
-                            marginRight: 8,
-                            display: "flex",
-                            alignItems: "center",
-                        }}
-                    >
-                        <div>Add to Top Right →</div>
+                    </PanelSection>
+                    <PanelSection label="Add to Top Right">
                         <TabSource tabName={"D"} heuristic="topright" />
                         <TabSource tabName={"E"} heuristic="topright" />
                         <TabSource tabName={"F"} heuristic="topright" />
+                    </PanelSection>
+
+                    {/* Toggles */}
+                    <Toggle checked={mutable} onCheck={() => setMutable(!mutable)} spanText="Mutable?" />
+                    <Toggle checked={showTabs} onCheck={() => setShowTabs(!showTabs)} spanText="Show Tabs?" />
+                    <Toggle
+                        checked={showSidebar}
+                        onCheck={() => setShowSidebar(!showSidebar)}
+                        spanText="Sidebar?"
+                    />
+
+                    {/* Numeric input */}
+                    <NumberStepper label="Max Depth" value={maxDepth} onChange={setMaxDepth} min={1} max={10} />
+
+                    {/* Actions */}
+                    <div style={{display: "flex", gap: 8, marginTop: 2}}>
+                        <AutoArrangeButton />
+                        <Button onClick={handleReset}>Reset Layout</Button>
                     </div>
-                </div>
-                <div style={{position: "relative", height: "calc(100vh - 64px)", display: "flex"}}>
+                </FloatingPanel>
+
+                <div style={{position: "relative", height: "100vh", display: "flex"}}>
                     {showSidebar && (
                         <div
                             style={{
                                 width: 240,
                                 flexShrink: 0,
-                                height: "calc(100vh - 64px)",
+                                height: "100vh",
                                 backgroundColor: "#1e2030",
                                 borderRight: "1px solid #494d64",
                                 padding: 16,
@@ -164,7 +151,7 @@ export default function App() {
                         style={{
                             flex: 1,
                             minWidth: 0,
-                            height: "calc(100vh - 64px)",
+                            height: "100vh",
                             display: "flex",
                         }}
                     >

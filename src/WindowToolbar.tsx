@@ -288,7 +288,11 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
     };
 
     // The window control buttons (shared by the toolbar and the ellipsis menu).
-    const controlButtons = toolbarButtons?.map((child, index) => createToolbarButton(child, index));
+    const controlButtons = toolbarButtons?.map((child, index) => createToolbarButton(child, index)) ?? [];
+    // Always append the "misc" button at the end, but only when the tab row is shown.
+    if (showTabs) {
+        controlButtons.push(createToolbarButton("misc", controlButtons.length));
+    }
 
     return (
         <>
