@@ -37,7 +37,7 @@ export function WindowMenu({path, position, tabs, selectedIndex, open, setOpen, 
             className="layman-window-menu"
             style={{
                 position: "absolute",
-                top: position.top + separatorThickness / 2,
+                top: position.top + separatorThickness,
                 left: position.left + position.width - buttonSize - separatorThickness,
                 zIndex: 8,
             }}
@@ -51,34 +51,32 @@ export function WindowMenu({path, position, tabs, selectedIndex, open, setOpen, 
             </ToolbarButton>
             {open && (
                 <div className="layman-window-menu-popover">
-                    {tabs.length > 1 && (
-                        <div className="layman-window-menu-tabs">
-                            {tabs.map((tab, index) => (
-                                <div
-                                    key={tab.id}
-                                    className={`layman-window-menu-tab ${index === selectedIndex ? "selected" : ""}`}
+                    <div className="layman-window-menu-tabs">
+                        {tabs.map((tab, index) => (
+                            <div
+                                key={tab.id}
+                                className={`layman-window-menu-tab ${index === selectedIndex ? "selected" : ""}`}
+                            >
+                                <button
+                                    className="tab-selector"
+                                    onMouseDown={() => {
+                                        layoutDispatch({type: "selectTab", path, tab});
+                                        setOpen(false);
+                                    }}
                                 >
+                                    {renderTab(tab)}
+                                </button>
+                                {mutable && (
                                     <button
-                                        className="tab-selector"
-                                        onMouseDown={() => {
-                                            layoutDispatch({type: "selectTab", path, tab});
-                                            setOpen(false);
-                                        }}
+                                        className="close-tab"
+                                        onClick={() => layoutDispatch({type: "removeTab", path, tab})}
                                     >
-                                        {renderTab(tab)}
+                                        <CloseIcon />
                                     </button>
-                                    {mutable && (
-                                        <button
-                                            className="close-tab"
-                                            onClick={() => layoutDispatch({type: "removeTab", path, tab})}
-                                        >
-                                            <CloseIcon />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                                )}
+                            </div>
+                        ))}
+                    </div>
                     <div className="layman-window-menu-controls">
                         <ToolbarButton
                             onClick={() => {

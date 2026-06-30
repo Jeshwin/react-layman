@@ -73,7 +73,7 @@ export default function App() {
             renderTab={renderTab}
             renderNull={<NullLayout />}
             mutable={mutable}
-            toolbarButtons={["splitBottom", "splitRight", "misc"]}
+            toolbarButtons={["splitBottom", "splitRight", "maximize"]}
             storageKey={storageKey}
             showTabs={showTabs}
             maxDepth={maxDepth}

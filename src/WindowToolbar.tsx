@@ -35,7 +35,6 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
         setGlobalDragging,
         setWindowDragStartPosition,
         setDraggedWindowTabs,
-        mutable,
         toolbarButtons,
         maxDepth,
         showTabs,
@@ -170,7 +169,10 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
 
     const createToolbarButton = (child: ToolbarButtonType, index: number) => {
         // Hide split buttons once the maximum nesting depth is reached.
-        if (atMaxDepth && (child === "splitTop" || child === "splitBottom" || child === "splitLeft" || child === "splitRight")) {
+        if (
+            atMaxDepth &&
+            (child === "splitTop" || child === "splitBottom" || child === "splitLeft" || child === "splitRight")
+        ) {
             return null;
         }
         switch (child) {
@@ -286,11 +288,7 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
     };
 
     // The window control buttons (shared by the toolbar and the ellipsis menu).
-    const controlButtons = mutable
-        ? toolbarButtons?.map((child, index) => createToolbarButton(child, index))
-        : (["maximize", "minimize", "misc"] as Array<ToolbarButtonType>).map((child, index) =>
-              createToolbarButton(child, index)
-          );
+    const controlButtons = toolbarButtons?.map((child, index) => createToolbarButton(child, index));
 
     return (
         <>
@@ -307,91 +305,91 @@ export function WindowToolbar({path, position, tabs, selectedIndex}: ToolBarProp
                     }}
                     className="layman-toolbar"
                 >
-                {/** Render each tab */}
-                <div ref={tabContainerRef} className="tab-container">
-                    {tabs.length > 1 ? (
-                        tabs.map((tab: TabData, index: number) => {
-                            return (
-                                <Tab
-                                    key={index}
-                                    path={path}
-                                    tab={tab}
-                                    isSelected={index == selectedIndex}
-                                    onDelete={() =>
-                                        layoutDispatch({
-                                            type: "removeTab",
-                                            path: path,
-                                            tab: tabs[index],
-                                        })
-                                    }
-                                    onMouseDown={() =>
-                                        layoutDispatch({
-                                            type: "selectTab",
-                                            path: path,
-                                            tab: tabs[index],
-                                        })
-                                    }
-                                />
-                            );
-                        })
-                    ) : (
-                        <SingleTab
-                            dragRef={singleTabDrag}
-                            tab={tabs[0]}
-                            onDelete={() =>
+                    {/** Render each tab */}
+                    <div ref={tabContainerRef} className="tab-container">
+                        {tabs.length > 1 ? (
+                            tabs.map((tab: TabData, index: number) => {
+                                return (
+                                    <Tab
+                                        key={index}
+                                        path={path}
+                                        tab={tab}
+                                        isSelected={index == selectedIndex}
+                                        onDelete={() =>
+                                            layoutDispatch({
+                                                type: "removeTab",
+                                                path: path,
+                                                tab: tabs[index],
+                                            })
+                                        }
+                                        onMouseDown={() =>
+                                            layoutDispatch({
+                                                type: "selectTab",
+                                                path: path,
+                                                tab: tabs[index],
+                                            })
+                                        }
+                                    />
+                                );
+                            })
+                        ) : (
+                            <SingleTab
+                                dragRef={singleTabDrag}
+                                tab={tabs[0]}
+                                onDelete={() =>
+                                    layoutDispatch({
+                                        type: "removeTab",
+                                        path: path,
+                                        tab: tabs[0],
+                                    })
+                                }
+                                onMouseDown={(event) => {
+                                    setDragStartPosition({
+                                        x: event.clientX,
+                                        y: event.clientY,
+                                    });
+                                    layoutDispatch({
+                                        type: "selectTab",
+                                        path: path,
+                                        tab: tabs[0],
+                                    });
+                                }}
+                            />
+                        )}
+                    </div>
+                    {/** Button to add a new blank menu */}
+                    <div style={{display: "flex"}}>
+                        <ToolbarButton
+                            onClick={() => {
+                                const newTab = new TabData("blank");
                                 layoutDispatch({
-                                    type: "removeTab",
+                                    type: "addTab",
                                     path: path,
-                                    tab: tabs[0],
-                                })
-                            }
-                            onMouseDown={(event) => {
-                                setDragStartPosition({
-                                    x: event.clientX,
-                                    y: event.clientY,
+                                    tab: newTab,
                                 });
                                 layoutDispatch({
                                     type: "selectTab",
                                     path: path,
-                                    tab: tabs[0],
+                                    tab: newTab,
                                 });
                             }}
-                        />
-                    )}
-                </div>
-                {/** Button to add a new blank menu */}
-                <div style={{display: "flex"}}>
-                    <ToolbarButton
-                        onClick={() => {
-                            const newTab = new TabData("blank");
-                            layoutDispatch({
-                                type: "addTab",
-                                path: path,
-                                tab: newTab,
-                            });
-                            layoutDispatch({
-                                type: "selectTab",
-                                path: path,
-                                tab: newTab,
+                        >
+                            <AddIcon />
+                        </ToolbarButton>
+                    </div>
+                    {/** Draggable area to move window */}
+                    <div
+                        ref={drag}
+                        className="drag-area"
+                        onMouseDown={(event) => {
+                            setDragStartPosition({
+                                x: event.clientX,
+                                y: event.clientY,
                             });
                         }}
-                    >
-                        <AddIcon />
-                    </ToolbarButton>
-                </div>
-                {/** Draggable area to move window */}
-                <div
-                    ref={drag}
-                    className="drag-area"
-                    onMouseDown={(event) => {
-                        setDragStartPosition({
-                            x: event.clientX,
-                            y: event.clientY,
-                        });
-                    }}
-                ></div>
-                {/** Buttons to add convert window to a row or column */}
-                <div className="toolbar-button-container">{controlButtons}</div>
+                    ></div>
+                    {/** Buttons to add convert window to a row or column */}
+                    <div className="toolbar-button-container">{controlButtons}</div>
                 </div>
             ) : (
                 <WindowMenu

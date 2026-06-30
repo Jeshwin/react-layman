@@ -40,7 +40,7 @@ export const Tab = ({tab, path, isSelected, onDelete, onMouseDown}: TabProps) =>
                 width: isDragging ? 0 : "auto",
             }}
         >
-            {isSelected && <div className="indicator"></div>}
+            {/* {isSelected && <div className="indicator"></div>} */}
             <button className="tab-selector" onMouseDown={onMouseDown}>
                 {renderTab(tab)}
             </button>
@@ -65,7 +65,6 @@ export const SingleTab = ({dragRef, tab, onDelete, onMouseDown}: SingleTabProps)
 
     return (
         <div ref={dragRef} className={`tab selected`}>
-            <div className="indicator"></div>
             <button className="tab-selector" onMouseDown={onMouseDown}>
                 {renderTab(tab)}
             </button>
