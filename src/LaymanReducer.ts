@@ -2,18 +2,24 @@ import {
     AddTabAction,
     AddTabActionWithHeuristic,
     AddWindowAction,
+    BringFloatingWindowToFrontAction,
     Children,
+    FloatingWindowData,
     LaymanLayout,
     LaymanLayoutAction,
     LaymanPath,
+    LaymanState,
+    LaymanWindow,
     MoveSeparatorAction,
     MoveTabAction,
     MoveWindowAction,
     RemoveTabAction,
     RemoveWindowAction,
     SelectTabAction,
+    SetFloatingWindowPositionAction,
 } from "./types";
-import {deepClone} from "./utils";
+import {TabData} from "./TabData";
+import {deepClone, isFloatingAddress} from "./utils";
 
 /**
  * Helper function to get nested layout object at a path.
@@ -44,134 +50,53 @@ const setAtPath = (layout: LaymanLayout, path: LaymanPath, value: LaymanLayout):
     return cloned;
 };
 
-const addTab = (layout: LaymanLayout, action: AddTabAction) => {
+// ---------------------------------------------------------------------------
+// Tree helpers: pure functions operating on `LaymanLayout` addressed by a
+// `LaymanPath`. These never touch floating windows.
+// ---------------------------------------------------------------------------
+
+const treeAddTab = (layout: LaymanLayout, path: LaymanPath, tab: TabData): LaymanLayout => {
     if (!layout) {
         // Add a tab to a null path
         return {
-            tabs: [action.tab],
+            tabs: [tab],
         };
     }
-    const window: LaymanLayout = getLayoutAtPath(layout, action.path);
+    const window: LaymanLayout = getLayoutAtPath(layout, path);
     if (!window || !("tabs" in window)) return layout;
 
     const updatedLayout = {
         ...window,
-        tabs: [...window.tabs, action.tab],
+        tabs: [...window.tabs, tab],
     };
 
-    if (action.path.length == 0) {
+    if (path.length == 0) {
         return updatedLayout;
     } else {
-        return setAtPath(layout, action.path, updatedLayout);
+        return setAtPath(layout, path, updatedLayout);
     }
 };
 
-const removeTab = (layout: LaymanLayout, action: RemoveTabAction) => {
+const treeRemoveWindow = (layout: LaymanLayout, path: LaymanPath): LaymanLayout => {
     if (!layout) return layout;
-    const window: LaymanLayout = getLayoutAtPath(layout, action.path);
-    if (!window || !("tabs" in window)) return layout;
-
-    // Create a new array of tabs without the removed tab
-    const updatedTabs = window.tabs.filter((tab) => tab.id !== action.tab.id);
-
-    // Adjust selectedIndex only if the removed tab is
-    // to the left of the selected one
-    let updatedSelectedIndex = window.selectedIndex;
-    const removedTabIndex = window.tabs.indexOf(action.tab);
-
-    if (window.selectedIndex && removedTabIndex <= window.selectedIndex) {
-        updatedSelectedIndex = Math.max(0, window.selectedIndex - 1);
-    }
-
-    // If no more tabs exist, remove the window itself
-    if (updatedTabs.length === 0) {
-        return LaymanReducer(layout, {
-            type: "removeWindow",
-            path: action.path,
-        });
-    }
-
-    const updatedLayout = {
-        ...window,
-        tabs: updatedTabs,
-        selectedIndex: updatedSelectedIndex,
-    };
-
-    if (action.path.length == 0) {
-        return updatedLayout;
-    } else {
-        return setAtPath(layout, action.path, updatedLayout);
-    }
-};
-
-const selectTab = (layout: LaymanLayout, action: SelectTabAction) => {
-    if (!layout) return layout;
-    const window: LaymanLayout = getLayoutAtPath(layout, action.path);
-    if (!window || !("tabs" in window)) return layout;
-
-    // Update selectedIndex in the window
-    const updatedLayout = {
-        ...window,
-        selectedIndex: window.tabs.findIndex((tab) => tab.id === action.tab.id),
-    };
-
-    if (action.path.length == 0) {
-        return updatedLayout;
-    } else {
-        return setAtPath(layout, action.path, updatedLayout);
-    }
-};
-
-const moveTab = (layout: LaymanLayout, action: MoveTabAction) => {
-    if (!layout) return layout;
-    const window: LaymanLayout = getLayoutAtPath(layout, action.newPath);
-    if (!window || !("tabs" in window)) return layout;
-
-    // Remove tab from original path if it came from within the layout
-    // If it was added externally, action.path must be [-1], so we skip
-    let removeTabLayout = layout;
-    if (!(action.path.length === 1 && action.path[0] === -1)) {
-        removeTabLayout = LaymanReducer(layout, {
-            type: "removeTab",
-            path: action.path,
-            tab: action.tab,
-        })!;
-    }
-
-    if (action.placement === "center") {
-        return addTab(removeTabLayout, {
-            type: "addTab",
-            path: action.newPath,
-            tab: action.tab,
-        });
-    } else {
-        return addWindow(removeTabLayout, {
-            type: "addWindow",
-            path: action.newPath,
-            window: {
-                tabs: [action.tab],
-                selectedIndex: 0,
-            },
-            placement: action.placement,
-        });
-    }
-};
-
-const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
-    if (!layout) return layout;
-    const parentPath = action.path.slice(0, -1);
+    const parentPath = path.slice(0, -1);
     const parent: LaymanLayout = getLayoutAtPath(layout, parentPath);
     if (!parent || !("children" in parent)) {
         // Parent is the base layout, delete the layout
         return undefined;
     }
 
-    // Get split percentage of dragged window to calculate new split percentages
-    const lastIndex = action.path[action.path.length - 1];
+    // Get the removed window's split percentage so its remaining siblings can
+    // be rescaled to fill the space it leaves behind.
+    const lastIndex = path[path.length - 1];
     const removedWindow = parent.children.find((_child, index) => index === lastIndex);
     const removedWindowSplitPercentage = removedWindow ? removedWindow.viewPercent : undefined;
 
-    // Remove the child layout since it has no tabs
+    // Remove the child layout since it has no tabs, and rescale the remaining
+    // children's percentages to fill the 100% left by the removed sibling. If
+    // its split percentage is known, divide by the remaining share (100 minus
+    // that percentage); otherwise assume equal sharing and divide by the new,
+    // smaller child count instead.
     const newChildren = parent.children
         .filter((_value, index) => index !== lastIndex)
         .map((child) => {
@@ -261,81 +186,164 @@ const removeWindow = (layout: LaymanLayout, action: RemoveWindowAction) => {
         return setAtPath(layout, parentPath, newChildren[0]);
     }
 };
-const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
+
+const treeRemoveTab = (layout: LaymanLayout, path: LaymanPath, tab: TabData): LaymanLayout => {
     if (!layout) return layout;
-    const parentPath = action.path.slice(0, -1);
+    const window: LaymanLayout = getLayoutAtPath(layout, path);
+    if (!window || !("tabs" in window)) return layout;
+
+    // Create a new array of tabs without the removed tab
+    const updatedTabs = window.tabs.filter((t) => t.id !== tab.id);
+
+    // Adjust selectedIndex only if the removed tab is
+    // to the left of the selected one
+    let updatedSelectedIndex = window.selectedIndex;
+    const removedTabIndex = window.tabs.indexOf(tab);
+
+    // `window.selectedIndex &&` intentionally skips this branch when selectedIndex
+    // is 0: if the removed tab was at or before index 0, it must have been the
+    // first tab, so the selection should stay at 0 (the new first tab) anyway,
+    // which is already the default value of updatedSelectedIndex.
+    if (window.selectedIndex && removedTabIndex <= window.selectedIndex) {
+        updatedSelectedIndex = Math.max(0, window.selectedIndex - 1);
+    }
+
+    // If no more tabs exist, remove the window itself
+    if (updatedTabs.length === 0) {
+        return treeRemoveWindow(layout, path);
+    }
+
+    const updatedLayout = {
+        ...window,
+        tabs: updatedTabs,
+        selectedIndex: updatedSelectedIndex,
+    };
+
+    if (path.length == 0) {
+        return updatedLayout;
+    } else {
+        return setAtPath(layout, path, updatedLayout);
+    }
+};
+
+const treeSelectTab = (layout: LaymanLayout, path: LaymanPath, tab: TabData): LaymanLayout => {
+    if (!layout) return layout;
+    const window: LaymanLayout = getLayoutAtPath(layout, path);
+    if (!window || !("tabs" in window)) return layout;
+
+    // Update selectedIndex in the window
+    const updatedLayout = {
+        ...window,
+        selectedIndex: window.tabs.findIndex((t) => t.id === tab.id),
+    };
+
+    if (path.length == 0) {
+        return updatedLayout;
+    } else {
+        return setAtPath(layout, path, updatedLayout);
+    }
+};
+
+/**
+ * Inserts `window` into `children` at `index`, rescaling siblings'
+ * viewPercent to make room for it (100 / (n + 1) for the new window; each
+ * existing sibling's viewPercent scaled by n / (n + 1)).
+ */
+const insertChildAt = (children: Children<LaymanLayout>, index: number, window: LaymanWindow): Children<LaymanLayout> => {
+    const n = children.length;
+    const rescale = (child: LaymanLayout) => {
+        if (!child) return child;
+        return {
+            ...child,
+            viewPercent: child.viewPercent ? (child.viewPercent * n) / (n + 1) : child.viewPercent,
+        };
+    };
+    return [
+        ...children.slice(0, index).map(rescale),
+        {...window, viewPercent: 100 / (n + 1)},
+        ...children.slice(index).map(rescale),
+    ] as Children<LaymanLayout>;
+};
+
+const treeAddWindow = (
+    layout: LaymanLayout,
+    path: LaymanPath,
+    window: LaymanWindow,
+    placement: "top" | "bottom" | "left" | "right"
+): LaymanLayout => {
+    // No tiled layout yet at all: the new window becomes the entire root,
+    // regardless of which edge it was dropped on.
+    if (!layout) return {...window};
+
+    const parentPath = path.slice(0, -1);
     const parent: LaymanLayout = getLayoutAtPath(layout, parentPath);
     if (!parent) return layout;
 
     if (!("children" in parent)) {
         // Base layout must be window, adding to this
-        const isColumnPlacement = action.placement === "top" || action.placement === "bottom";
+        const isColumnPlacement = placement === "top" || placement === "bottom";
         const newChildren: Children<LaymanLayout> =
-            action.placement === "top" || action.placement === "left"
-                ? [action.window, parent]
-                : [parent, action.window];
+            placement === "top" || placement === "left" ? [window, parent] : [parent, window];
         return {
             direction: isColumnPlacement ? "column" : "row",
             children: newChildren,
         } as LaymanLayout;
     }
 
-    const isColumnPlacement = action.placement === "top" || action.placement === "bottom";
-    const lastPathIndex = action.path[action.path.length - 1];
-    const index =
-        action.placement === "bottom" || action.placement === "right" ? lastPathIndex + 1 : lastPathIndex;
+    // Root-edge insert (`path: []`) when the root is already a split: there
+    // is no parent above the root, so the generic "insert next to one
+    // sibling" logic below (which indexes off `path[path.length - 1]`)
+    // doesn't apply. Either extend the root split directly (if it's already
+    // in the right direction) or wrap the whole existing root as one child
+    // of a fresh outer split.
+    if (path.length === 0) {
+        const isColumnPlacement = placement === "top" || placement === "bottom";
+        const matchesDirection =
+            (isColumnPlacement && parent.direction === "column") || (!isColumnPlacement && parent.direction === "row");
+        if (matchesDirection) {
+            const index = placement === "top" || placement === "left" ? 0 : parent.children.length;
+            return {...parent, children: insertChildAt(parent.children, index, window)};
+        }
+        const newChildren: Children<LaymanLayout> =
+            placement === "top" || placement === "left" ? [window, parent] : [parent, window];
+        return {direction: isColumnPlacement ? "column" : "row", children: newChildren} as LaymanLayout;
+    }
+
+    const isColumnPlacement = placement === "top" || placement === "bottom";
+    const lastPathIndex = path[path.length - 1];
+    const index = placement === "bottom" || placement === "right" ? lastPathIndex + 1 : lastPathIndex;
 
     if ((isColumnPlacement && parent.direction === "column") || (!isColumnPlacement && parent.direction === "row")) {
         // View percent of new window based on length of parent
         const updatedLayout = {
             ...parent,
-            children: [
-                ...parent.children.slice(0, index).map((child) => {
-                    if (!child) return;
-                    return {
-                        ...child,
-                        viewPercent: child.viewPercent
-                            ? (child.viewPercent * parent.children.length) / (parent.children.length + 1)
-                            : child.viewPercent,
-                    };
-                }),
-                {...action.window, viewPercent: 100 / (parent.children.length + 1)},
-                ...parent.children.slice(index).map((child) => {
-                    if (!child) return;
-                    return {
-                        ...child,
-                        viewPercent: child.viewPercent
-                            ? (child.viewPercent * parent.children.length) / (parent.children.length + 1)
-                            : child.viewPercent,
-                    };
-                }),
-            ] as Children<LaymanLayout>,
+            children: insertChildAt(parent.children, index, window),
         };
-        if (action.path.length == 1) {
+        if (path.length == 1) {
             return updatedLayout;
         } else {
             return setAtPath(layout, parentPath, updatedLayout);
         }
     } else {
-        const window: LaymanLayout = getLayoutAtPath(layout, action.path);
-        if (!window || !("tabs" in window)) return layout;
+        const existingWindow: LaymanLayout = getLayoutAtPath(layout, path);
+        if (!existingWindow || !("tabs" in existingWindow)) return layout;
         const newChildren: Children<LaymanLayout> =
-            action.placement === "top" || action.placement === "left"
-                ? [action.window, {...window, viewPercent: 50}]
-                : [{...window, viewPercent: 50}, action.window];
+            placement === "top" || placement === "left"
+                ? [window, {...existingWindow, viewPercent: 50}]
+                : [{...existingWindow, viewPercent: 50}, window];
         const updatedLayout = {
             ...parent,
-            children: parent.children.map((child, index) =>
-                index === lastPathIndex
+            children: parent.children.map((child, i) =>
+                i === lastPathIndex
                     ? {
                           direction: isColumnPlacement ? "column" : "row",
                           children: newChildren,
-                          viewPercent: window.viewPercent,
+                          viewPercent: existingWindow.viewPercent,
                       }
                     : child
             ) as Children<LaymanLayout>,
         };
-        if (action.path.length == 1) {
+        if (path.length == 1) {
             return updatedLayout;
         } else {
             return setAtPath(layout, parentPath, updatedLayout);
@@ -344,11 +352,18 @@ const addWindow = (layout: LaymanLayout, action: AddWindowAction) => {
 };
 
 /**
- * Helper function for moveWindow to adjust windows for new layout, using their new paths
+ * Helper function for moveWindow to adjust windows for new layout, using their new paths.
+ *
+ * `newPath` is computed against the tree as it looked *before* `originalPath`'s window
+ * is removed. But removing a window can collapse its parent split (when only one
+ * sibling remains, that sibling is promoted up, and if it shares direction with the
+ * grandparent, its children are merged directly into the grandparent's children).
+ * Both effects shift sibling indices around, so this function re-derives what
+ * `newPath` should actually be once those collapses have happened.
  */
-const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
-    const originalPath = action.path;
-    const newPath = action.newPath;
+const adjustPath = (layout: LaymanLayout, originalPath: LaymanPath, newPath: LaymanPath): LaymanPath => {
+    // Length of the path prefix shared by originalPath and newPath, i.e. how many
+    // ancestor levels the source and destination have in common.
     let commonLength = 0;
     for (let i = 0; i < originalPath.length; i++) {
         if (originalPath[i] !== newPath[i]) break;
@@ -356,13 +371,21 @@ const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
     }
 
     if (commonLength != originalPath.length - 1) {
+        // newPath diverges above the immediate parent of originalPath. Only one
+        // specific case needs compensation here: newPath diverges exactly at the
+        // grandparent level, meaning the destination is a sibling of originalPath's
+        // parent. If that parent collapses (see below) and merges into the
+        // grandparent, everything after the parent's old slot in the grandparent's
+        // children shifts over by however many grandchildren got spliced in.
         if (commonLength != originalPath.length - 2) {
+            // Destination doesn't share enough ancestry to be affected by the
+            // collapse at originalPath's parent; no adjustment needed.
             return newPath;
         }
 
         const adjustedPath = [...newPath];
 
-        const parentPath = action.path.slice(0, -1);
+        const parentPath = originalPath.slice(0, -1);
         const parent = getLayoutAtPath(layout, parentPath);
         if (!parent || !("children" in parent)) return adjustedPath;
 
@@ -370,6 +393,8 @@ const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
         const grandparent = getLayoutAtPath(layout, grandparentPath);
         if (!grandparent || !("children" in grandparent)) return adjustedPath;
 
+        // The sibling that remains once originalPath's window is removed from its
+        // (two-child) parent - this is the one that gets promoted up a level.
         const onlyChild = parent.children[originalPath[originalPath.length - 1] == 1 ? 0 : 1];
 
         if (!onlyChild || !("children" in onlyChild)) {
@@ -377,6 +402,9 @@ const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
         }
 
         if (grandparent.direction === onlyChild.direction) {
+            // Parent's single slot in the grandparent's children is replaced by
+            // all of onlyChild's children, so anything positioned after that slot
+            // shifts forward by (onlyChild's child count - 1) slots.
             if (adjustedPath[commonLength] > originalPath[commonLength]) {
                 adjustedPath[commonLength] += onlyChild.children.length - 1;
             }
@@ -425,42 +453,7 @@ const adjustPath = (layout: LaymanLayout, action: MoveWindowAction) => {
     return adjustedPath;
 };
 
-const moveWindow = (layout: LaymanLayout, action: MoveWindowAction) => {
-    const window: LaymanLayout = getLayoutAtPath(layout, action.path);
-    if (!window || !("tabs" in window)) return layout;
-
-    const removeWindowLayout = LaymanReducer(layout, {
-        type: "removeWindow",
-        path: action.path,
-    });
-
-    // Handle removing window causes newPath to change
-    const newPath = adjustPath(layout, action);
-
-    if (action.placement === "center") {
-        // Add all tabs
-        let updatedLayout = deepClone(removeWindowLayout);
-
-        action.window.tabs.forEach((tab) => {
-            updatedLayout = addTab(updatedLayout, {
-                type: "addTab",
-                path: newPath,
-                tab: tab,
-            });
-        });
-
-        return updatedLayout;
-    } else {
-        return addWindow(removeWindowLayout, {
-            type: "addWindow",
-            path: newPath,
-            window: action.window,
-            placement: action.placement,
-        });
-    }
-};
-
-const moveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction) => {
+const treeMoveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction): LaymanLayout => {
     if (!layout) return layout;
     const node: LaymanLayout = getLayoutAtPath(layout, action.path);
     if (!node || !("children" in node)) return layout;
@@ -489,7 +482,7 @@ const moveSeparator = (layout: LaymanLayout, action: MoveSeparatorAction) => {
     }
 };
 
-const addTabWithHeuristic = (layout: LaymanLayout, action: AddTabActionWithHeuristic) => {
+const treeAddTabWithHeuristic = (layout: LaymanLayout, action: AddTabActionWithHeuristic): LaymanLayout => {
     if (!layout) {
         return {
             tabs: [action.tab],
@@ -505,21 +498,21 @@ const addTabWithHeuristic = (layout: LaymanLayout, action: AddTabActionWithHeuri
 
     if (action.heuristic === "topleft") {
         const newChildren: Children<LaymanLayout> = [...layout.children];
-        newChildren[0] = addTabWithHeuristic(newChildren[0], action);
+        newChildren[0] = treeAddTabWithHeuristic(newChildren[0], action);
         return {...layout, children: newChildren};
     } else if (action.heuristic === "topright") {
         const newChildren: Children<LaymanLayout> = [...layout.children];
         if (layout.direction === "column") {
-            newChildren[0] = addTabWithHeuristic(newChildren[0], action);
+            newChildren[0] = treeAddTabWithHeuristic(newChildren[0], action);
         } else {
-            newChildren[newChildren.length - 1] = addTabWithHeuristic(newChildren[newChildren.length - 1], action);
+            newChildren[newChildren.length - 1] = treeAddTabWithHeuristic(newChildren[newChildren.length - 1], action);
         }
         return {...layout, children: newChildren};
     }
     return layout;
 };
 
-const autoArrange = (layout: LaymanLayout): LaymanLayout => {
+const treeAutoArrange = (layout: LaymanLayout): LaymanLayout => {
     if (!layout || "tabs" in layout) {
         return layout;
     }
@@ -528,34 +521,239 @@ const autoArrange = (layout: LaymanLayout): LaymanLayout => {
     return {
         ...layout,
         children: layout.children.map((child) => ({
-            ...autoArrange(child),
+            ...treeAutoArrange(child),
             viewPercent: newSplitPercentage,
         })) as Children<LaymanLayout>,
     };
 };
 
-export const LaymanReducer = (layout: LaymanLayout, action: LaymanLayoutAction): LaymanLayout => {
+// ---------------------------------------------------------------------------
+// Floating helpers: pure functions operating on the `floatingWindows` array,
+// addressed by `floatingId`.
+// ---------------------------------------------------------------------------
+
+const nextFloatingZIndex = (floatingWindows: FloatingWindowData[]): number =>
+    floatingWindows.reduce((max, fw) => Math.max(max, fw.zIndex), 29) + 1;
+
+const floatingAddTab = (floatingWindows: FloatingWindowData[], floatingId: string, tab: TabData): FloatingWindowData[] =>
+    floatingWindows.map((fw) => (fw.id === floatingId ? {...fw, tabs: [...fw.tabs, tab]} : fw));
+
+const floatingRemoveTab = (
+    floatingWindows: FloatingWindowData[],
+    floatingId: string,
+    tab: TabData
+): FloatingWindowData[] => {
+    const floatingWindow = floatingWindows.find((fw) => fw.id === floatingId);
+    if (!floatingWindow) return floatingWindows;
+
+    const updatedTabs = floatingWindow.tabs.filter((t) => t.id !== tab.id);
+
+    // If no tabs remain, the floating window closes itself.
+    if (updatedTabs.length === 0) {
+        return floatingWindows.filter((fw) => fw.id !== floatingId);
+    }
+
+    let updatedSelectedIndex = floatingWindow.selectedIndex;
+    const removedTabIndex = floatingWindow.tabs.indexOf(tab);
+    if (removedTabIndex <= floatingWindow.selectedIndex) {
+        updatedSelectedIndex = Math.max(0, floatingWindow.selectedIndex - 1);
+    }
+
+    return floatingWindows.map((fw) =>
+        fw.id === floatingId ? {...fw, tabs: updatedTabs, selectedIndex: updatedSelectedIndex} : fw
+    );
+};
+
+const floatingSelectTab = (floatingWindows: FloatingWindowData[], floatingId: string, tab: TabData): FloatingWindowData[] =>
+    floatingWindows.map((fw) =>
+        fw.id === floatingId ? {...fw, selectedIndex: fw.tabs.findIndex((t) => t.id === tab.id)} : fw
+    );
+
+const floatingRemoveWindow = (floatingWindows: FloatingWindowData[], floatingId: string): FloatingWindowData[] =>
+    floatingWindows.filter((fw) => fw.id !== floatingId);
+
+// ---------------------------------------------------------------------------
+// Address-aware action handlers: these dispatch to the tree helpers or the
+// floating helpers depending on whether the action's address is a tree path
+// or a floating window id, so every window - tiled or floating - is
+// addressed, rendered, and mutated through the exact same action types.
+// ---------------------------------------------------------------------------
+
+const addTab = (state: LaymanState, action: AddTabAction): LaymanState => {
+    if (isFloatingAddress(action.path)) {
+        return {...state, floatingWindows: floatingAddTab(state.floatingWindows, action.path.floatingId, action.tab)};
+    }
+    return {...state, layout: treeAddTab(state.layout, action.path, action.tab)};
+};
+
+const removeTab = (state: LaymanState, action: RemoveTabAction): LaymanState => {
+    if (isFloatingAddress(action.path)) {
+        return {
+            ...state,
+            floatingWindows: floatingRemoveTab(state.floatingWindows, action.path.floatingId, action.tab),
+        };
+    }
+    return {...state, layout: treeRemoveTab(state.layout, action.path, action.tab)};
+};
+
+const selectTab = (state: LaymanState, action: SelectTabAction): LaymanState => {
+    if (isFloatingAddress(action.path)) {
+        return {
+            ...state,
+            floatingWindows: floatingSelectTab(state.floatingWindows, action.path.floatingId, action.tab),
+        };
+    }
+    return {...state, layout: treeSelectTab(state.layout, action.path, action.tab)};
+};
+
+const removeWindow = (state: LaymanState, action: RemoveWindowAction): LaymanState => {
+    if (isFloatingAddress(action.path)) {
+        return {...state, floatingWindows: floatingRemoveWindow(state.floatingWindows, action.path.floatingId)};
+    }
+    return {...state, layout: treeRemoveWindow(state.layout, action.path)};
+};
+
+const addWindow = (state: LaymanState, action: AddWindowAction): LaymanState => {
+    if (isFloatingAddress(action.path)) {
+        // Floating windows are intentionally single-pane; splitting a
+        // floating window isn't supported, so this is a no-op.
+        return state;
+    }
+    return {...state, layout: treeAddWindow(state.layout, action.path, action.window, action.placement)};
+};
+
+const moveTab = (state: LaymanState, action: MoveTabAction): LaymanState => {
+    // Remove the tab from its source, unless it came from outside the
+    // layout entirely (external tab sources use the `[-1]` sentinel path).
+    const isExternalSource = Array.isArray(action.path) && action.path.length === 1 && action.path[0] === -1;
+    const working = isExternalSource ? state : removeTab(state, {type: "removeTab", path: action.path, tab: action.tab});
+
+    if (isFloatingAddress(action.newPath)) {
+        const floatingId = action.newPath.floatingId;
+        // moveTab only ever merges into an *existing* floating window; to
+        // float a tab out into a brand new floating window, float the whole
+        // window (see moveWindow) instead.
+        if (!working.floatingWindows.some((fw) => fw.id === floatingId)) return working;
+        return {...working, floatingWindows: floatingAddTab(working.floatingWindows, floatingId, action.tab)};
+    }
+
+    if (!working.layout) return working;
+    const destWindow = getLayoutAtPath(working.layout, action.newPath);
+    if (!destWindow || !("tabs" in destWindow)) return working;
+
+    if (action.placement === "center") {
+        return {...working, layout: treeAddTab(working.layout, action.newPath, action.tab)};
+    }
+    return {
+        ...working,
+        layout: treeAddWindow(working.layout, action.newPath, {tabs: [action.tab], selectedIndex: 0}, action.placement),
+    };
+};
+
+const moveWindow = (state: LaymanState, action: MoveWindowAction): LaymanState => {
+    // Step 1: remove the window from its source, and note whether the
+    // destination path needs adjusting for shifted tree indices (only
+    // relevant when the window was removed from *within* the same tree).
+    let working: LaymanState;
+    let sourceWasTreePath: LaymanPath | undefined;
+    if (isFloatingAddress(action.path)) {
+        working = {...state, floatingWindows: floatingRemoveWindow(state.floatingWindows, action.path.floatingId)};
+    } else {
+        const window: LaymanLayout = getLayoutAtPath(state.layout, action.path);
+        if (!window || !("tabs" in window)) return state;
+        working = {...state, layout: treeRemoveWindow(state.layout, action.path)};
+        sourceWasTreePath = action.path;
+    }
+
+    // Step 2a: destination is a floating window (new or existing).
+    if (isFloatingAddress(action.newPath)) {
+        const floatingId = action.newPath.floatingId;
+        const existing = working.floatingWindows.find((fw) => fw.id === floatingId);
+        if (existing) {
+            // Merge tabs into the already-floating destination. Floating
+            // windows are single-pane, so `placement` doesn't matter here.
+            return {
+                ...working,
+                floatingWindows: working.floatingWindows.map((fw) =>
+                    fw.id === floatingId ? {...fw, tabs: [...fw.tabs, ...action.window.tabs]} : fw
+                ),
+            };
+        }
+        // No floating window with this id exists yet: this is a "float this
+        // window" move. `position` must be supplied to seed its rect.
+        if (!action.position) return state;
+        const newFloatingWindow: FloatingWindowData = {
+            id: floatingId,
+            tabs: action.window.tabs,
+            selectedIndex: action.window.selectedIndex ?? 0,
+            position: action.position,
+            zIndex: nextFloatingZIndex(working.floatingWindows),
+        };
+        return {...working, floatingWindows: [...working.floatingWindows, newFloatingWindow]};
+    }
+
+    // Step 2b: destination is a tree path. Removing a tree-sourced window can
+    // shift sibling indices, so the destination path needs adjusting; a
+    // floating source never shifts tree indices.
+    const destPath = sourceWasTreePath
+        ? adjustPath(state.layout, sourceWasTreePath, action.newPath)
+        : action.newPath;
+
+    if (action.placement === "center") {
+        let updatedLayout = deepClone(working.layout);
+        action.window.tabs.forEach((tab) => {
+            updatedLayout = treeAddTab(updatedLayout, destPath, tab);
+        });
+        return {...working, layout: updatedLayout};
+    }
+    return {...working, layout: treeAddWindow(working.layout, destPath, action.window, action.placement)};
+};
+
+const setFloatingWindowPosition = (state: LaymanState, action: SetFloatingWindowPositionAction): LaymanState => ({
+    ...state,
+    floatingWindows: state.floatingWindows.map((fw) =>
+        fw.id === action.floatingId ? {...fw, position: action.position} : fw
+    ),
+});
+
+const bringFloatingWindowToFront = (state: LaymanState, action: BringFloatingWindowToFrontAction): LaymanState => {
+    const topZ = state.floatingWindows.reduce((max, fw) => Math.max(max, fw.zIndex), 29);
+    const target = state.floatingWindows.find((fw) => fw.id === action.floatingId);
+    if (!target || (target.zIndex === topZ && topZ !== 29)) return state;
+    return {
+        ...state,
+        floatingWindows: state.floatingWindows.map((fw) =>
+            fw.id === action.floatingId ? {...fw, zIndex: topZ + 1} : fw
+        ),
+    };
+};
+
+export const LaymanReducer = (state: LaymanState, action: LaymanLayoutAction): LaymanState => {
     switch (action.type) {
         case "addTab":
-            return addTab(layout, action);
+            return addTab(state, action);
         case "removeTab":
-            return removeTab(layout, action);
+            return removeTab(state, action);
         case "selectTab":
-            return selectTab(layout, action);
+            return selectTab(state, action);
         case "moveTab":
-            return moveTab(layout, action);
+            return moveTab(state, action);
         case "addWindow":
-            return addWindow(layout, action);
+            return addWindow(state, action);
         case "removeWindow":
-            return removeWindow(layout, action);
+            return removeWindow(state, action);
         case "moveWindow":
-            return moveWindow(layout, action);
+            return moveWindow(state, action);
         case "moveSeparator":
-            return moveSeparator(layout, action);
+            return {...state, layout: treeMoveSeparator(state.layout, action)};
         case "addTabWithHeuristic":
-            return addTabWithHeuristic(layout, action);
+            return {...state, layout: treeAddTabWithHeuristic(state.layout, action)};
         case "autoArrange":
-            return autoArrange(layout);
+            return {...state, layout: treeAutoArrange(state.layout)};
+        case "setFloatingWindowPosition":
+            return setFloatingWindowPosition(state, action);
+        case "bringFloatingWindowToFront":
+            return bringFloatingWindowToFront(state, action);
         default:
             throw new Error("Unknown action: " + action);
     }

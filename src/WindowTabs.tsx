@@ -3,12 +3,12 @@ import {ConnectDragSource, useDrag} from "react-dnd";
 import {LaymanContext} from "./LaymanContext";
 import {TabData} from "./TabData";
 import {TabType} from ".";
-import {LaymanPath} from "./types";
+import {WindowAddress} from "./types";
 import {CloseIcon} from "./Icons";
 
 interface TabProps {
     tab: TabData;
-    path: LaymanPath;
+    path: WindowAddress;
     isSelected: boolean;
     onMouseDown: React.MouseEventHandler<HTMLButtonElement>;
     onDelete: React.MouseEventHandler<HTMLButtonElement>;
@@ -40,7 +40,6 @@ export const Tab = ({tab, path, isSelected, onDelete, onMouseDown}: TabProps) =>
                 width: isDragging ? 0 : "auto",
             }}
         >
-            {isSelected && <div className="indicator"></div>}
             <button className="tab-selector" onMouseDown={onMouseDown}>
                 {renderTab(tab)}
             </button>
@@ -65,7 +64,6 @@ export const SingleTab = ({dragRef, tab, onDelete, onMouseDown}: SingleTabProps)
 
     return (
         <div ref={dragRef} className={`tab selected`}>
-            <div className="indicator"></div>
             <button className="tab-selector" onMouseDown={onMouseDown}>
                 {renderTab(tab)}
             </button>

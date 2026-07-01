@@ -13,7 +13,7 @@
 
 ## About <a name = "about"></a>
 
-React Layman is a fully-featured, dynamic layout manager made for React. It is written in Typescript and provides typing, but may also be used with regular Javascript. Layman is inspired by [Replit](https://replit.com)'s IDE, [LeetCode](https://leetcode.com)'s new UI, and the pre-existing [React Mosaic](https://github.com/nomcopter/react-mosaic) project.
+React Layman is a fully-featured, dynamic layout manager made for React. It is written in TypeScript and provides typing, but may also be used with regular JavaScript. Layman is inspired by [Replit](https://replit.com)'s IDE, [LeetCode](https://leetcode.com)'s new UI, and the pre-existing [React Mosaic](https://github.com/nomcopter/react-mosaic) project.
 
 You can play around with Layman through [this demo](https://jeshwin.github.io/react-layman).
 
@@ -28,12 +28,12 @@ You can play around with Layman through [this demo](https://jeshwin.github.io/re
         -   [x] Draggable tabs
 -   [x] Extra features
     -   [x] Auto Arrange
-    -   [x] "Add to corner" hueristic
-    -   [x] Add tabs from sources external to layout
+    -   [x] "Add to corner" heuristic
+    -   [x] Add tabs from sources external to the layout
 
 ## Usage
 
-To use Layman, add the `LaymanProvider` component, which sets up your initial layout, rendering functions, and other configurations. Add the `Layman` component within the provider to render out the layout. `<Layman />` can be deeply nested within `LaymanProvider`. Also note, `<Layman />`'s parent needs to have a defined width and height, since it's dimensions are relative to it.
+To use Layman, add the `LaymanProvider` component, which sets up your initial layout, rendering functions, and other configurations. Add the `Layman` component within the provider to render out the layout. `<Layman />` can be deeply nested within `LaymanProvider`. Also note, `<Layman />`'s parent needs to have a defined width and height, since its dimensions are relative to it.
 
 ```tsx
 <LaymanProvider initialLayout={initialLayout} renderPane={renderPane} renderTab={renderTab} renderNull={<NullLayout />}>
@@ -60,7 +60,7 @@ npm run dev
 
 ### Themes
 
-You can use the default theme in `src/styles/theme.css`, or define your own themes with CSS variables like this:
+Layman's default theme is bundled with the package and applied automatically. To customize it, define your own values for these same CSS variables (see [`styles/example-theme.css`](styles/example-theme.css) in this repository for a full reference you can copy from):
 
 ```css
 :root {
@@ -112,18 +112,14 @@ You can use the default theme in `src/styles/theme.css`, or define your own them
 }
 ```
 
-Then, you can import this theme at the root of your project. Note, you must still import the global CSS file, since this is required for Layman to work properly.
+Then, import your custom theme file at the root of your project. Layman's own CSS is already injected automatically when you import from `react-layman`, so you don't need to import anything from the package itself.
 
 ```tsx
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 
-// Import a custom theme
-import "./custom_theme.css";
-// Or import the default theme
-import "../src/styles/theme.css";
-// You must still import the global CSS settings
-import "../src/styles/global.css";
+// Import your custom theme to override the default CSS variables
+import "./custom-theme.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<App />);
 ```
@@ -132,7 +128,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(<App />);
 
 ### Type Definitions
 
-Please see [index.d.ts](src/index.d.ts) for the full details.
+Please see [index.ts](src/index.ts) for the full details.
 
 #### Common Types
 
@@ -144,14 +140,12 @@ export interface Position {
     height: number;
 }
 
-import {v4 as uuidv4} from "uuid";
-
 interface TabOptions {
     [key: string]: unknown; // Allows any custom data
 }
 
 export class TabData {
-    // private UUID representing the tab
+    // Unique ID representing the tab, used to identify it across renders and reducer actions
     id: string;
 
     // Is the tab currently selected in a window?
@@ -165,7 +159,7 @@ export class TabData {
 
     /** Creates an instance of the TabData class. */
     constructor(name: string, options: TabOptions = {}) {
-        this.id = uuidv4();
+        this.id = crypto.randomUUID();
         this.isSelected = false;
         this.name = name;
         this.options = options;
@@ -354,10 +348,10 @@ layoutDispatch({
 
 ```ts
 layoutDispatch({
-    type: "addTabWithHeuristic";
-    heuristic: "topleft" | "topright";
-    tab: TabData;
-})
+    type: "addTabWithHeuristic",
+    heuristic: "topleft" | "topright",
+    tab: TabData,
+});
 ```
 
 #### Auto Arrange Layout
@@ -370,11 +364,11 @@ layoutDispatch({
 
 ## Examples
 
-See the [demo](https://jeshwin.github.io/react-layman) for a full example of Laymans' current features!
+See the [demo](https://jeshwin.github.io/react-layman) for a full example of Layman's current features!
 
 ### External Tab Source
 
-This is the code for the tab sources in the demo, which support dragging into the layout to create a new tab, or adding using a specified heuristic
+This is the code for the tab sources in the demo, which support dragging into the layout to create a new tab, or adding using a specified heuristic.
 
 ```tsx
 export default function TabSource({tabName, heuristic}: {tabName: string; heuristic: LaymanHeuristic}) {

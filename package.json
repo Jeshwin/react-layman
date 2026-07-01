@@ -1,6 +1,6 @@
 {
     "name": "react-layman",
-    "version": "0.2.15",
+    "version": "0.3.0",
     "type": "module",
     "description": "A dynamic tiling layout manager made for React",
     "main": "lib/react-layman.js",
@@ -36,7 +36,7 @@
         "tiling-window-manager"
     ],
     "author": "Jeshwin Prince",
-    "license": "ISC",
+    "license": "MIT",
     "bugs": {
         "url": "https://github.com/Jeshwin/react-layman/issues"
     },

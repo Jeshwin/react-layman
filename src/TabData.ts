@@ -3,7 +3,7 @@ interface TabOptions {
 }
 
 export class TabData {
-    // private UUID representing the tab
+    // Unique ID representing the tab, used to identify it across renders and reducer actions
     id: string;
 
     // Is the tab currently selected in a window?

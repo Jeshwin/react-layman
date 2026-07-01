@@ -1,7 +1,13 @@
 import {describe, it, expect} from "vitest";
-import {serializeLayout, deserializeLayout, deserializeTab} from "../src/Serializer";
+import {
+    serializeLayout,
+    deserializeLayout,
+    deserializeTab,
+    serializeFloatingWindow,
+    deserializeFloatingWindow,
+} from "../src/Serializer";
 import {TabData} from "../src/TabData";
-import {LaymanNode, LaymanWindow, LaymanSerializedTab} from "../src/types";
+import {FloatingWindowData, LaymanNode, LaymanWindow, LaymanSerializedTab} from "../src/types";
 
 describe("serializeLayout", () => {
     it("returns null for an undefined layout", () => {
@@ -87,6 +93,39 @@ describe("deserializeLayout", () => {
         expect(result.tabs).toHaveLength(2);
         expect(result.tabs[0]).toBeInstanceOf(TabData);
         expect(result.tabs[1].options).toEqual({flag: true});
+    });
+});
+
+describe("serializeFloatingWindow / deserializeFloatingWindow", () => {
+    it("round-trips a floating window, preserving position, zIndex and tab data", () => {
+        const original: FloatingWindowData = {
+            id: "float-1",
+            selectedIndex: 1,
+            position: {top: 10, left: 20, width: 300, height: 200},
+            zIndex: 32,
+            tabs: [new TabData("A", {path: "/a"}), new TabData("B")],
+        };
+
+        const serialized = serializeFloatingWindow(original);
+        expect(serialized).toEqual({
+            id: "float-1",
+            selectedIndex: 1,
+            position: {top: 10, left: 20, width: 300, height: 200},
+            zIndex: 32,
+            tabs: [
+                {name: "A", options: {path: "/a"}},
+                {name: "B", options: {}},
+            ],
+        });
+
+        const restored = deserializeFloatingWindow(serialized);
+        expect(restored.id).toBe("float-1");
+        expect(restored.selectedIndex).toBe(1);
+        expect(restored.position).toEqual(original.position);
+        expect(restored.zIndex).toBe(32);
+        expect(restored.tabs).toHaveLength(2);
+        expect(restored.tabs[0]).toBeInstanceOf(TabData);
+        expect(restored.tabs[0].options).toEqual({path: "/a"});
     });
 });
 

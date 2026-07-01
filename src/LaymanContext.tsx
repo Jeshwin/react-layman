@@ -1,12 +1,19 @@
-import {createContext, useEffect, useReducer, useRef, useState} from "react";
-import {LaymanContextType, LaymanLayout, PaneRenderer, TabRenderer, Position, ToolbarButtonType} from "./types";
+import React, {createContext, useEffect, useReducer, useRef, useState} from "react";
+import {
+    LaymanContextType,
+    LaymanLayout,
+    PaneRenderer,
+    TabRenderer,
+    Position,
+    ToolbarButtonType,
+    WindowAddress,
+} from "./types";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
-import React from "react";
 import {DropHighlight} from "./DropHighlight";
 import {TabData} from "./TabData";
 import {LaymanReducer} from "./LaymanReducer";
-import {loadLayout, saveLayout} from "./persistence";
+import {loadState, saveState} from "./persistence";
 
 // Define default values for the context
 const defaultContextValue: LaymanContextType = {
@@ -26,6 +33,11 @@ const defaultContextValue: LaymanContextType = {
     mutable: false,
     toolbarButtons: [],
     renderNull: <></>,
+    maximizedPath: null,
+    setMaximizedPath: () => {},
+    floatingWindows: [],
+    maxDepth: Infinity,
+    showTabs: true,
 };
 
 type LaymanProviderProps = {
@@ -36,6 +48,10 @@ type LaymanProviderProps = {
     mutable?: boolean;
     toolbarButtons?: Array<ToolbarButtonType>;
     storageKey?: string;
+    // Maximum split-nesting depth (depth = path.length). Default: no limit.
+    maxDepth?: number;
+    // Show/hide the window tab row. Default: true.
+    showTabs?: boolean;
     children: React.ReactNode;
 };
 
@@ -49,12 +65,14 @@ export const LaymanProvider = ({
     mutable = false,
     toolbarButtons = [],
     storageKey,
+    maxDepth = Infinity,
+    showTabs = true,
     children,
 }: LaymanProviderProps) => {
-    const [layout, layoutDispatch] = useReducer(
+    const [{layout, floatingWindows}, layoutDispatch] = useReducer(
         LaymanReducer,
-        initialLayout,
-        (init) => loadLayout(storageKey, init),
+        {layout: initialLayout, floatingWindows: []},
+        (init) => loadState(storageKey, init)
     );
 
     const saveTimeoutRef = useRef<number | undefined>(undefined);
@@ -64,17 +82,17 @@ export const LaymanProvider = ({
             window.clearTimeout(saveTimeoutRef.current);
         }
         saveTimeoutRef.current = window.setTimeout(() => {
-            saveLayout(storageKey, layout);
+            saveState(storageKey, {layout, floatingWindows});
             saveTimeoutRef.current = undefined;
         }, 150);
         return () => {
             if (saveTimeoutRef.current !== undefined) {
                 window.clearTimeout(saveTimeoutRef.current);
                 saveTimeoutRef.current = undefined;
-                saveLayout(storageKey, layout);
+                saveState(storageKey, {layout, floatingWindows});
             }
         };
-    }, [layout, storageKey]);
+    }, [layout, floatingWindows, storageKey]);
     // Size of Layman container
     const [globalContainerSize, setGlobalContainerSize] = useState<Position>({
         top: 0,
@@ -94,6 +112,8 @@ export const LaymanProvider = ({
         y: 0,
     });
     const [globalDragging, setGlobalDragging] = useState<boolean>(false);
+    // Ephemeral UI state: which window is currently maximized.
+    const [maximizedPath, setMaximizedPath] = useState<WindowAddress | null>(null);
 
     return (
         <LaymanContext.Provider
@@ -114,6 +134,11 @@ export const LaymanProvider = ({
                 mutable,
                 toolbarButtons,
                 renderNull,
+                maximizedPath,
+                setMaximizedPath,
+                floatingWindows,
+                maxDepth,
+                showTabs,
             }}
         >
             <DndProvider backend={HTML5Backend}>

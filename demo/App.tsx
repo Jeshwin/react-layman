@@ -3,9 +3,21 @@ import Pane from "./Pane";
 import TabSource from "./extra/TabSource";
 import NullLayout from "./extra/NullLayout";
 import AutoArrangeButton from "./extra/AutoArrangeButton";
-import ResizeTester from "./extra/ResizeTester";
-import MutableToggle from "./extra/MutableToggle";
-import {useState} from "react";
+import Toggle from "./extra/Toggle";
+import Button from "./extra/Button";
+import NumberStepper from "./extra/NumberStepper";
+import FloatingPanel from "./extra/FloatingPanel";
+import {ReactNode, useState} from "react";
+
+/** Labeled row used to group related controls inside the floating panel. */
+function PanelSection({label, children}: {label: string; children: ReactNode}) {
+    return (
+        <div style={{display: "flex", flexDirection: "column", gap: 6}}>
+            <span style={{fontSize: 11, fontWeight: 600, textTransform: "uppercase", opacity: 0.6}}>{label}</span>
+            <div style={{display: "flex", alignItems: "center"}}>{children}</div>
+        </div>
+    );
+}
 
 export default function App() {
     const initialLayout: LaymanLayout = {
@@ -37,18 +49,26 @@ export default function App() {
         ],
     };
     /**
-     * Transforms a given pane ID to its corresponding window component
+     * Renders the pane content shown inside a window for the given tab.
      */
     const renderPane = (tab: TabData): JSX.Element => <Pane paneId={tab.id} />;
 
     /**
-     * Transforms a given pane ID to its corresponding tab name
-     * for display purposes.
+     * Renders the label shown on a tab, for display purposes.
      */
     const renderTab = (tab: TabData) => tab.name;
 
     // State to edit mutability of layout
     const [mutable, setMutable] = useState(true);
+
+    // Demo-only: toggle a sidebar to exercise the layout's resize handling.
+    const [showSidebar, setShowSidebar] = useState(false);
+
+    // State to toggle between tab bar and compact window menu.
+    const [showTabs, setShowTabs] = useState(true);
+
+    // State to control the maximum split-nesting depth of the layout.
+    const [maxDepth, setMaxDepth] = useState(4);
 
     const storageKey = "layman-demo-layout";
     const handleReset = () => {
@@ -63,8 +83,10 @@ export default function App() {
             renderTab={renderTab}
             renderNull={<NullLayout />}
             mutable={mutable}
-            toolbarButtons={["splitBottom", "splitRight", "misc"]}
+            toolbarButtons={["splitBottom", "splitRight", "maximize", "float"]}
             storageKey={storageKey}
+            showTabs={showTabs}
+            maxDepth={maxDepth}
         >
             <div
                 style={{
@@ -72,79 +94,67 @@ export default function App() {
                     backgroundColor: "#232634",
                 }}
             >
-                <div
-                    style={{
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: 64,
-                        display: "flex",
-                        justifyContent: "space-around",
-                        alignItems: "center",
-                    }}
-                >
-                    <div
-                        style={{
-                            border: "1px solid #8aadf4",
-                            borderRadius: 8,
-                            padding: 8,
-                            marginLeft: 8,
-                            marginRight: 8,
-                            display: "flex",
-                            alignItems: "center",
-                        }}
-                    >
+                <FloatingPanel title="Layman Controls">
+                    {/* Tab sources */}
+                    <PanelSection label="Add to Top Left">
                         <TabSource tabName={"A"} heuristic="topleft" />
                         <TabSource tabName={"B"} heuristic="topleft" />
                         <TabSource tabName={"C"} heuristic="topleft" />
-                        <div>← Add to Top Left</div>
-                    </div>
-                    <div style={{display: "flex", justifyItems: "center", alignItems: "center"}}>
-                        <AutoArrangeButton />
-                        <MutableToggle mutable={mutable} setMutable={setMutable} />
-                        <button
-                            style={{
-                                height: 32,
-                                borderRadius: 8,
-                                backgroundColor: "#7f849c",
-                                padding: 8,
-                                margin: 4,
-                                display: "grid",
-                                placeContent: "center",
-                                textAlign: "center",
-                                color: "white",
-                            }}
-                            onClick={handleReset}
-                        >
-                            Reset Layout
-                        </button>
-                    </div>
-                    <div
-                        style={{
-                            border: "1px solid #ee99a0",
-                            borderRadius: 8,
-                            padding: 8,
-                            marginLeft: 8,
-                            marginRight: 8,
-                            display: "flex",
-                            alignItems: "center",
-                        }}
-                    >
-                        <div>Add to Top Right →</div>
+                    </PanelSection>
+                    <PanelSection label="Add to Top Right">
                         <TabSource tabName={"D"} heuristic="topright" />
                         <TabSource tabName={"E"} heuristic="topright" />
                         <TabSource tabName={"F"} heuristic="topright" />
+                    </PanelSection>
+
+                    {/* Toggles */}
+                    <Toggle checked={mutable} onCheck={() => setMutable(!mutable)} spanText="Mutable" />
+                    <Toggle checked={showTabs} onCheck={() => setShowTabs(!showTabs)} spanText="Show Tabs" />
+                    <Toggle
+                        checked={showSidebar}
+                        onCheck={() => setShowSidebar(!showSidebar)}
+                        spanText="Show Sidebar"
+                    />
+
+                    {/* Numeric input */}
+                    <NumberStepper label="Max Depth" value={maxDepth} onChange={setMaxDepth} min={1} max={10} />
+
+                    {/* Actions */}
+                    <div style={{display: "flex", gap: 8, marginTop: 2}}>
+                        <AutoArrangeButton />
+                        <Button onClick={handleReset}>Reset Layout</Button>
                     </div>
-                </div>
-                <div style={{position: "relative", height: "calc(100vh - 64px)", display: "flex"}}>
+                </FloatingPanel>
+
+                <div style={{position: "relative", height: "100vh", display: "flex"}}>
+                    {showSidebar && (
+                        <div
+                            style={{
+                                width: 240,
+                                flexShrink: 0,
+                                height: "100vh",
+                                backgroundColor: "#1e2030",
+                                borderRight: "1px solid #494d64",
+                                padding: 16,
+                                boxSizing: "border-box",
+                            }}
+                        >
+                            <h3 style={{marginTop: 0}}>Sidebar</h3>
+                            <p>
+                                Toggle me to verify the layout recomputes window geometry as the available container
+                                width changes.
+                            </p>
+                        </div>
+                    )}
                     <div
                         style={{
-                            width: "100vw",
-                            height: "calc(100vh - 64px)",
+                            flex: 1,
+                            minWidth: 0,
+                            height: "100vh",
                             display: "flex",
                         }}
                     >
-                        <ResizeTester />
+                        {/* <ResizeTester /> */}
                         <Layman />
                     </div>
                 </div>
