@@ -273,91 +273,43 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
         if (isFloatingAddress(path)) layoutDispatch({type: "bringFloatingWindowToFront", floatingId: path.floatingId});
     };
 
+    // The four split buttons only differ by which edge they split towards and
+    // which icon they show, so their button-creation logic is shared here
+    // instead of being duplicated per direction.
+    const SPLIT_BUTTON_CONFIG = {
+        splitTop: {placement: "top", Icon: TopSplitIcon},
+        splitBottom: {placement: "bottom", Icon: BottomSplitIcon},
+        splitLeft: {placement: "left", Icon: LeftSplitIcon},
+        splitRight: {placement: "right", Icon: RightSplitIcon},
+    } as const;
+
     const createToolbarButton = (child: ToolbarButtonType, index: number) => {
         // Hide split buttons once the maximum nesting depth is reached.
-        if (
-            atMaxDepth &&
-            (child === "splitTop" || child === "splitBottom" || child === "splitLeft" || child === "splitRight")
-        ) {
+        if (atMaxDepth && child in SPLIT_BUTTON_CONFIG) {
             return null;
         }
+        if (child in SPLIT_BUTTON_CONFIG) {
+            const {placement, Icon} = SPLIT_BUTTON_CONFIG[child as keyof typeof SPLIT_BUTTON_CONFIG];
+            return (
+                <ToolbarButton
+                    key={index}
+                    onClick={() =>
+                        layoutDispatch({
+                            type: "addWindow",
+                            path: path,
+                            window: {
+                                tabs: [new TabData("blank")],
+                                selectedIndex: 0,
+                            },
+                            placement,
+                        })
+                    }
+                >
+                    <Icon />
+                </ToolbarButton>
+            );
+        }
         switch (child) {
-            case "splitTop":
-                return (
-                    <ToolbarButton
-                        key={index}
-                        onClick={() =>
-                            layoutDispatch({
-                                type: "addWindow",
-                                path: path,
-                                window: {
-                                    tabs: [new TabData("blank")],
-                                    selectedIndex: 0,
-                                },
-                                placement: "top",
-                            })
-                        }
-                    >
-                        <TopSplitIcon />
-                    </ToolbarButton>
-                );
-            case "splitBottom":
-                return (
-                    <ToolbarButton
-                        key={index}
-                        onClick={() =>
-                            layoutDispatch({
-                                type: "addWindow",
-                                path: path,
-                                window: {
-                                    tabs: [new TabData("blank")],
-                                    selectedIndex: 0,
-                                },
-                                placement: "bottom",
-                            })
-                        }
-                    >
-                        <BottomSplitIcon />
-                    </ToolbarButton>
-                );
-            case "splitLeft":
-                return (
-                    <ToolbarButton
-                        key={index}
-                        onClick={() =>
-                            layoutDispatch({
-                                type: "addWindow",
-                                path: path,
-                                window: {
-                                    tabs: [new TabData("blank")],
-                                    selectedIndex: 0,
-                                },
-                                placement: "left",
-                            })
-                        }
-                    >
-                        <LeftSplitIcon />
-                    </ToolbarButton>
-                );
-            case "splitRight":
-                return (
-                    <ToolbarButton
-                        key={index}
-                        onClick={() =>
-                            layoutDispatch({
-                                type: "addWindow",
-                                path: path,
-                                window: {
-                                    tabs: [new TabData("blank")],
-                                    selectedIndex: 0,
-                                },
-                                placement: "right",
-                            })
-                        }
-                    >
-                        <RightSplitIcon />
-                    </ToolbarButton>
-                );
             // "maximize" is a toggle: it becomes "minimize" while this window is
             // maximized. "minimize" behaves identically so either type works.
             case "maximize":
