@@ -24,10 +24,23 @@ export interface LaymanNode {
 
 export type LaymanLayout = LaymanWindow | LaymanNode | undefined;
 
+// Address of a window that has been floated out of the layout tree (see
+// `FloatingWindowData`). Identified by a stable id rather than a tree
+// position, since floating windows aren't part of the split tree.
+export interface FloatingWindowAddress {
+    floatingId: string;
+}
+
+// A `WindowAddress` identifies "the window a toolbar/tab/drag operates on":
+// either a position in the split tree (`LaymanPath`, e.g. `[0, 1]`) or a
+// floating window (`{floatingId}`). This lets floating windows be addressed,
+// rendered, and dragged-and-dropped identically to regular tree windows.
+export type WindowAddress = LaymanPath | FloatingWindowAddress;
+
 // Define the common attributes for all actions
 export interface BaseLaymanLayoutAction {
     type: string;
-    path: LaymanPath;
+    path: WindowAddress;
 }
 
 // Define the specific attributes required for each action type
@@ -49,12 +62,13 @@ export interface SelectTabAction extends BaseLaymanLayoutAction {
 export interface MoveTabAction extends BaseLaymanLayoutAction {
     type: "moveTab";
     tab: TabData;
-    newPath: LaymanPath;
+    newPath: WindowAddress;
     placement: "top" | "bottom" | "left" | "right" | "center";
 }
 
-export interface MoveSeparatorAction extends BaseLaymanLayoutAction {
+export interface MoveSeparatorAction {
     type: "moveSeparator";
+    path: LaymanPath;
     index: number;
     newSplitPercentage: number;
 }
@@ -72,8 +86,13 @@ export interface RemoveWindowAction extends BaseLaymanLayoutAction {
 export interface MoveWindowAction extends BaseLaymanLayoutAction {
     type: "moveWindow";
     window: LaymanWindow;
-    newPath: LaymanPath;
+    newPath: WindowAddress;
     placement: "top" | "bottom" | "left" | "right" | "center";
+    // Initial pixel rect for the new floating window. Required only when
+    // `newPath` addresses a floating window that doesn't exist yet (i.e.
+    // this is a "float this window" move rather than a merge into an
+    // already-floating window).
+    position?: Position;
 }
 
 // Currently support two hueristics
@@ -89,6 +108,21 @@ export type AutoArrangeAction = {
     type: "autoArrange";
 };
 
+// Reposition/resize a floating window (e.g. dragging an edge/corner resize
+// handle, or relocating it after a docking drag that didn't land on a drop
+// target).
+export interface SetFloatingWindowPositionAction {
+    type: "setFloatingWindowPosition";
+    floatingId: string;
+    position: Position;
+}
+
+// Raise a floating window's z-index above its siblings (click-to-focus).
+export interface BringFloatingWindowToFrontAction {
+    type: "bringFloatingWindowToFront";
+    floatingId: string;
+}
+
 // Union type of all possible actions
 export type LaymanLayoutAction =
     | AddTabAction
@@ -100,7 +134,9 @@ export type LaymanLayoutAction =
     | RemoveWindowAction
     | MoveWindowAction
     | AddTabActionWithHeuristic
-    | AutoArrangeAction;
+    | AutoArrangeAction
+    | SetFloatingWindowPositionAction
+    | BringFloatingWindowToFrontAction;
 
 export interface Position {
     top: number;
@@ -109,14 +145,14 @@ export interface Position {
     height: number;
 }
 
-interface DragTab {
+export interface DragTab {
     tab: TabData;
-    path?: LaymanPath;
+    path?: WindowAddress;
 }
 
-interface DragWindow {
+export interface DragWindow {
     tabs: TabData[];
-    path: LaymanPath;
+    path: WindowAddress;
     selectedIndex: number;
 }
 
@@ -132,16 +168,20 @@ export interface SeparatorProps {
     separators?: SeparatorProps[];
 }
 export interface ToolBarProps {
-    path: LaymanPath;
+    path: WindowAddress;
     position: Position;
     tabs: TabData[];
     selectedIndex: number;
+    // z-index override, used only for floating windows.
+    zIndex?: number;
 }
 export interface WindowProps {
     position: Position;
-    path: LaymanPath;
+    path: WindowAddress;
     tab: TabData;
     isSelected: boolean;
+    // z-index override, used only for floating windows.
+    zIndex?: number;
 }
 
 export type PaneRenderer = (arg0: TabData) => JSX.Element;
@@ -154,6 +194,8 @@ export type ToolbarButtonType =
     | "splitBottom"
     | "maximize"
     | "minimize"
+    | "float"
+    | "unfloat"
     | "close"
     | "misc";
 
@@ -174,6 +216,12 @@ export interface LaymanContextType {
     mutable: boolean;
     toolbarButtons?: Array<ToolbarButtonType>;
     renderNull: JSX.Element;
+    // Address of the currently maximized window, or null if none. Ephemeral state.
+    maximizedPath: WindowAddress | null;
+    setMaximizedPath: React.Dispatch<React.SetStateAction<WindowAddress | null>>;
+    // Windows that have been floated out of the layout. Lives in the same
+    // reducer-managed state as `layout`; mutate it via `layoutDispatch`.
+    floatingWindows: FloatingWindowData[];
     // Maximum split-nesting depth. depth = path.length (a single root window is
     // depth 0; each split adds 1). Splits that would exceed this are blocked.
     // Defaults to Infinity (no limit).
@@ -181,6 +229,22 @@ export interface LaymanContextType {
     // Whether the window tab row (toolbar) is shown. When false, windows are
     // chromeless and controls move into a compact ellipsis popover.
     showTabs: boolean;
+}
+
+// A window that has been "floated" out of the layout tree and is rendered as a
+// free-floating, draggable/resizable overlay.
+export interface FloatingWindowData {
+    id: string;
+    tabs: TabData[];
+    selectedIndex: number;
+    position: Position;
+    zIndex: number;
+}
+
+// The full reducer-managed state: the split tree plus any floating windows.
+export interface LaymanState {
+    layout: LaymanLayout;
+    floatingWindows: FloatingWindowData[];
 }
 
 export {TabData};
@@ -207,3 +271,16 @@ export type LaymanSerializedNode = {
 };
 
 export type LaymanSerializedLayout = LaymanSerializedWindow | LaymanSerializedNode | null;
+
+export type LaymanSerializedFloatingWindow = {
+    id: string;
+    tabs: LaymanSerializedTab[];
+    selectedIndex: number;
+    position: Position;
+    zIndex: number;
+};
+
+export type LaymanSerializedState = {
+    layout: LaymanSerializedLayout;
+    floatingWindows: LaymanSerializedFloatingWindow[];
+};

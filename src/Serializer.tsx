@@ -1,4 +1,11 @@
-import {LaymanLayout, LaymanSerializedLayout, LaymanSerializedTab, TabData} from "./types";
+import {
+    FloatingWindowData,
+    LaymanLayout,
+    LaymanSerializedFloatingWindow,
+    LaymanSerializedLayout,
+    LaymanSerializedTab,
+    TabData,
+} from "./types";
 
 export function serializeLayout(layout: LaymanLayout): LaymanSerializedLayout {
     if (!layout) return null;
@@ -36,5 +43,25 @@ export function deserializeLayout(data: LaymanSerializedLayout): LaymanLayout {
         direction: data.direction,
         viewPercent: data.viewPercent,
         children: data.children.map(deserializeLayout) as [LaymanLayout, LaymanLayout, ...LaymanLayout[]],
+    };
+}
+
+export function serializeFloatingWindow(floatingWindow: FloatingWindowData): LaymanSerializedFloatingWindow {
+    return {
+        id: floatingWindow.id,
+        selectedIndex: floatingWindow.selectedIndex,
+        position: floatingWindow.position,
+        zIndex: floatingWindow.zIndex,
+        tabs: floatingWindow.tabs.map((t) => ({name: t.name, options: t.options})),
+    };
+}
+
+export function deserializeFloatingWindow(data: LaymanSerializedFloatingWindow): FloatingWindowData {
+    return {
+        id: data.id,
+        selectedIndex: data.selectedIndex,
+        position: data.position,
+        zIndex: data.zIndex,
+        tabs: data.tabs.map(deserializeTab),
     };
 }

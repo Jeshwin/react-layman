@@ -66,7 +66,7 @@ export default function App() {
     const [showSidebar, setShowSidebar] = useState(false);
 
     // State to toggle between tab bar and compact window menu.
-    const [showTabs, setShowTabs] = useState(false);
+    const [showTabs, setShowTabs] = useState(true);
 
     // State to control the maximum split-nesting depth of the layout.
     const [maxDepth, setMaxDepth] = useState(4);
@@ -84,7 +84,7 @@ export default function App() {
             renderTab={renderTab}
             renderNull={<NullLayout />}
             mutable={mutable}
-            toolbarButtons={["splitBottom", "splitRight", "maximize"]}
+            toolbarButtons={["splitBottom", "splitRight", "maximize", "float"]}
             storageKey={storageKey}
             showTabs={showTabs}
             maxDepth={maxDepth}
@@ -109,12 +109,12 @@ export default function App() {
                     </PanelSection>
 
                     {/* Toggles */}
-                    <Toggle checked={mutable} onCheck={() => setMutable(!mutable)} spanText="Mutable?" />
-                    <Toggle checked={showTabs} onCheck={() => setShowTabs(!showTabs)} spanText="Show Tabs?" />
+                    <Toggle checked={mutable} onCheck={() => setMutable(!mutable)} spanText="Mutable" />
+                    <Toggle checked={showTabs} onCheck={() => setShowTabs(!showTabs)} spanText="Show Tabs" />
                     <Toggle
                         checked={showSidebar}
                         onCheck={() => setShowSidebar(!showSidebar)}
-                        spanText="Sidebar?"
+                        spanText="Show Sidebar"
                     />
 
                     {/* Numeric input */}

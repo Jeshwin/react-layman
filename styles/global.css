@@ -71,6 +71,12 @@
         opacity: 0;
         z-index: 3;
     }
+    /* Floating windows render with the exact same markup/classes as tiled
+       windows, plus this subtle elevation so they read as "floating". */
+    &.floating {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        border-radius: var(--border-radius, 8px);
+    }
 }
 
 .layman-toolbar {
@@ -190,6 +196,81 @@
         /* position: absolute;
         right: 0; */
         border-top-right-radius: var(--border-radius, 8px);
+    }
+
+    /* Floating windows render with the exact same markup/classes as tiled
+       windows, plus this subtle elevation so they read as "floating". */
+    &.floating {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        border-top-left-radius: var(--border-radius, 8px);
+        border-top-right-radius: var(--border-radius, 8px);
+    }
+}
+
+/* Resize handles for floating windows. Positioned to exactly cover a
+   floating window's toolbar + pane rect (see FloatingWindow.tsx); the
+   toolbar/pane themselves are plain `.layman-toolbar`/`.layman-window`. */
+.layman-floating-resize-handles {
+    .layman-floating-resize {
+        position: absolute;
+        pointer-events: auto;
+        --handle: 8px;
+        &.n {
+            top: 0;
+            left: var(--handle);
+            right: var(--handle);
+            height: var(--handle);
+            cursor: ns-resize;
+        }
+        &.s {
+            bottom: 0;
+            left: var(--handle);
+            right: var(--handle);
+            height: var(--handle);
+            cursor: ns-resize;
+        }
+        &.e {
+            top: var(--handle);
+            bottom: var(--handle);
+            right: 0;
+            width: var(--handle);
+            cursor: ew-resize;
+        }
+        &.w {
+            top: var(--handle);
+            bottom: var(--handle);
+            left: 0;
+            width: var(--handle);
+            cursor: ew-resize;
+        }
+        &.ne {
+            top: 0;
+            right: 0;
+            width: var(--handle);
+            height: var(--handle);
+            cursor: nesw-resize;
+        }
+        &.nw {
+            top: 0;
+            left: 0;
+            width: var(--handle);
+            height: var(--handle);
+            cursor: nwse-resize;
+        }
+        &.se {
+            bottom: 0;
+            right: 0;
+            width: var(--handle);
+            height: var(--handle);
+            cursor: nwse-resize;
+        }
+        &.sw {
+            bottom: 0;
+            left: 0;
+            width: var(--handle);
+            height: var(--handle);
+            cursor: nesw-resize;
+        }
     }
 }
 
@@ -325,4 +406,26 @@
     z-index: 11;
     background-color: var(--indicator-color, #ff7f11);
     pointer-events: none;
+}
+
+/* Dock zones for floating-window whole-window drags: 4 fixed zones near the
+   edges of the whole layout, plus one dynamic zone centered over whichever
+   tiled window is under the cursor (see FloatingDockZones.tsx). Only
+   rendered while such a drag is in progress. */
+.layman-floating-anchor {
+    position: absolute;
+    z-index: 1000;
+    display: grid;
+    place-content: center;
+    border-radius: var(--border-radius, 8px);
+    transition: opacity 150ms ease-in-out;
+    color: var(--indicator-color, #ff7f11);
+    font-size: 48px;
+    pointer-events: auto;
+    opacity: 0.5;
+    &.over {
+        /* border-style: solid; */
+        /* background-color: var(--indicator-color, #ff7f11); */
+        opacity: 1;
+    }
 }

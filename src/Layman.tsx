@@ -4,12 +4,15 @@ import {Window} from "./Window";
 import {LaymanLayout, LaymanPath, ToolBarProps, WindowProps, Position, SeparatorProps} from "./types";
 import {LaymanContext} from "./LaymanContext";
 import {Separator} from "./Separator";
+import {addressKey} from "./utils";
+import {FloatingResizeHandleLayer} from "./FloatingWindow";
+import {FloatingDockZones} from "./FloatingDockZones";
 
 /**
  * Entry point for Layman Window Manager
  */
 export function Layman() {
-    const {globalContainerSize, setGlobalContainerSize, layout, renderNull, draggedWindowTabs} =
+    const {globalContainerSize, setGlobalContainerSize, layout, renderNull, draggedWindowTabs, floatingWindows} =
         useContext(LaymanContext);
     // Reference for parent div
     const laymanRef = useRef<HTMLDivElement | null>(null);
@@ -270,34 +273,59 @@ export function Layman() {
             []
         );
 
+        // Floating windows aren't part of the split tree, but are addressed,
+        // rendered, and dragged-and-dropped identically to tiled windows -
+        // append them to the exact same flat lists.
+        floatingWindows.forEach((floatingWindow) => {
+            calculatedToolbars.push({
+                path: {floatingId: floatingWindow.id},
+                position: floatingWindow.position,
+                tabs: floatingWindow.tabs,
+                selectedIndex: floatingWindow.selectedIndex,
+                zIndex: floatingWindow.zIndex,
+            });
+            floatingWindow.tabs.forEach((tab, index) => {
+                calculatedWindows.push({
+                    position: floatingWindow.position,
+                    path: {floatingId: floatingWindow.id},
+                    tab,
+                    isSelected: index == floatingWindow.selectedIndex,
+                    zIndex: floatingWindow.zIndex,
+                });
+            });
+        });
+
         return {
             toolbars: calculatedToolbars,
             windows: calculatedWindows,
             separators: calculatedSeparators,
         };
-    }, [globalContainerSize, draggedWindowTabs, layout]);
+    }, [globalContainerSize, draggedWindowTabs, layout, floatingWindows]);
 
     return (
         <div ref={laymanRef} className="layman-root">
-            {layout ? (
-                <>
-                    {toolbars.map((props) => (
-                        <WindowToolbar key={props.path.length != 0 ? props.path.join(":") : "root"} {...props} />
-                    ))}
-                    {windows.map((props) => (
-                        <Window key={props.tab.id} {...props} />
-                    ))}
-                    {separators.map((props) => (
-                        <Separator
-                            key={props.path.length != 0 ? props.path.join(":") : "root"}
-                            separators={separators} // Pass the full list
-                            {...props}
-                        />
-                    ))}
-                </>
-            ) : (
-                renderNull
-            )}
+            {/* Shown behind any floating windows when the tree is empty. */}
+            {!layout && renderNull}
+            {toolbars.map((props) => (
+                <WindowToolbar key={addressKey(props.path)} {...props} />
+            ))}
+            {windows.map((props) => (
+                <Window key={props.tab.id} {...props} />
+            ))}
+            {separators.map((props) => (
+                <Separator
+                    key={props.path.length != 0 ? props.path.join(":") : "root"}
+                    separators={separators} // Pass the full list
+                    {...props}
+                />
+            ))}
+            {/* Resize handles for floating windows (their toolbar/pane render
+                via the flat lists above, identically to tiled windows). */}
+            <FloatingResizeHandleLayer />
+            {/* Dock zones for floating-window whole-window drags (edges of
+                the root + the tiled window under the cursor); renders
+                nothing unless such a drag is in progress. */}
+            <FloatingDockZones />
         </div>
     );
 }

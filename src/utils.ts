@@ -7,6 +7,23 @@
  * dependencies and the associated npm supply-chain exposure.
  */
 
+import {FloatingWindowAddress, WindowAddress} from "./types";
+
+/**
+ * Narrows a `WindowAddress` to a floating-window address. A `WindowAddress`
+ * is either a tree `LaymanPath` (a plain number array) or a
+ * `FloatingWindowAddress` (`{floatingId}`), so a simple array check
+ * distinguishes the two.
+ */
+export function isFloatingAddress(address: WindowAddress): address is FloatingWindowAddress {
+    return !Array.isArray(address);
+}
+
+/** A stable string key/DOM id for a window address, tree or floating. */
+export function addressKey(address: WindowAddress): string {
+    return isFloatingAddress(address) ? `float-${address.floatingId}` : address.length != 0 ? address.join(":") : "root";
+}
+
 /**
  * Recursively deep-clones a value.
  *

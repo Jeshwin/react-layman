@@ -120,20 +120,19 @@ export function RightSplitIcon() {
 export function MaximizeIcon() {
     return (
         <svg
-            stroke="currentColor"
-            fill="none"
-            strokeWidth="2"
+            xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
-            strokeLinecap="round"
-            strokeLinejoin="round"
             height="1em"
             width="1em"
-            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
         >
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <polyline points="9 21 3 21 3 15"></polyline>
-            <line x1="21" x2="14" y1="3" y2="10"></line>
-            <line x1="3" x2="10" y1="21" y2="14"></line>
+            <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+            <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+            <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+            <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
         </svg>
     );
 }
@@ -141,20 +140,55 @@ export function MaximizeIcon() {
 export function MinimizeIcon() {
     return (
         <svg
-            stroke="currentColor"
-            fill="none"
-            strokeWidth="2"
+            xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
-            strokeLinecap="round"
-            strokeLinejoin="round"
             height="1em"
             width="1em"
-            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
         >
-            <path d="M8 3v3a2 2 0 0 1-2 2H3"></path>
-            <path d="M21 8h-3a2 2 0 0 1-2-2V3"></path>
-            <path d="M3 16h3a2 2 0 0 1 2 2v3"></path>
-            <path d="M16 21v-3a2 2 0 0 1 2-2h3"></path>
+            <path d="M8 3v3a2 2 0 0 1-2 2H3" />
+            <path d="M21 8h-3a2 2 0 0 1-2-2V3" />
+            <path d="M3 16h3a2 2 0 0 1 2 2v3" />
+            <path d="M16 21v-3a2 2 0 0 1 2-2h3" />
+        </svg>
+    );
+}
+
+export function FloatIcon() {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            height="1em"
+            width="1em"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <rect x="8" y="8" width="8" height="8" rx="1" />
+        </svg>
+    );
+}
+
+export function UnfloatIcon() {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            height="1em"
+            width="1em"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <rect x="8" y="8" width="8" height="8" rx="1" fill="currentColor" />
         </svg>
     );
 }

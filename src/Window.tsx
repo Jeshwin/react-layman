@@ -4,10 +4,20 @@ import {useDragLayer} from "react-dnd";
 import {createPortal} from "react-dom";
 import {WindowContext} from "./WindowContext";
 import {Position, WindowProps} from "./types";
+import {deepEqual, isFloatingAddress} from "./utils";
 
-export function Window({position, path, tab, isSelected}: WindowProps) {
-    const {globalContainerSize, renderPane, draggedWindowTabs, windowDragStartPosition, showTabs} =
-        useContext(LaymanContext);
+export function Window({position: rawPosition, path, tab, isSelected, zIndex: floatingZIndex}: WindowProps) {
+    const {
+        globalContainerSize,
+        renderPane,
+        draggedWindowTabs,
+        windowDragStartPosition,
+        maximizedPath,
+        showTabs,
+        layoutDispatch,
+    } = useContext(LaymanContext);
+
+    const isFloating = isFloatingAddress(path);
 
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
@@ -17,8 +27,21 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
     const windowToolbarHeight = showTabs
         ? parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64
         : 0;
+
+    // A maximized window overrides its layout position to fill the whole container.
+    const isMaximized = maximizedPath !== null && deepEqual(maximizedPath, path);
+    const position: Position = isMaximized
+        ? {top: 0, left: 0, width: globalContainerSize.width, height: globalContainerSize.height}
+        : rawPosition;
     const isDragging = draggedWindowTabs.includes(tab);
-    const scale = isDragging ? 0.7 : 1;
+    // Floating windows aren't part of the split tree, so a whole-window drag
+    // moves the real window instead of showing a shrunken "ghost" preview.
+    const scale = isDragging && !isFloating ? 0.7 : 1;
+
+    // Bring this floating window to the front when its content is interacted with.
+    const bringToFront = () => {
+        if (isFloating) layoutDispatch({type: "bringFloatingWindowToFront", floatingId: path.floatingId});
+    };
 
     // Custom drag layer to track mouse position during dragging
     const {clientOffset} = useDragLayer((monitor) => ({
@@ -78,6 +101,16 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
         height: position.height - separatorThickness / 2,
     };
 
+    const zIndex = isMaximized
+        ? 20
+        : isFloating
+          ? isDragging
+              ? 999
+              : (floatingZIndex ?? 30)
+          : isDragging
+            ? 12
+            : 5;
+
     return (
         <div
             id={tab.id}
@@ -85,12 +118,14 @@ export function Window({position, path, tab, isSelected}: WindowProps) {
                 ...adjustedWindowPosition,
                 transform: `scale(${scale})`,
                 transformOrigin: `${windowDragStartPosition.x}px top`,
-                zIndex: isDragging ? 12 : 5,
+                zIndex,
                 pointerEvents: isDragging ? "none" : "auto",
             }}
-            className={`layman-window ${isSelected ? "selected" : "unselected"}`}
+            className={`layman-window ${isSelected ? "selected" : "unselected"} ${isFloating ? "floating" : ""}`}
+            onMouseDown={bringToFront}
         >
             {isDragging &&
+                !isFloating &&
                 createPortal(
                     <div
                         style={{
