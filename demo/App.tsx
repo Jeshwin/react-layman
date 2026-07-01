@@ -109,9 +109,13 @@ export default function App() {
                     </PanelSection>
 
                     {/* Toggles */}
-                    <Toggle checked={mutable} onCheck={() => setMutable(!mutable)} spanText="Mutable?" />
-                    <Toggle checked={showTabs} onCheck={() => setShowTabs(!showTabs)} spanText="Show Tabs?" />
-                    <Toggle checked={showSidebar} onCheck={() => setShowSidebar(!showSidebar)} spanText="Sidebar?" />
+                    <Toggle checked={mutable} onCheck={() => setMutable(!mutable)} spanText="Mutable" />
+                    <Toggle checked={showTabs} onCheck={() => setShowTabs(!showTabs)} spanText="Show Tabs" />
+                    <Toggle
+                        checked={showSidebar}
+                        onCheck={() => setShowSidebar(!showSidebar)}
+                        spanText="Show Sidebar"
+                    />
 
                     {/* Numeric input */}
                     <NumberStepper label="Max Depth" value={maxDepth} onChange={setMaxDepth} min={1} max={10} />

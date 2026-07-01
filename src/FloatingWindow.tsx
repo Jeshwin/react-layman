@@ -6,8 +6,8 @@ import {CloseIcon, UnfloatIcon} from "./Icons";
 import {findWindowAtPoint} from "./layoutGeometry";
 import {FloatingWindowData, Position} from "./types";
 
-const MIN_WIDTH = 120;
-const MIN_HEIGHT = 80;
+const MIN_WIDTH = 200;
+const MIN_HEIGHT = 200;
 
 type ResizeDir = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 
