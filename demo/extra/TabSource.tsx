@@ -35,21 +35,20 @@ export default function TabSource({tabName, heuristic}: {tabName: string; heuris
             className="tab-source"
             title={`Drag to place · Double-click to add to ${heuristic === "topleft" ? "top-left" : "top-right"}`}
             style={{
-                height: 28,
-                minWidth: 28,
-                paddingInline: 10,
+                height: 32,
+                minWidth: 32,
+                paddingInline: 6,
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 4,
-                borderRadius: 6,
+                borderRadius: 8,
                 backgroundColor: "#414559",
                 border: "1px solid #626880",
                 margin: "0 3px",
                 opacity: isDragging ? 0.4 : 1,
                 cursor: "grab",
                 userSelect: "none",
-                fontSize: 12,
                 fontWeight: 500,
                 letterSpacing: "0.02em",
                 color: "#c6d0f5",
@@ -59,18 +58,26 @@ export default function TabSource({tabName, heuristic}: {tabName: string; heuris
             onDoubleClick={handleDoubleClick}
         >
             <svg
-                width="10"
-                height="10"
-                viewBox="0 0 10 10"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
                 fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 style={{opacity: 0.6, flexShrink: 0}}
             >
-                <circle cx="3" cy="2.5" r="1" fill="currentColor" />
-                <circle cx="7" cy="2.5" r="1" fill="currentColor" />
-                <circle cx="3" cy="5" r="1" fill="currentColor" />
-                <circle cx="7" cy="5" r="1" fill="currentColor" />
-                <circle cx="3" cy="7.5" r="1" fill="currentColor" />
-                <circle cx="7" cy="7.5" r="1" fill="currentColor" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="19" cy="5" r="1" />
+                <circle cx="5" cy="5" r="1" />
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="19" cy="12" r="1" />
+                <circle cx="5" cy="12" r="1" />
+                <circle cx="12" cy="19" r="1" />
+                <circle cx="19" cy="19" r="1" />
+                <circle cx="5" cy="19" r="1" />
             </svg>
             {tabName}
         </div>

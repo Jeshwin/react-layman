@@ -5,7 +5,8 @@ export default function Button({onClick, children}: {onClick: () => void; childr
         <button
             style={{
                 height: 32,
-                paddingInline: 14,
+                padding: 8,
+
                 borderRadius: 6,
                 border: "1px solid #626880",
                 backgroundColor: "#414559",
