@@ -49,13 +49,12 @@ export default function App() {
         ],
     };
     /**
-     * Transforms a given pane ID to its corresponding window component
+     * Renders the pane content shown inside a window for the given tab.
      */
     const renderPane = (tab: TabData): JSX.Element => <Pane paneId={tab.id} />;
 
     /**
-     * Transforms a given pane ID to its corresponding tab name
-     * for display purposes.
+     * Renders the label shown on a tab, for display purposes.
      */
     const renderTab = (tab: TabData) => tab.name;
 

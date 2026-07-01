@@ -2,7 +2,6 @@ import {createContext, useContext} from "react";
 import {TabData} from "./TabData";
 import {WindowProps} from "./types";
 
-// Create WindowContext
 export const WindowContext = createContext<WindowProps>({
     position: {
         top: 0,
@@ -15,5 +14,4 @@ export const WindowContext = createContext<WindowProps>({
     isSelected: false,
 });
 
-// Custom hook to use WindowContext easily
 export const useWindowContext = () => useContext(WindowContext);

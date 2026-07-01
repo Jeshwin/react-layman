@@ -14,21 +14,18 @@ export function Separator({nodePosition, position, index, direction, path, separ
     const toolbarHeight =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) || 32;
 
-    // Find the previous separator
     const previousSeparator = separators!.find((sep) => {
         const prevPath = [...path];
         prevPath[prevPath.length - 1] -= 1;
         return deepEqual(sep.path, prevPath);
     })?.position;
 
-    // Find the next separator
     const nextSeparator = separators!.find((sep) => {
         const prevPath = [...path];
         prevPath[prevPath.length - 1] += 1;
         return deepEqual(sep.path, prevPath);
     })?.position;
 
-    // Toggle isDragging when holding separator
     const handleMouseUp: MouseEventHandler<HTMLElement> = (event) => {
         event.preventDefault();
         setIsDragging(false);
@@ -51,9 +48,14 @@ export function Separator({nodePosition, position, index, direction, path, separ
                     : 100 *
                       ((eventX - (previousSeparator ? previousSeparator.left : nodePosition.left)) /
                           nodePosition.width);
+            // A pane can never shrink below the space its own toolbar and one
+            // separator thickness need, so that's the floor for this split.
             const minSplitPercentage =
                 (100 * (toolbarHeight + separatorThickness)) /
                 (direction === "column" ? nodePosition.height : nodePosition.width);
+            // The ceiling mirrors the floor: it's the span between the neighboring
+            // separators (or the node's own edges) minus that same reserved space,
+            // so the sibling pane on the other side keeps room for its toolbar too.
             const maxSplitPercentage =
                 (direction === "column"
                     ? 100 *
@@ -80,11 +82,9 @@ export function Separator({nodePosition, position, index, direction, path, separ
             });
         };
 
-        // Add event listeners to document
         document.addEventListener("mousemove", handleMouseMove as unknown as (this: Document, ev: MouseEvent) => never);
         document.addEventListener("mouseup", handleMouseUp as unknown as (this: Document, ev: MouseEvent) => never);
 
-        // Clean up event listeners when component unmounts
         return () => {
             document.removeEventListener(
                 "mousemove",

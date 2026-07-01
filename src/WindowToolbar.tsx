@@ -103,6 +103,9 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
         tabContainer.scrollLeft += event.deltaY;
     };
 
+    // Intentionally mount-only: this establishes the initially-selected tab once,
+    // and must not re-fire every time `path`/`tabs`/`selectedIndex` change later
+    // (e.g. from user interaction), or it would override the user's own selection.
     useEffect(() => {
         layoutDispatch({
             type: "selectTab",
@@ -479,7 +482,7 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
                             />
                         )}
                     </div>
-                    {/** Button to add a new blank menu */}
+                    {/** Button to add a new blank tab */}
                     <div style={{display: "flex"}}>
                         <ToolbarButton
                             onClick={() => {
@@ -510,7 +513,7 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
                             });
                         }}
                     ></div>
-                    {/** Buttons to add convert window to a row or column */}
+                    {/** Buttons to convert window to a row or column */}
                     <div className="toolbar-button-container">{controlButtons}</div>
                 </div>
             ) : (

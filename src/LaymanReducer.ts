@@ -86,12 +86,17 @@ const treeRemoveWindow = (layout: LaymanLayout, path: LaymanPath): LaymanLayout 
         return undefined;
     }
 
-    // Get split percentage of dragged window to calculate new split percentages
+    // Get the removed window's split percentage so its remaining siblings can
+    // be rescaled to fill the space it leaves behind.
     const lastIndex = path[path.length - 1];
     const removedWindow = parent.children.find((_child, index) => index === lastIndex);
     const removedWindowSplitPercentage = removedWindow ? removedWindow.viewPercent : undefined;
 
-    // Remove the child layout since it has no tabs
+    // Remove the child layout since it has no tabs, and rescale the remaining
+    // children's percentages to fill the 100% left by the removed sibling. If
+    // its split percentage is known, divide by the remaining share (100 minus
+    // that percentage); otherwise assume equal sharing and divide by the new,
+    // smaller child count instead.
     const newChildren = parent.children
         .filter((_value, index) => index !== lastIndex)
         .map((child) => {
@@ -195,6 +200,10 @@ const treeRemoveTab = (layout: LaymanLayout, path: LaymanPath, tab: TabData): La
     let updatedSelectedIndex = window.selectedIndex;
     const removedTabIndex = window.tabs.indexOf(tab);
 
+    // `window.selectedIndex &&` intentionally skips this branch when selectedIndex
+    // is 0: if the removed tab was at or before index 0, it must have been the
+    // first tab, so the selection should stay at 0 (the new first tab) anyway,
+    // which is already the default value of updatedSelectedIndex.
     if (window.selectedIndex && removedTabIndex <= window.selectedIndex) {
         updatedSelectedIndex = Math.max(0, window.selectedIndex - 1);
     }
@@ -343,9 +352,18 @@ const treeAddWindow = (
 };
 
 /**
- * Helper function for moveWindow to adjust windows for new layout, using their new paths
+ * Helper function for moveWindow to adjust windows for new layout, using their new paths.
+ *
+ * `newPath` is computed against the tree as it looked *before* `originalPath`'s window
+ * is removed. But removing a window can collapse its parent split (when only one
+ * sibling remains, that sibling is promoted up, and if it shares direction with the
+ * grandparent, its children are merged directly into the grandparent's children).
+ * Both effects shift sibling indices around, so this function re-derives what
+ * `newPath` should actually be once those collapses have happened.
  */
 const adjustPath = (layout: LaymanLayout, originalPath: LaymanPath, newPath: LaymanPath): LaymanPath => {
+    // Length of the path prefix shared by originalPath and newPath, i.e. how many
+    // ancestor levels the source and destination have in common.
     let commonLength = 0;
     for (let i = 0; i < originalPath.length; i++) {
         if (originalPath[i] !== newPath[i]) break;
@@ -353,7 +371,15 @@ const adjustPath = (layout: LaymanLayout, originalPath: LaymanPath, newPath: Lay
     }
 
     if (commonLength != originalPath.length - 1) {
+        // newPath diverges above the immediate parent of originalPath. Only one
+        // specific case needs compensation here: newPath diverges exactly at the
+        // grandparent level, meaning the destination is a sibling of originalPath's
+        // parent. If that parent collapses (see below) and merges into the
+        // grandparent, everything after the parent's old slot in the grandparent's
+        // children shifts over by however many grandchildren got spliced in.
         if (commonLength != originalPath.length - 2) {
+            // Destination doesn't share enough ancestry to be affected by the
+            // collapse at originalPath's parent; no adjustment needed.
             return newPath;
         }
 
@@ -367,6 +393,8 @@ const adjustPath = (layout: LaymanLayout, originalPath: LaymanPath, newPath: Lay
         const grandparent = getLayoutAtPath(layout, grandparentPath);
         if (!grandparent || !("children" in grandparent)) return adjustedPath;
 
+        // The sibling that remains once originalPath's window is removed from its
+        // (two-child) parent - this is the one that gets promoted up a level.
         const onlyChild = parent.children[originalPath[originalPath.length - 1] == 1 ? 0 : 1];
 
         if (!onlyChild || !("children" in onlyChild)) {
@@ -374,6 +402,9 @@ const adjustPath = (layout: LaymanLayout, originalPath: LaymanPath, newPath: Lay
         }
 
         if (grandparent.direction === onlyChild.direction) {
+            // Parent's single slot in the grandparent's children is replaced by
+            // all of onlyChild's children, so anything positioned after that slot
+            // shifts forward by (onlyChild's child count - 1) slots.
             if (adjustedPath[commonLength] > originalPath[commonLength]) {
                 adjustedPath[commonLength] += onlyChild.children.length - 1;
             }

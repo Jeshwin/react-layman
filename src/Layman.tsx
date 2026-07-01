@@ -17,8 +17,10 @@ export function Layman() {
     // Reference for parent div
     const laymanRef = useRef<HTMLDivElement | null>(null);
 
+    // Keep the shared container size in context up to date on window resize,
+    // since layout math throughout Layman is expressed in absolute pixels
+    // derived from this size rather than percentages.
     useEffect(() => {
-        // Function to update container size
         const updateContainerSize = () => {
             if (laymanRef.current) {
                 const {top, left, width, height} = laymanRef.current.getBoundingClientRect();
@@ -26,34 +28,30 @@ export function Layman() {
             }
         };
 
-        // Get the initial dimensions of the container when the component mounts
         updateContainerSize();
-
-        // Add window resize event listener
         window.addEventListener("resize", updateContainerSize);
 
-        // Cleanup resize event listener on unmount
         return () => {
             window.removeEventListener("resize", updateContainerSize);
         };
     }, [setGlobalContainerSize]);
 
+    // Window resize alone doesn't catch every case (e.g. the container growing
+    // because a flex/grid parent changed), so a ResizeObserver watches the
+    // element directly as a second, more reliable source of size updates.
     useEffect(() => {
         if (!laymanRef.current) return;
         const laymanContainer = laymanRef.current;
 
-        // Create a ResizeObserver to monitor size changes
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 const {top, left, width, height} = entry.target.getBoundingClientRect();
-                setGlobalContainerSize({top, left, width, height}); // Update context with new size
+                setGlobalContainerSize({top, left, width, height});
             }
         });
 
-        // Observe the root element
         resizeObserver.observe(laymanContainer);
 
-        // Cleanup observer on unmount
         return () => {
             resizeObserver.disconnect();
         };
@@ -157,6 +155,12 @@ export function Layman() {
                         if (!child) return;
                         // Skip over dragged tab
                         if ("tabs" in child && child.tabs == draggedWindowTabs) return;
+                        // The dragged child's percentage is temporarily excluded from the
+                        // layout, so the remaining siblings must be rescaled to still add
+                        // up to 100%. If the dragged window had a known split percentage,
+                        // divide by the remaining share (100 - that percentage); otherwise
+                        // assume every child was sharing space equally and divide by the
+                        // new, smaller child count instead.
                         const viewPercent = draggedWindowSplitPercentage
                             ? ((child.viewPercent ? child.viewPercent : 100 / children.length) * 100) /
                               (100 - draggedWindowSplitPercentage)

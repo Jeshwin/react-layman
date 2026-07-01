@@ -7,9 +7,13 @@ import {DragData, LaymanPath, Position} from "./types";
 import {isFloatingAddress} from "./utils";
 import {BottomSplitIcon, LeftSplitIcon, RightSplitIcon, TopSplitIcon, UnfloatIcon} from "./Icons";
 
-const EDGE_LONG = 200;
-const EDGE_SHORT = 100;
-const CENTER_ZONE_MAX = 200;
+// Fixed pixel sizes for the drop-zone overlays shown while dragging a floating
+// window. These are deliberately constant (not relative to container size) so
+// the zones stay a comfortable, consistent drop target regardless of how large
+// or small the Layman container is.
+const EDGE_LONG = 200; // Length of an edge zone along the container's edge
+const EDGE_SHORT = 100; // Depth of an edge zone, perpendicular to the edge
+const CENTER_ZONE_MAX = 200; // Cap on the center zone's size for large windows
 
 type Edge = "top" | "bottom" | "left" | "right";
 

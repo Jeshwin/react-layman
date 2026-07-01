@@ -118,7 +118,7 @@ export function WindowDropTarget({path, position, placement}: WindowDropTargetPr
         },
     }));
 
-    // Don't render a drop zone for edge placements past the depth limit.
+    // Don't render a drop target for edge placements past the depth limit.
     if (wouldExceedMaxDepth) return null;
 
     return <div ref={drop} className={`layman-window-drop-target ${placement}`}></div>;

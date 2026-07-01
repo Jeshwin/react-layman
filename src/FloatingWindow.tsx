@@ -66,6 +66,10 @@ function FloatingWindowResizeHandles({data}: {data: FloatingWindowData}) {
             document.removeEventListener("mousemove", onMove);
             document.removeEventListener("mouseup", onUp);
         };
+        // onMove/onUp only read interactionRef.current (a ref, always current) and
+        // the stable layoutDispatch from context, so neither needs to be a dep.
+        // Re-subscribing only when the floating window's own identity changes is
+        // intentional, since re-running per render would drop in-progress drags.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data.id]);
 
