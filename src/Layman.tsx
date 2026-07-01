@@ -65,6 +65,7 @@ export function Layman() {
 
         function traverseLayout(layout: LaymanLayout, position: Position, path: LaymanPath) {
             if (!layout) return;
+
             // Check if it's a window (LaymanWindow) or a layout split
             if ("tabs" in layout) {
                 // If it's a window, handle the tabs and panes
@@ -83,186 +84,141 @@ export function Layman() {
                         isSelected: index == layout.selectedIndex,
                     });
                 });
-            } else {
-                // It's a layout split, traverse further
-                const {direction, children} = layout;
-
-                // Check if this split contains the dragged window
-                const containsDraggedWindow =
-                    draggedWindowTabs.length > 0 &&
-                    children.some((child) => child && "tabs" in child && child.tabs == draggedWindowTabs);
-
-                if (!containsDraggedWindow) {
-                    // Accumulate pixel offsets for children positioning
-                    let accumulatedPixels = 0;
-
-                    children.forEach((child, index) => {
-                        if (!child) return;
-
-                        const viewPercent = child.viewPercent ?? 100 / children.length;
-
-                        const splitPixels =
-                            direction === "row"
-                                ? position.width * (viewPercent / 100)
-                                : position.height * (viewPercent / 100);
-
-                        // Calculate the new child position based on splitPixels
-                        const childPosition =
-                            direction === "row"
-                                ? {
-                                      top: position.top,
-                                      left: position.left + accumulatedPixels,
-                                      width: splitPixels,
-                                      height: position.height,
-                                  }
-                                : {
-                                      top: position.top + accumulatedPixels,
-                                      left: position.left,
-                                      width: position.width,
-                                      height: splitPixels,
-                                  };
-
-                        // Traverse deeper into the layout tree
-                        traverseLayout(child, childPosition, path.concat([index]));
-
-                        // Add separator
-                        if (index != 0)
-                            calculatedSeparators.push({
-                                nodePosition: position,
-                                position: {
-                                    ...childPosition,
-                                    width: position.width,
-                                    height: position.height,
-                                },
-                                index: index - 1,
-                                direction,
-                                path: path.concat([index]),
-                            });
-
-                        // Update accumulated pixel offset for the next child
-                        accumulatedPixels += splitPixels;
-                    });
-                } else {
-                    // Get split percentage of dragged window to calculate new split percentages
-                    const draggedWindow = children.find(
-                        (child) => child && "tabs" in child && child.tabs == draggedWindowTabs
-                    );
-                    const draggedWindowSplitPercentage = draggedWindow ? draggedWindow.viewPercent : undefined;
-                    // Render non-dragged tabs as if dragged tab wasn't there
-                    let accumulatedPixels = 0;
-
-                    children.forEach((child, index) => {
-                        if (!child) return;
-                        // Skip over dragged tab
-                        if ("tabs" in child && child.tabs == draggedWindowTabs) return;
-                        // The dragged child's percentage is temporarily excluded from the
-                        // layout, so the remaining siblings must be rescaled to still add
-                        // up to 100%. If the dragged window had a known split percentage,
-                        // divide by the remaining share (100 - that percentage); otherwise
-                        // assume every child was sharing space equally and divide by the
-                        // new, smaller child count instead.
-                        const viewPercent = draggedWindowSplitPercentage
-                            ? ((child.viewPercent ? child.viewPercent : 100 / children.length) * 100) /
-                              (100 - draggedWindowSplitPercentage)
-                            : ((child.viewPercent ? child.viewPercent : 100 / children.length) * children.length) /
-                              (children.length - 1);
-
-                        const splitPixels =
-                            direction === "row"
-                                ? position.width * (viewPercent / 100)
-                                : position.height * (viewPercent / 100);
-
-                        // Calculate the new child position based on splitPixels
-                        const childPosition =
-                            direction === "row"
-                                ? {
-                                      top: position.top,
-                                      left: position.left + accumulatedPixels,
-                                      width: splitPixels,
-                                      height: position.height,
-                                  }
-                                : {
-                                      top: position.top + accumulatedPixels,
-                                      left: position.left,
-                                      width: position.width,
-                                      height: splitPixels,
-                                  };
-
-                        // Traverse deeper into the layout tree
-                        traverseLayout(child, childPosition, path.concat([index]));
-
-                        // Add separator
-
-                        if (index != children.length - 1)
-                            calculatedSeparators.push({
-                                nodePosition: position,
-                                position: {
-                                    top: 0,
-                                    left: 0,
-                                    width: 0,
-                                    height: 0,
-                                },
-                                index,
-                                direction,
-                                path: path.concat([index]),
-                            });
-
-                        // Update accumulated pixel offset for the next child
-                        accumulatedPixels += splitPixels;
-                    });
-
-                    // Render dragged window as if it was still in the layout
-                    accumulatedPixels = 0;
-                    children.forEach((child, index) => {
-                        if (!child) return;
-
-                        const viewPercent = child.viewPercent ?? 100 / children.length;
-
-                        const splitPixels =
-                            direction === "row"
-                                ? position.width * (viewPercent / 100)
-                                : position.height * (viewPercent / 100);
-
-                        // Calculate the new child position based on splitPixels
-                        const childPosition =
-                            direction === "row"
-                                ? {
-                                      top: position.top,
-                                      left: position.left + accumulatedPixels,
-                                      width: splitPixels,
-                                      height: position.height,
-                                  }
-                                : {
-                                      top: position.top + accumulatedPixels,
-                                      left: position.left,
-                                      width: position.width,
-                                      height: splitPixels,
-                                  };
-
-                        // Only traverse dragged window
-                        if ("tabs" in child && child.tabs == draggedWindowTabs) {
-                            traverseLayout(child, childPosition, path.concat([index]));
-
-                            if (index != children.length - 1)
-                                calculatedSeparators.push({
-                                    nodePosition: position,
-                                    position: {
-                                        top: 0,
-                                        left: 0,
-                                        width: 0,
-                                        height: 0,
-                                    },
-                                    index,
-                                    direction,
-                                    path: path.concat([index]),
-                                });
-                        }
-
-                        // Update accumulated pixel offset for the next child
-                        accumulatedPixels += splitPixels;
-                    });
-                }
+                return;
             }
+
+            // It's a layout split, traverse further
+            const {direction, children} = layout;
+
+            // Converts a viewPercent into an absolute pixel size along the
+            // split's axis. Shared by every pass below, since they all lay
+            // children out along the same axis of the same container.
+            const pixelsForViewPercent = (viewPercent: number) =>
+                direction === "row" ? position.width * (viewPercent / 100) : position.height * (viewPercent / 100);
+
+            // Positions a child at `accumulatedPixels` along the split's axis,
+            // filling the full cross-axis of the container. Shared by every
+            // pass below for the same reason as pixelsForViewPercent.
+            const childPositionAt = (accumulatedPixels: number, sizePixels: number): Position =>
+                direction === "row"
+                    ? {
+                          top: position.top,
+                          left: position.left + accumulatedPixels,
+                          width: sizePixels,
+                          height: position.height,
+                      }
+                    : {
+                          top: position.top + accumulatedPixels,
+                          left: position.left,
+                          width: position.width,
+                          height: sizePixels,
+                      };
+
+            // Pushes a separator between this split's children. `childIndex` is
+            // the index of the child immediately after the separator (used to
+            // build its path), while `separatorIndex` and `separatorPosition`
+            // vary between passes below (see their call sites).
+            const addSeparator = (childIndex: number, separatorIndex: number, separatorPosition: Position) => {
+                calculatedSeparators.push({
+                    nodePosition: position,
+                    position: separatorPosition,
+                    index: separatorIndex,
+                    direction,
+                    path: path.concat([childIndex]),
+                });
+            };
+
+            // Check if this split contains the dragged window
+            const containsDraggedWindow =
+                draggedWindowTabs.length > 0 &&
+                children.some((child) => child && "tabs" in child && child.tabs == draggedWindowTabs);
+
+            if (!containsDraggedWindow) {
+                // Accumulate pixel offsets for children positioning
+                let accumulatedPixels = 0;
+
+                children.forEach((child, index) => {
+                    if (!child) return;
+
+                    const viewPercent = child.viewPercent ?? 100 / children.length;
+                    const splitPixels = pixelsForViewPercent(viewPercent);
+                    const childPosition = childPositionAt(accumulatedPixels, splitPixels);
+
+                    // Traverse deeper into the layout tree
+                    traverseLayout(child, childPosition, path.concat([index]));
+
+                    if (index != 0) {
+                        addSeparator(index, index - 1, {...childPosition, width: position.width, height: position.height});
+                    }
+
+                    // Update accumulated pixel offset for the next child
+                    accumulatedPixels += splitPixels;
+                });
+                return;
+            }
+
+            // A window is being dragged out of this split. It's temporarily
+            // excluded so the remaining siblings can be rescaled and rendered
+            // as if it wasn't there (pass 1), then it's rendered again in a
+            // second pass (pass 2) positioned at its original slot, so its
+            // drag preview stays visually anchored to where it came from.
+            const draggedWindow = children.find((child) => child && "tabs" in child && child.tabs == draggedWindowTabs);
+            const draggedWindowSplitPercentage = draggedWindow ? draggedWindow.viewPercent : undefined;
+
+            // Pass 1: render non-dragged tabs as if the dragged tab wasn't there.
+            let accumulatedPixels = 0;
+            children.forEach((child, index) => {
+                if (!child) return;
+                // Skip over the dragged tab entirely; it's rendered separately in pass 2.
+                if ("tabs" in child && child.tabs == draggedWindowTabs) return;
+
+                // The dragged child's percentage is temporarily excluded from the
+                // layout, so the remaining siblings must be rescaled to still add
+                // up to 100%. If the dragged window had a known split percentage,
+                // divide by the remaining share (100 - that percentage); otherwise
+                // assume every child was sharing space equally and divide by the
+                // new, smaller child count instead.
+                const viewPercent = draggedWindowSplitPercentage
+                    ? ((child.viewPercent ? child.viewPercent : 100 / children.length) * 100) /
+                      (100 - draggedWindowSplitPercentage)
+                    : ((child.viewPercent ? child.viewPercent : 100 / children.length) * children.length) /
+                      (children.length - 1);
+                const splitPixels = pixelsForViewPercent(viewPercent);
+                const childPosition = childPositionAt(accumulatedPixels, splitPixels);
+
+                traverseLayout(child, childPosition, path.concat([index]));
+
+                // Separators aren't interactive during a drag preview, so their
+                // position is left zeroed out rather than computed for real.
+                if (index != children.length - 1) {
+                    addSeparator(index, index, {top: 0, left: 0, width: 0, height: 0});
+                }
+
+                accumulatedPixels += splitPixels;
+            });
+
+            // Pass 2: render the dragged window again in its original slot, so
+            // its drag preview stays where the layout expects it while dragging.
+            accumulatedPixels = 0;
+            children.forEach((child, index) => {
+                if (!child) return;
+
+                const viewPercent = child.viewPercent ?? 100 / children.length;
+                const splitPixels = pixelsForViewPercent(viewPercent);
+                const childPosition = childPositionAt(accumulatedPixels, splitPixels);
+
+                // Only the dragged window is rendered in this pass; its siblings
+                // were already rendered in pass 1.
+                if ("tabs" in child && child.tabs == draggedWindowTabs) {
+                    traverseLayout(child, childPosition, path.concat([index]));
+
+                    if (index != children.length - 1) {
+                        addSeparator(index, index, {top: 0, left: 0, width: 0, height: 0});
+                    }
+                }
+
+                accumulatedPixels += splitPixels;
+            });
         }
 
         // Initial traversal call with the root layout
