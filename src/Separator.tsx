@@ -7,10 +7,12 @@ export function Separator({nodePosition, position, index, direction, path, separ
     const {globalContainerSize, layoutDispatch} = useContext(LaymanContext);
     const [isDragging, setIsDragging] = useState(false);
 
+    // parseInt returns NaN (not null/undefined) when the CSS variable is missing,
+    // so the fallback must use || rather than ?? to actually take effect.
     const separatorThickness =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) || 8;
     const toolbarHeight =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 32;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) || 32;
 
     // Find the previous separator
     const previousSeparator = separators!.find((sep) => {

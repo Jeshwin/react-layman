@@ -27,11 +27,13 @@ export function WindowDropTarget({path, position, placement}: WindowDropTargetPr
     const wouldExceedMaxDepth = placement !== "center" && !isFloatingAddress(path) && path.length >= maxDepth;
 
     const windowToolbarHeight = showTabs
-        ? parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64
+        ? parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) || 64
         : 0;
 
+    // parseInt returns NaN (not null/undefined) when the CSS variable is missing,
+    // so the fallback must use || rather than ?? to actually take effect.
     const separatorThickness =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) || 8;
 
     useEffect(() => {
         const dropPosition: Position = {

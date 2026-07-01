@@ -58,12 +58,14 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
     const [menuOpen, setMenuOpen] = useState(false);
     // Track the previous length of the tabs array
     const previousTabCount = usePrevious(tabs.length);
+    // parseInt returns NaN (not null/undefined) when the CSS variable is missing,
+    // so the fallback must use || rather than ?? to actually take effect.
     const cssToolbarHeight =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) || 64;
     // When the tab row is hidden the toolbar occupies no vertical space.
     const windowToolbarHeight = showTabs ? cssToolbarHeight : 0;
     const separatorThickness =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) || 8;
     // Splits create a deeper window (path.length + 1); block them at the limit.
     // Floating windows are always single-pane, so splitting never applies.
     const atMaxDepth = isFloating || path.length >= maxDepth;

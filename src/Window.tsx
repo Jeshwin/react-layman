@@ -19,13 +19,15 @@ export function Window({position: rawPosition, path, tab, isSelected, zIndex: fl
 
     const isFloating = isFloatingAddress(path);
 
+    // parseInt returns NaN (not null/undefined) when the CSS variable is missing,
+    // so the fallback must use || rather than ?? to actually take effect.
     const separatorThickness =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) || 8;
 
     // When the tab row is hidden the toolbar takes no vertical space, so the pane
     // fills the entire window region.
     const windowToolbarHeight = showTabs
-        ? parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64
+        ? parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) || 64
         : 0;
 
     // A maximized window overrides its layout position to fill the whole container.

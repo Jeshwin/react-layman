@@ -25,10 +25,12 @@ interface WindowMenuProps {
 export function WindowMenu({path, position, tabs, selectedIndex, open, setOpen, controlButtons}: WindowMenuProps) {
     const {layoutDispatch, renderTab, mutable} = useContext(LaymanContext);
 
+    // parseInt returns NaN (not null/undefined) when the CSS variable is missing,
+    // so the fallback must use || rather than ?? to actually take effect.
     const cssToolbarHeight =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) || 64;
     const separatorThickness =
-        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
+        parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) || 8;
 
     const buttonSize = cssToolbarHeight;
 
