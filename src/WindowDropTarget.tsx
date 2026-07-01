@@ -75,6 +75,17 @@ export function WindowDropTarget({path, position, placement}: WindowDropTargetPr
 
     const [, drop] = useDrop(() => ({
         accept: [TabType, WindowType],
+        // A floating window's whole-window drag uses the dedicated
+        // FloatingDockZones instead of the ordinary per-window grid (which
+        // tiles the whole canvas and would leave no free space to just
+        // reposition the float). Individual tab drags, and whole-window
+        // drags whose source is a tiled window, are unaffected.
+        canDrop: (item: DragData, monitor) => {
+            if (monitor.getItemType() === WindowType && "tabs" in item) {
+                return !isFloatingAddress(item.path);
+            }
+            return true;
+        },
         drop: (item: DragData, monitor) => {
             const itemType = monitor.getItemType();
 
@@ -86,7 +97,7 @@ export function WindowDropTarget({path, position, placement}: WindowDropTargetPr
                     newPath: path,
                     placement: placement,
                 });
-            } else if (itemType === WindowType && "tabs" in item) {
+            } else if (itemType === WindowType && "tabs" in item && !isFloatingAddress(item.path)) {
                 layoutDispatch({
                     type: "moveWindow",
                     path: item.path,
@@ -99,7 +110,10 @@ export function WindowDropTarget({path, position, placement}: WindowDropTargetPr
                 });
             }
         },
-        hover: () => setDropHighlightPosition(newDropHighlightPosition.current),
+        hover: (_item, monitor) => {
+            if (!monitor.canDrop()) return;
+            setDropHighlightPosition(newDropHighlightPosition.current);
+        },
     }));
 
     // Don't render a drop zone for edge placements past the depth limit.

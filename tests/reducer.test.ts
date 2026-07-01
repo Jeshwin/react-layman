@@ -305,6 +305,119 @@ describe("removeWindow", () => {
     });
 });
 
+describe("addWindow (root edge, path: [])", () => {
+    it("seeds a brand-new layout when there is no layout yet", () => {
+        const window: LaymanWindow = {tabs: [new TabData("New")], selectedIndex: 0};
+        const result = runLayout(undefined, {type: "addWindow", path: [], window, placement: "top"});
+
+        expect(result).toEqual(window);
+    });
+
+    it("wraps a single-window root into a new split", () => {
+        const root = makeWindow(new TabData("Root"));
+        const window: LaymanWindow = {tabs: [new TabData("New")], selectedIndex: 0};
+
+        const result = runLayout(root, {type: "addWindow", path: [], window, placement: "right"}) as LaymanNode;
+
+        expect("children" in result).toBe(true);
+        expect(result.direction).toBe("row");
+        expect((result.children[0] as LaymanWindow).tabs).toEqual(root.tabs);
+        expect((result.children[1] as LaymanWindow).tabs).toEqual(window.tabs);
+    });
+
+    it("extends an already-matching-direction root split without extra nesting", () => {
+        const left = new TabData("Left");
+        const right = new TabData("Right");
+        const layout = makeRowOfTwo(left, right);
+        const window: LaymanWindow = {tabs: [new TabData("New")], selectedIndex: 0};
+
+        const result = runLayout(layout, {type: "addWindow", path: [], window, placement: "left"}) as LaymanNode;
+
+        expect("children" in result).toBe(true);
+        expect(result.direction).toBe("row");
+        expect(result.children).toHaveLength(3);
+        // Inserted at the front for "left".
+        expect((result.children[0] as LaymanWindow).tabs).toEqual(window.tabs);
+        expect((result.children[1] as LaymanWindow).tabs).toEqual([left]);
+        expect((result.children[2] as LaymanWindow).tabs).toEqual([right]);
+        const total = result.children.reduce((sum, child) => sum + (child!.viewPercent ?? 0), 0);
+        expect(total).toBeCloseTo(100);
+    });
+
+    it("appends to the end of a matching-direction root split for 'right'", () => {
+        const left = new TabData("Left");
+        const right = new TabData("Right");
+        const layout = makeRowOfTwo(left, right);
+        const window: LaymanWindow = {tabs: [new TabData("New")], selectedIndex: 0};
+
+        const result = runLayout(layout, {type: "addWindow", path: [], window, placement: "right"}) as LaymanNode;
+
+        expect(result.children).toHaveLength(3);
+        expect((result.children[2] as LaymanWindow).tabs).toEqual(window.tabs);
+    });
+
+    it("wraps the whole root when the split direction doesn't match the placement", () => {
+        const left = new TabData("Left");
+        const right = new TabData("Right");
+        const layout = makeRowOfTwo(left, right); // direction: "row"
+        const window: LaymanWindow = {tabs: [new TabData("New")], selectedIndex: 0};
+
+        // "top"/"bottom" want a column split, but the root is a row split.
+        const result = runLayout(layout, {type: "addWindow", path: [], window, placement: "top"}) as LaymanNode;
+
+        expect(result.direction).toBe("column");
+        expect(result.children).toHaveLength(2);
+        expect((result.children[0] as LaymanWindow).tabs).toEqual(window.tabs);
+        // The entire original row-split root is preserved intact as the other child.
+        const preservedRoot = result.children[1] as LaymanNode;
+        expect(preservedRoot.direction).toBe("row");
+        expect((preservedRoot.children[0] as LaymanWindow).tabs).toEqual([left]);
+        expect((preservedRoot.children[1] as LaymanWindow).tabs).toEqual([right]);
+    });
+});
+
+describe("moveWindow (floating -> root edge)", () => {
+    it("docks a floating window at the root edge of an already-split root", () => {
+        const left = new TabData("Left");
+        const right = new TabData("Right");
+        const layout = makeRowOfTwo(left, right);
+        const floaterTab = new TabData("Floater");
+        const floatingWindow = makeFloatingWindow("float-1", floaterTab);
+        const state: LaymanState = {layout, floatingWindows: [floatingWindow]};
+
+        const result = run(state, {
+            type: "moveWindow",
+            path: {floatingId: "float-1"},
+            newPath: [],
+            window: {tabs: [floaterTab], selectedIndex: 0},
+            placement: "left",
+        });
+
+        expect(result.floatingWindows).toEqual([]);
+        const node = result.layout as LaymanNode;
+        expect(node.children).toHaveLength(3);
+        // Same TabData object, not recreated.
+        expect((node.children[0] as LaymanWindow).tabs[0]).toBe(floaterTab);
+    });
+
+    it("becomes the root when there is no layout yet", () => {
+        const floaterTab = new TabData("Floater");
+        const floatingWindow = makeFloatingWindow("float-1", floaterTab);
+        const state: LaymanState = {layout: undefined, floatingWindows: [floatingWindow]};
+
+        const result = run(state, {
+            type: "moveWindow",
+            path: {floatingId: "float-1"},
+            newPath: [],
+            window: {tabs: [floaterTab], selectedIndex: 0},
+            placement: "top",
+        });
+
+        expect(result.floatingWindows).toEqual([]);
+        expect((result.layout as LaymanWindow).tabs[0]).toBe(floaterTab);
+    });
+});
+
 describe("moveWindow (floating)", () => {
     it("floats a tree window into a brand new floating window, preserving tab identity", () => {
         const left = new TabData("Left");

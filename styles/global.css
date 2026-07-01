@@ -407,3 +407,25 @@
     background-color: var(--indicator-color, #ff7f11);
     pointer-events: none;
 }
+
+/* Dock zones for floating-window whole-window drags: 4 fixed zones near the
+   edges of the whole layout, plus one dynamic zone centered over whichever
+   tiled window is under the cursor (see FloatingDockZones.tsx). Only
+   rendered while such a drag is in progress. */
+.layman-floating-anchor {
+    position: absolute;
+    z-index: 1000;
+    display: grid;
+    place-content: center;
+    border-radius: var(--border-radius, 8px);
+    transition: opacity 150ms ease-in-out;
+    color: var(--indicator-color, #ff7f11);
+    font-size: 48px;
+    pointer-events: auto;
+    opacity: 0.5;
+    &.over {
+        /* border-style: solid; */
+        /* background-color: var(--indicator-color, #ff7f11); */
+        opacity: 1;
+    }
+}

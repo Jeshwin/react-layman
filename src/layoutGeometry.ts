@@ -39,6 +39,33 @@ export function computeWindowRects(
 }
 
 /**
+ * Returns the path and pixel rectangle of the leaf window containing the
+ * given point, or null if none do. Used both for un-float hit-testing and to
+ * size/center the "hovered tiled window" floating dock zone.
+ */
+export function findWindowRectAtPoint(
+    layout: LaymanLayout,
+    container: {width: number; height: number},
+    point: {x: number; y: number}
+): {path: LaymanPath; position: Position} | null {
+    const rects = computeWindowRects(layout, container);
+    // Iterate in reverse so deeper/later windows win ties.
+    for (let i = rects.length - 1; i >= 0; i--) {
+        const rect = rects[i];
+        const {position} = rect;
+        if (
+            point.x >= position.left &&
+            point.x <= position.left + position.width &&
+            point.y >= position.top &&
+            point.y <= position.top + position.height
+        ) {
+            return rect;
+        }
+    }
+    return null;
+}
+
+/**
  * Returns the path of the leaf window whose rectangle contains the given point,
  * or null if none do.
  */
@@ -47,18 +74,5 @@ export function findWindowAtPoint(
     container: {width: number; height: number},
     point: {x: number; y: number}
 ): LaymanPath | null {
-    const rects = computeWindowRects(layout, container);
-    // Iterate in reverse so deeper/later windows win ties.
-    for (let i = rects.length - 1; i >= 0; i--) {
-        const {path, position} = rects[i];
-        if (
-            point.x >= position.left &&
-            point.x <= position.left + position.width &&
-            point.y >= position.top &&
-            point.y <= position.top + position.height
-        ) {
-            return path;
-        }
-    }
-    return null;
+    return findWindowRectAtPoint(layout, container, point)?.path ?? null;
 }

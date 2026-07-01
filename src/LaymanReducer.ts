@@ -235,13 +235,37 @@ const treeSelectTab = (layout: LaymanLayout, path: LaymanPath, tab: TabData): La
     }
 };
 
+/**
+ * Inserts `window` into `children` at `index`, rescaling siblings'
+ * viewPercent to make room for it (100 / (n + 1) for the new window; each
+ * existing sibling's viewPercent scaled by n / (n + 1)).
+ */
+const insertChildAt = (children: Children<LaymanLayout>, index: number, window: LaymanWindow): Children<LaymanLayout> => {
+    const n = children.length;
+    const rescale = (child: LaymanLayout) => {
+        if (!child) return child;
+        return {
+            ...child,
+            viewPercent: child.viewPercent ? (child.viewPercent * n) / (n + 1) : child.viewPercent,
+        };
+    };
+    return [
+        ...children.slice(0, index).map(rescale),
+        {...window, viewPercent: 100 / (n + 1)},
+        ...children.slice(index).map(rescale),
+    ] as Children<LaymanLayout>;
+};
+
 const treeAddWindow = (
     layout: LaymanLayout,
     path: LaymanPath,
     window: LaymanWindow,
     placement: "top" | "bottom" | "left" | "right"
 ): LaymanLayout => {
-    if (!layout) return layout;
+    // No tiled layout yet at all: the new window becomes the entire root,
+    // regardless of which edge it was dropped on.
+    if (!layout) return {...window};
+
     const parentPath = path.slice(0, -1);
     const parent: LaymanLayout = getLayoutAtPath(layout, parentPath);
     if (!parent) return layout;
@@ -257,6 +281,25 @@ const treeAddWindow = (
         } as LaymanLayout;
     }
 
+    // Root-edge insert (`path: []`) when the root is already a split: there
+    // is no parent above the root, so the generic "insert next to one
+    // sibling" logic below (which indexes off `path[path.length - 1]`)
+    // doesn't apply. Either extend the root split directly (if it's already
+    // in the right direction) or wrap the whole existing root as one child
+    // of a fresh outer split.
+    if (path.length === 0) {
+        const isColumnPlacement = placement === "top" || placement === "bottom";
+        const matchesDirection =
+            (isColumnPlacement && parent.direction === "column") || (!isColumnPlacement && parent.direction === "row");
+        if (matchesDirection) {
+            const index = placement === "top" || placement === "left" ? 0 : parent.children.length;
+            return {...parent, children: insertChildAt(parent.children, index, window)};
+        }
+        const newChildren: Children<LaymanLayout> =
+            placement === "top" || placement === "left" ? [window, parent] : [parent, window];
+        return {direction: isColumnPlacement ? "column" : "row", children: newChildren} as LaymanLayout;
+    }
+
     const isColumnPlacement = placement === "top" || placement === "bottom";
     const lastPathIndex = path[path.length - 1];
     const index = placement === "bottom" || placement === "right" ? lastPathIndex + 1 : lastPathIndex;
@@ -265,27 +308,7 @@ const treeAddWindow = (
         // View percent of new window based on length of parent
         const updatedLayout = {
             ...parent,
-            children: [
-                ...parent.children.slice(0, index).map((child) => {
-                    if (!child) return;
-                    return {
-                        ...child,
-                        viewPercent: child.viewPercent
-                            ? (child.viewPercent * parent.children.length) / (parent.children.length + 1)
-                            : child.viewPercent,
-                    };
-                }),
-                {...window, viewPercent: 100 / (parent.children.length + 1)},
-                ...parent.children.slice(index).map((child) => {
-                    if (!child) return;
-                    return {
-                        ...child,
-                        viewPercent: child.viewPercent
-                            ? (child.viewPercent * parent.children.length) / (parent.children.length + 1)
-                            : child.viewPercent,
-                    };
-                }),
-            ] as Children<LaymanLayout>,
+            children: insertChildAt(parent.children, index, window),
         };
         if (path.length == 1) {
             return updatedLayout;

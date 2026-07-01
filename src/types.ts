@@ -145,12 +145,12 @@ export interface Position {
     height: number;
 }
 
-interface DragTab {
+export interface DragTab {
     tab: TabData;
     path?: WindowAddress;
 }
 
-interface DragWindow {
+export interface DragWindow {
     tabs: TabData[];
     path: WindowAddress;
     selectedIndex: number;

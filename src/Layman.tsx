@@ -6,6 +6,7 @@ import {LaymanContext} from "./LaymanContext";
 import {Separator} from "./Separator";
 import {addressKey} from "./utils";
 import {FloatingResizeHandleLayer} from "./FloatingWindow";
+import {FloatingDockZones} from "./FloatingDockZones";
 
 /**
  * Entry point for Layman Window Manager
@@ -321,6 +322,10 @@ export function Layman() {
             {/* Resize handles for floating windows (their toolbar/pane render
                 via the flat lists above, identically to tiled windows). */}
             <FloatingResizeHandleLayer />
+            {/* Dock zones for floating-window whole-window drags (edges of
+                the root + the tiled window under the cursor); renders
+                nothing unless such a drag is in progress. */}
+            <FloatingDockZones />
         </div>
     );
 }
