@@ -4,9 +4,13 @@ export type {
     Children,
     LaymanDirection,
     LaymanPath,
+    WindowAddress,
+    FloatingWindowAddress,
     LaymanWindow,
     LaymanNode,
     LaymanLayout,
+    LaymanState,
+    FloatingWindowData,
     PaneRenderer,
     TabRenderer,
     LaymanContextType,
@@ -21,6 +25,8 @@ export type {
     LaymanSerializedNode,
     LaymanSerializedTab,
     LaymanSerializedWindow,
+    LaymanSerializedFloatingWindow,
+    LaymanSerializedState,
 } from "./types";
 
 export {TabData} from "./TabData";
@@ -37,4 +43,11 @@ export {Window} from "./Window";
 export {ToolbarButton} from "./ToolbarButton";
 export {WindowToolbar} from "./WindowToolbar";
 export {Tab} from "./WindowTabs";
-export {serializeLayout, deserializeLayout, deserializeTab} from "./Serializer";
+export {isFloatingAddress} from "./utils";
+export {
+    serializeLayout,
+    deserializeLayout,
+    deserializeTab,
+    serializeFloatingWindow,
+    deserializeFloatingWindow,
+} from "./Serializer";

@@ -3,10 +3,10 @@ import {LaymanContext} from "./LaymanContext";
 import {ToolbarButton} from "./ToolbarButton";
 import {TabData} from "./TabData";
 import {AddIcon, CloseIcon, EllipsisIcon} from "./Icons";
-import {LaymanPath, Position} from "./types";
+import {Position, WindowAddress} from "./types";
 
 interface WindowMenuProps {
-    path: LaymanPath;
+    path: WindowAddress;
     position: Position;
     tabs: TabData[];
     selectedIndex: number;

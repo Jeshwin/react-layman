@@ -8,6 +8,7 @@ import {WindowDropTarget} from "./WindowDropTarget";
 import {WindowMenu} from "./WindowMenu";
 import {useDrag, useDragLayer} from "react-dnd";
 import {Position, ToolbarButtonType, ToolBarProps} from "./types";
+import {findWindowAtPoint} from "./layoutGeometry";
 import {
     AddIcon,
     BottomSplitIcon,
@@ -19,8 +20,9 @@ import {
     MinimizeIcon,
     RightSplitIcon,
     TopSplitIcon,
+    UnfloatIcon,
 } from "./Icons";
-import {deepEqual} from "./utils";
+import {addressKey, deepEqual, isFloatingAddress} from "./utils";
 
 function usePrevious(value: number) {
     const ref = useRef(0);
@@ -30,8 +32,9 @@ function usePrevious(value: number) {
     return ref.current;
 }
 
-export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}: ToolBarProps) {
+export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex, zIndex: floatingZIndex}: ToolBarProps) {
     const {
+        layout,
         layoutDispatch,
         globalContainerSize,
         globalDragging,
@@ -41,11 +44,11 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
         toolbarButtons,
         maximizedPath,
         setMaximizedPath,
-        setFloatingWindows,
         maxDepth,
         showTabs,
     } = useContext(LaymanContext);
     const tabContainerRef = useRef<HTMLDivElement>(null);
+    const isFloating = isFloatingAddress(path);
     // A maximized window overrides its layout position to fill the whole container.
     const isMaximized = maximizedPath !== null && deepEqual(maximizedPath, path);
     const position = isMaximized
@@ -62,7 +65,8 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
     const separatorThickness =
         parseInt(getComputedStyle(document.documentElement).getPropertyValue("--separator-thickness").trim(), 10) ?? 8;
     // Splits create a deeper window (path.length + 1); block them at the limit.
-    const atMaxDepth = path.length >= maxDepth;
+    // Floating windows are always single-pane, so splitting never applies.
+    const atMaxDepth = isFloating || path.length >= maxDepth;
     // 1x1 transparent image for empty drag preview
     const emptyImage = useMemo(() => {
         const img = new Image();
@@ -112,13 +116,31 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
         left: position.left,
     });
     const [dragStartPosition, setDragStartPosition] = useState({x: 0, y: 0});
+    // When a floating window's whole-window drag ends without landing on a
+    // drop target (i.e. it was just repositioned, not docked/merged
+    // elsewhere), commit its new pixel position.
+    const commitFloatingDragEnd = (monitor: {didDrop: () => boolean}) => {
+        if (isFloatingAddress(path) && !monitor.didDrop()) {
+            layoutDispatch({
+                type: "setFloatingWindowPosition",
+                floatingId: path.floatingId,
+                position: {
+                    top: position.top + currentMousePosition.top,
+                    left: position.left + currentMousePosition.left,
+                    width: position.width,
+                    height: position.height,
+                },
+            });
+        }
+    };
     const [{isDragging}, drag, dragPreview] = useDrag({
         type: WindowType,
         item: {path, tabs, selectedIndex},
         collect: (monitor) => ({
             isDragging: monitor.isDragging(),
         }),
-        end: () => {
+        end: (_item, monitor) => {
+            commitFloatingDragEnd(monitor);
             setDraggedWindowTabs([]);
             setWindowDragStartPosition({x: 0, y: 0});
         },
@@ -129,7 +151,8 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
         collect: (monitor) => ({
             singleTabIsDragging: monitor.isDragging(),
         }),
-        end: () => {
+        end: (_item, monitor) => {
+            commitFloatingDragEnd(monitor);
             setDraggedWindowTabs([]);
             setWindowDragStartPosition({x: 0, y: 0});
         },
@@ -174,7 +197,9 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
         }
     }, [dragStartPosition, isDragging, setDraggedWindowTabs, setWindowDragStartPosition, singleTabIsDragging, tabs]);
 
-    const scale = isDragging || singleTabIsDragging ? 0.7 : 1;
+    // Floating windows aren't part of the split tree, so a whole-window drag
+    // moves the real window 1:1 instead of showing a shrunken "ghost" preview.
+    const scale = (isDragging || singleTabIsDragging) && !isFloating ? 0.7 : 1;
 
     const windowToolbarPosition: Position = {
         top: position.top + currentMousePosition.top,
@@ -190,29 +215,57 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
         height: position.height - windowToolbarHeight - separatorThickness / 2,
     };
 
-    // Remove this window from the layout and add it to the floating layer,
-    // keeping its current calculated size/position.
+    // Move this window out of the layout into a brand-new floating window,
+    // keeping its current calculated size/position. Expressed as a single
+    // `moveWindow` action so the same tabs/selectedIndex move by reference -
+    // nothing is destroyed and recreated, so pane state survives.
     const floatWindow = () => {
         if (isMaximized) setMaximizedPath(null);
-        setFloatingWindows((prev) => {
-            const topZ = prev.reduce((max, fw) => Math.max(max, fw.zIndex), 29);
-            return [
-                ...prev,
-                {
-                    id: crypto.randomUUID(),
-                    tabs,
-                    selectedIndex,
-                    position: {
-                        top: rawPosition.top,
-                        left: rawPosition.left,
-                        width: rawPosition.width,
-                        height: rawPosition.height,
-                    },
-                    zIndex: topZ + 1,
-                },
-            ];
+        layoutDispatch({
+            type: "moveWindow",
+            path,
+            newPath: {floatingId: crypto.randomUUID()},
+            window: {tabs, selectedIndex},
+            placement: "center",
+            position: {
+                top: rawPosition.top,
+                left: rawPosition.left,
+                width: rawPosition.width,
+                height: rawPosition.height,
+            },
         });
-        layoutDispatch({type: "removeWindow", path});
+    };
+
+    // Dock this floating window back into the tree, under whichever tiled
+    // window is currently under its center point (or drag it onto a
+    // `WindowDropTarget` for the same effect with a precise destination).
+    const unfloatWindow = () => {
+        if (!isFloatingAddress(path)) return;
+        const center = {x: position.left + position.width / 2, y: position.top + position.height / 2};
+        let targetPath = findWindowAtPoint(layout, globalContainerSize, center);
+
+        // Fallback: if the center is over nothing but the layout is empty,
+        // seed a brand new root window. Otherwise, do nothing (stay floating).
+        if (targetPath === null) {
+            if (!layout) {
+                targetPath = [];
+            } else {
+                return;
+            }
+        }
+
+        layoutDispatch({
+            type: "moveWindow",
+            path,
+            newPath: targetPath,
+            window: {tabs, selectedIndex},
+            placement: "center",
+        });
+    };
+
+    // Bring this floating window to the front on any interaction with it.
+    const bringToFront = () => {
+        if (isFloatingAddress(path)) layoutDispatch({type: "bringFloatingWindowToFront", floatingId: path.floatingId});
     };
 
     const createToolbarButton = (child: ToolbarButtonType, index: number) => {
@@ -309,10 +362,13 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
                         {isMaximized ? <MinimizeIcon /> : <MaximizeIcon />}
                     </ToolbarButton>
                 );
+            // "float" is a toggle: it becomes "unfloat" while this window is
+            // already floating. "unfloat" behaves identically so either type works.
             case "float":
+            case "unfloat":
                 return (
-                    <ToolbarButton key={index} onClick={() => floatWindow()}>
-                        <FloatIcon />
+                    <ToolbarButton key={index} onClick={() => (isFloating ? unfloatWindow() : floatWindow())}>
+                        {isFloating ? <UnfloatIcon /> : <FloatIcon />}
                     </ToolbarButton>
                 );
             case "close":
@@ -349,16 +405,25 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex}
         <>
             {showTabs ? (
                 <div
-                    id={path.join(":")}
+                    id={addressKey(path)}
                     style={{
                         ...windowToolbarPosition,
                         transform: `scale(${scale})`,
                         transformOrigin: `${dragStartPosition.x}px bottom`,
-                        zIndex: isMaximized ? 20 : isDragging || singleTabIsDragging ? 13 : 7,
+                        zIndex: isMaximized
+                            ? 20
+                            : isFloating
+                              ? isDragging || singleTabIsDragging
+                                  ? 999
+                                  : (floatingZIndex ?? 30)
+                              : isDragging || singleTabIsDragging
+                                ? 13
+                                : 7,
                         pointerEvents: isDragging || singleTabIsDragging ? "none" : "auto",
                         userSelect: isDragging || singleTabIsDragging ? "none" : "auto",
                     }}
-                    className="layman-toolbar"
+                    className={`layman-toolbar ${isFloating ? "floating" : ""}`}
+                    onMouseDown={bringToFront}
                 >
                     {/** Render each tab */}
                     <div ref={tabContainerRef} className="tab-container" onWheel={handleTabContainerWheel}>

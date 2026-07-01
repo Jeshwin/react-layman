@@ -2,12 +2,11 @@ import {createContext, useEffect, useReducer, useRef, useState} from "react";
 import {
     LaymanContextType,
     LaymanLayout,
-    LaymanPath,
     PaneRenderer,
     TabRenderer,
     Position,
     ToolbarButtonType,
-    FloatingWindowData,
+    WindowAddress,
 } from "./types";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
@@ -15,7 +14,7 @@ import React from "react";
 import {DropHighlight} from "./DropHighlight";
 import {TabData} from "./TabData";
 import {LaymanReducer} from "./LaymanReducer";
-import {loadLayout, saveLayout} from "./persistence";
+import {loadState, saveState} from "./persistence";
 
 // Define default values for the context
 const defaultContextValue: LaymanContextType = {
@@ -38,7 +37,6 @@ const defaultContextValue: LaymanContextType = {
     maximizedPath: null,
     setMaximizedPath: () => {},
     floatingWindows: [],
-    setFloatingWindows: () => {},
     maxDepth: Infinity,
     showTabs: true,
 };
@@ -72,10 +70,10 @@ export const LaymanProvider = ({
     showTabs = true,
     children,
 }: LaymanProviderProps) => {
-    const [layout, layoutDispatch] = useReducer(
+    const [{layout, floatingWindows}, layoutDispatch] = useReducer(
         LaymanReducer,
-        initialLayout,
-        (init) => loadLayout(storageKey, init),
+        {layout: initialLayout, floatingWindows: []},
+        (init) => loadState(storageKey, init)
     );
 
     const saveTimeoutRef = useRef<number | undefined>(undefined);
@@ -85,17 +83,17 @@ export const LaymanProvider = ({
             window.clearTimeout(saveTimeoutRef.current);
         }
         saveTimeoutRef.current = window.setTimeout(() => {
-            saveLayout(storageKey, layout);
+            saveState(storageKey, {layout, floatingWindows});
             saveTimeoutRef.current = undefined;
         }, 150);
         return () => {
             if (saveTimeoutRef.current !== undefined) {
                 window.clearTimeout(saveTimeoutRef.current);
                 saveTimeoutRef.current = undefined;
-                saveLayout(storageKey, layout);
+                saveState(storageKey, {layout, floatingWindows});
             }
         };
-    }, [layout, storageKey]);
+    }, [layout, floatingWindows, storageKey]);
     // Size of Layman container
     const [globalContainerSize, setGlobalContainerSize] = useState<Position>({
         top: 0,
@@ -115,9 +113,8 @@ export const LaymanProvider = ({
         y: 0,
     });
     const [globalDragging, setGlobalDragging] = useState<boolean>(false);
-    // Ephemeral window controls: which window is maximized, and floated windows.
-    const [maximizedPath, setMaximizedPath] = useState<LaymanPath | null>(null);
-    const [floatingWindows, setFloatingWindows] = useState<FloatingWindowData[]>([]);
+    // Ephemeral UI state: which window is currently maximized.
+    const [maximizedPath, setMaximizedPath] = useState<WindowAddress | null>(null);
 
     return (
         <LaymanContext.Provider
@@ -141,7 +138,6 @@ export const LaymanProvider = ({
                 maximizedPath,
                 setMaximizedPath,
                 floatingWindows,
-                setFloatingWindows,
                 maxDepth,
                 showTabs,
             }}

@@ -2,10 +2,11 @@ import {useDrop} from "react-dnd";
 import {TabType, WindowType} from ".";
 import {useContext, useEffect, useRef} from "react";
 import {LaymanContext} from "./LaymanContext";
-import {DragData, LaymanPath, Position} from "./types";
+import {DragData, Position, WindowAddress} from "./types";
+import {isFloatingAddress} from "./utils";
 
 interface WindowDropTargetProps {
-    path: LaymanPath;
+    path: WindowAddress;
     position: Position;
     placement: "top" | "left" | "bottom" | "right" | "center";
 }
@@ -21,8 +22,9 @@ export function WindowDropTarget({path, position, placement}: WindowDropTargetPr
     });
 
     // Edge placements create a new split (depth + 1). Block them once the depth
-    // limit is reached; "center" only adds a tab and is always allowed.
-    const wouldExceedMaxDepth = placement !== "center" && path.length >= maxDepth;
+    // limit is reached; floating destinations are always single-pane, so
+    // every placement behaves like "center" there and is always allowed.
+    const wouldExceedMaxDepth = placement !== "center" && !isFloatingAddress(path) && path.length >= maxDepth;
 
     const windowToolbarHeight = showTabs
         ? parseInt(getComputedStyle(document.documentElement).getPropertyValue("--toolbar-height").trim(), 10) ?? 64
