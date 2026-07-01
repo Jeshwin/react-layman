@@ -2,7 +2,7 @@
  * Small, dependency-free utilities for deep cloning and deep equality.
  *
  * These replace the `klona` and `dequal` packages. The package only relies on
- * a narrow slice of their behaviour (cloning the layout tree and comparing
+ * a narrow slice of their behavior (cloning the layout tree and comparing
  * numeric path arrays), so re-implementing them locally removes two runtime
  * dependencies and the associated npm supply-chain exposure.
  */

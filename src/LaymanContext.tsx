@@ -1,4 +1,4 @@
-import {createContext, useEffect, useReducer, useRef, useState} from "react";
+import React, {createContext, useEffect, useReducer, useRef, useState} from "react";
 import {
     LaymanContextType,
     LaymanLayout,
@@ -10,7 +10,6 @@ import {
 } from "./types";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
-import React from "react";
 import {DropHighlight} from "./DropHighlight";
 import {TabData} from "./TabData";
 import {LaymanReducer} from "./LaymanReducer";

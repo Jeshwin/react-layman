@@ -93,7 +93,7 @@ export function LeftSplitIcon() {
             height="1em"
             width="1em"
             xmlns="http://www.w3.org/2000/svg"
-            style={{transform: "rotate(900deg)"}}
+            style={{transform: "rotate(90deg)"}}
         >
             <path fillRule="evenodd" clipRule="evenodd" d="M2 1L1 2V14L2 15H14L15 14V2L14 1H2ZM2 10V2H14V10H2Z"></path>
         </svg>

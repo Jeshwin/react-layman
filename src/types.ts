@@ -95,7 +95,7 @@ export interface MoveWindowAction extends BaseLaymanLayoutAction {
     position?: Position;
 }
 
-// Currently support two hueristics
+// Currently supports two heuristics
 export type LaymanHeuristic = "topleft" | "topright";
 
 export interface AddTabActionWithHeuristic {
