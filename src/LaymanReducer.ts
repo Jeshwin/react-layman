@@ -79,12 +79,21 @@ const treeAddTab = (layout: LaymanLayout, path: LaymanPath, tab: TabData): Layma
 
 const treeRemoveWindow = (layout: LaymanLayout, path: LaymanPath): LaymanLayout => {
     if (!layout) return layout;
+
+    if (!path.every((index) => Number.isInteger(index) && index >= 0)) {
+        return layout;
+    }
+
+    if (path.length === 0) {
+        return "tabs" in layout ? undefined : layout;
+    }
+
+    const target = getLayoutAtPath(layout, path);
+    if (!target || !("tabs" in target)) return layout;
+
     const parentPath = path.slice(0, -1);
     const parent: LaymanLayout = getLayoutAtPath(layout, parentPath);
-    if (!parent || !("children" in parent)) {
-        // Parent is the base layout, delete the layout
-        return undefined;
-    }
+    if (!parent || !("children" in parent)) return layout;
 
     // Get the removed window's split percentage so its remaining siblings can
     // be rescaled to fill the space it leaves behind.
@@ -569,8 +578,10 @@ const floatingSelectTab = (floatingWindows: FloatingWindowData[], floatingId: st
         fw.id === floatingId ? {...fw, selectedIndex: fw.tabs.findIndex((t) => t.id === tab.id)} : fw
     );
 
-const floatingRemoveWindow = (floatingWindows: FloatingWindowData[], floatingId: string): FloatingWindowData[] =>
-    floatingWindows.filter((fw) => fw.id !== floatingId);
+const floatingRemoveWindow = (floatingWindows: FloatingWindowData[], floatingId: string): FloatingWindowData[] => {
+    if (!floatingWindows.some((fw) => fw.id === floatingId)) return floatingWindows;
+    return floatingWindows.filter((fw) => fw.id !== floatingId);
+};
 
 // ---------------------------------------------------------------------------
 // Address-aware action handlers: these dispatch to the tree helpers or the
@@ -608,9 +619,11 @@ const selectTab = (state: LaymanState, action: SelectTabAction): LaymanState => 
 
 const removeWindow = (state: LaymanState, action: RemoveWindowAction): LaymanState => {
     if (isFloatingAddress(action.path)) {
-        return {...state, floatingWindows: floatingRemoveWindow(state.floatingWindows, action.path.floatingId)};
+        const floatingWindows = floatingRemoveWindow(state.floatingWindows, action.path.floatingId);
+        return floatingWindows === state.floatingWindows ? state : {...state, floatingWindows};
     }
-    return {...state, layout: treeRemoveWindow(state.layout, action.path)};
+    const layout = treeRemoveWindow(state.layout, action.path);
+    return layout === state.layout ? state : {...state, layout};
 };
 
 const addWindow = (state: LaymanState, action: AddWindowAction): LaymanState => {

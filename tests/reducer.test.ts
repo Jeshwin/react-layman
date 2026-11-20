@@ -293,6 +293,37 @@ describe("removeWindow", () => {
         expect(result).toBeUndefined();
     });
 
+    it.each([[99], [-2], [0, 1]])("is a same-reference no-op for an invalid root-window path %j", (path) => {
+        const state: LaymanState = {layout: makeWindow(new TabData("Only")), floatingWindows: []};
+
+        expect(run(state, {type: "removeWindow", path})).toBe(state);
+    });
+
+    it("is a same-reference no-op for an out-of-range split child", () => {
+        const layout: LaymanNode = {
+            direction: "row",
+            children: [
+                {tabs: [new TabData("A")], selectedIndex: 0, viewPercent: 25},
+                {tabs: [new TabData("B")], selectedIndex: 0, viewPercent: 75},
+            ],
+        };
+        const state: LaymanState = {layout, floatingWindows: []};
+
+        const result = run(state, {type: "removeWindow", path: [2]});
+
+        expect(result).toBe(state);
+        expect((result.layout as LaymanNode).children.map((child) => child.viewPercent)).toEqual([25, 75]);
+    });
+
+    it("is a same-reference no-op for an unknown floating window", () => {
+        const state: LaymanState = {
+            layout: makeWindow(new TabData("Root")),
+            floatingWindows: [makeFloatingWindow("float-1", new TabData("Floater"))],
+        };
+
+        expect(run(state, {type: "removeWindow", path: {floatingId: "missing"}})).toBe(state);
+    });
+
     it("closes a floating window, leaving the tree untouched", () => {
         const layout = makeWindow(new TabData("Root"));
         const floatingWindow = makeFloatingWindow("float-1", new TabData("Floater"));
