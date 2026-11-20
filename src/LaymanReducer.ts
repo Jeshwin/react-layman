@@ -722,63 +722,129 @@ const moveTab = (state: LaymanState, action: MoveTabAction): LaymanState => {
     };
 };
 
-const moveWindow = (state: LaymanState, action: MoveWindowAction): LaymanState => {
-    // Step 1: remove the window from its source, and note whether the
-    // destination path needs adjusting for shifted tree indices (only
-    // relevant when the window was removed from *within* the same tree).
-    let working: LaymanState;
-    let sourceWasTreePath: LaymanPath | undefined;
-    if (isFloatingAddress(action.path)) {
-        working = {...state, floatingWindows: floatingRemoveWindow(state.floatingWindows, action.path.floatingId)};
-    } else {
-        const window: LaymanLayout = getLayoutAtPath(state.layout, action.path);
-        if (!window || !("tabs" in window)) return state;
-        working = {...state, layout: treeRemoveWindow(state.layout, action.path)};
-        sourceWasTreePath = action.path;
+type ResolvedWindowSource =
+    | {kind: "tree"; path: LaymanPath; window: LaymanWindow}
+    | {kind: "floating"; floatingId: string; window: FloatingWindowData};
+
+const resolveWindowSource = (state: LaymanState, path: WindowAddress): ResolvedWindowSource | undefined => {
+    if (isFloatingAddress(path)) {
+        const window = state.floatingWindows.find((candidate) => candidate.id === path.floatingId);
+        return window ? {kind: "floating", floatingId: path.floatingId, window} : undefined;
     }
 
-    // Step 2a: destination is a floating window (new or existing).
+    const window = getLayoutAtPath(state.layout, path);
+    return window && "tabs" in window ? {kind: "tree", path, window} : undefined;
+};
+
+const isValidWindowPlacement = (placement: MoveWindowAction["placement"]): boolean =>
+    placement === "top" || placement === "bottom" || placement === "left" || placement === "right" || placement === "center";
+
+const isValidFloatingId = (id: string): boolean => typeof id === "string" && id.trim().length > 0;
+
+const isPathWithin = (path: LaymanPath, ancestor: LaymanPath): boolean =>
+    ancestor.length <= path.length && ancestor.every((segment, index) => path[index] === segment);
+
+const hasValidFloatingPosition = (position: MoveWindowAction["position"]): boolean =>
+    Boolean(
+        position &&
+            Number.isFinite(position.top) &&
+            Number.isFinite(position.left) &&
+            Number.isFinite(position.width) &&
+            Number.isFinite(position.height) &&
+            position.width > 0 &&
+            position.height > 0
+    );
+
+const hasValidWindowTreeDestination = (
+    layout: LaymanLayout,
+    path: LaymanPath,
+    placement: MoveWindowAction["placement"]
+): boolean => {
+    if (!layout) return path.length === 0;
+
+    const destination = getLayoutAtPath(layout, path);
+    if (destination && "tabs" in destination) return true;
+
+    // An edge drop at root may extend or wrap a split root. Center drops need
+    // a real tab strip to merge with.
+    return path.length === 0 && placement !== "center" && "children" in layout;
+};
+
+const isValidWindowMove = (state: LaymanState, source: ResolvedWindowSource, action: MoveWindowAction): boolean => {
+    if (!isValidWindowPlacement(action.placement)) return false;
+
     if (isFloatingAddress(action.newPath)) {
-        const floatingId = action.newPath.floatingId;
-        const existing = working.floatingWindows.find((fw) => fw.id === floatingId);
+        const floatingDestination = action.newPath;
+        if (!isValidFloatingId(floatingDestination.floatingId)) return false;
+        if (action.placement !== "center") return false;
+        if (source.kind === "floating" && source.floatingId === floatingDestination.floatingId) return false;
+
+        return (
+            state.floatingWindows.some((window) => window.id === floatingDestination.floatingId) ||
+            hasValidFloatingPosition(action.position)
+        );
+    }
+
+    if (source.kind === "tree" && isPathWithin(action.newPath, source.path)) return false;
+    return hasValidWindowTreeDestination(state.layout, action.newPath, action.placement);
+};
+
+const asLaymanWindow = (source: ResolvedWindowSource): LaymanWindow => ({
+    tabs: source.window.tabs,
+    selectedIndex: source.window.selectedIndex,
+    ...(source.kind === "tree" && source.window.viewPercent !== undefined ? {viewPercent: source.window.viewPercent} : {}),
+});
+
+const moveWindow = (state: LaymanState, action: MoveWindowAction): LaymanState => {
+    const source = resolveWindowSource(state, action.path);
+    if (!source || !isValidWindowMove(state, source, action)) return state;
+
+    const working =
+        source.kind === "tree"
+            ? {...state, layout: treeRemoveWindow(state.layout, source.path)}
+            : {...state, floatingWindows: floatingRemoveWindow(state.floatingWindows, source.floatingId)};
+    const sourceWindow = asLaymanWindow(source);
+
+    if (isFloatingAddress(action.newPath)) {
+        const floatingDestination = action.newPath;
+        const existing = working.floatingWindows.find((window) => window.id === floatingDestination.floatingId);
         if (existing) {
-            // Merge tabs into the already-floating destination. Floating
-            // windows are single-pane, so `placement` doesn't matter here.
             return {
                 ...working,
-                floatingWindows: working.floatingWindows.map((fw) =>
-                    fw.id === floatingId ? {...fw, tabs: [...fw.tabs, ...action.window.tabs]} : fw
+                floatingWindows: working.floatingWindows.map((window) =>
+                    window.id === existing.id ? {...window, tabs: [...window.tabs, ...sourceWindow.tabs]} : window
                 ),
             };
         }
-        // No floating window with this id exists yet: this is a "float this
-        // window" move. `position` must be supplied to seed its rect.
-        if (!action.position) return state;
-        const newFloatingWindow: FloatingWindowData = {
-            id: floatingId,
-            tabs: action.window.tabs,
-            selectedIndex: action.window.selectedIndex ?? 0,
-            position: action.position,
-            zIndex: nextFloatingZIndex(working.floatingWindows),
+
+        // Validation above proves a new floating destination has a usable
+        // position. This branch cannot leave the source partially moved.
+        return {
+            ...working,
+            floatingWindows: [
+                ...working.floatingWindows,
+                {
+                    id: floatingDestination.floatingId,
+                    tabs: sourceWindow.tabs,
+                    selectedIndex: sourceWindow.selectedIndex ?? 0,
+                    position: action.position!,
+                    zIndex: nextFloatingZIndex(working.floatingWindows),
+                },
+            ],
         };
-        return {...working, floatingWindows: [...working.floatingWindows, newFloatingWindow]};
     }
 
-    // Step 2b: destination is a tree path. Removing a tree-sourced window can
-    // shift sibling indices, so the destination path needs adjusting; a
-    // floating source never shifts tree indices.
-    const destPath = sourceWasTreePath
-        ? adjustPath(state.layout, sourceWasTreePath, action.newPath)
-        : action.newPath;
-
+    const destinationPath = source.kind === "tree" ? adjustPath(state.layout, source.path, action.newPath) : action.newPath;
     if (action.placement === "center") {
-        let updatedLayout = deepClone(working.layout);
-        action.window.tabs.forEach((tab) => {
-            updatedLayout = treeAddTab(updatedLayout, destPath, tab);
-        });
-        return {...working, layout: updatedLayout};
+        const layout = sourceWindow.tabs.reduce(
+            (nextLayout, tab) => treeAddTab(nextLayout, destinationPath, tab),
+            working.layout
+        );
+        return {...working, layout};
     }
-    return {...working, layout: treeAddWindow(working.layout, destPath, action.window, action.placement)};
+
+    const layout = treeAddWindow(working.layout, destinationPath, sourceWindow, action.placement);
+    return layout === working.layout ? state : {...working, layout};
 };
 
 const setFloatingWindowPosition = (state: LaymanState, action: SetFloatingWindowPositionAction): LaymanState => ({

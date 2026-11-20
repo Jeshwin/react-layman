@@ -85,6 +85,11 @@ export interface RemoveWindowAction extends BaseLaymanLayoutAction {
 
 export interface MoveWindowAction extends BaseLaymanLayoutAction {
     type: "moveWindow";
+    /**
+     * @deprecated The reducer resolves the source window from `path` and
+     * ignores this payload. It remains required for source compatibility and
+     * will be removed from the public action in a later release.
+     */
     window: LaymanWindow;
     newPath: WindowAddress;
     placement: "top" | "bottom" | "left" | "right" | "center";
