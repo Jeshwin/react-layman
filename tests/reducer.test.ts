@@ -150,6 +150,61 @@ describe("removeTab", () => {
 
         expect(result.floatingWindows).toEqual([]);
     });
+
+    it("is a same-reference no-op when a tiled window does not contain the tab ID", () => {
+        const state: LaymanState = {
+            layout: {tabs: [new TabData("A"), new TabData("B")], selectedIndex: 1},
+            floatingWindows: [],
+        };
+        const unknown = new TabData("Unknown");
+
+        expect(run(state, {type: "removeTab", path: [], tab: unknown})).toBe(state);
+        expect(run(state, {type: "selectTab", path: [], tab: unknown})).toBe(state);
+    });
+
+    it("removes the stored tiled tab when a separate object has the same ID", () => {
+        const a = new TabData("A");
+        const b = new TabData("B");
+        const c = new TabData("C");
+        const actionTab = new TabData("Stale copy");
+        actionTab.id = b.id;
+        const state: LaymanState = {layout: {tabs: [a, b, c], selectedIndex: 2}, floatingWindows: []};
+
+        const result = run(state, {type: "removeTab", path: [], tab: actionTab});
+
+        expect((result.layout as LaymanWindow).tabs).toEqual([a, c]);
+        expect((result.layout as LaymanWindow).selectedIndex).toBe(1);
+    });
+
+    it("keeps selection within bounds when the selected last tiled tab is removed", () => {
+        const a = new TabData("A");
+        const b = new TabData("B");
+        const c = new TabData("C");
+        const state: LaymanState = {layout: {tabs: [a, b, c], selectedIndex: 2}, floatingWindows: []};
+
+        const result = run(state, {type: "removeTab", path: [], tab: c});
+
+        expect((result.layout as LaymanWindow).selectedIndex).toBe(1);
+    });
+
+    it("enforces the same membership rules for floating windows", () => {
+        const a = new TabData("A");
+        const b = new TabData("B");
+        const c = new TabData("C");
+        const actionTab = new TabData("Stale copy");
+        actionTab.id = b.id;
+        const floatingWindow = {...makeFloatingWindow("float-1", a, b, c), selectedIndex: 2};
+        const state: LaymanState = {layout: undefined, floatingWindows: [floatingWindow]};
+        const unknown = new TabData("Unknown");
+
+        expect(run(state, {type: "removeTab", path: {floatingId: "float-1"}, tab: unknown})).toBe(state);
+        expect(run(state, {type: "selectTab", path: {floatingId: "float-1"}, tab: unknown})).toBe(state);
+
+        const result = run(state, {type: "removeTab", path: {floatingId: "float-1"}, tab: actionTab});
+
+        expect(result.floatingWindows[0].tabs).toEqual([a, c]);
+        expect(result.floatingWindows[0].selectedIndex).toBe(1);
+    });
 });
 
 describe("moveTab", () => {

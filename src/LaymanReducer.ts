@@ -201,21 +201,15 @@ const treeRemoveTab = (layout: LaymanLayout, path: LaymanPath, tab: TabData): La
     const window: LaymanLayout = getLayoutAtPath(layout, path);
     if (!window || !("tabs" in window)) return layout;
 
-    // Create a new array of tabs without the removed tab
-    const updatedTabs = window.tabs.filter((t) => t.id !== tab.id);
+    const removedTabIndex = window.tabs.findIndex((candidate) => candidate.id === tab.id);
+    if (removedTabIndex === -1) return layout;
 
-    // Adjust selectedIndex only if the removed tab is
-    // to the left of the selected one
-    let updatedSelectedIndex = window.selectedIndex;
-    const removedTabIndex = window.tabs.indexOf(tab);
-
-    // `window.selectedIndex &&` intentionally skips this branch when selectedIndex
-    // is 0: if the removed tab was at or before index 0, it must have been the
-    // first tab, so the selection should stay at 0 (the new first tab) anyway,
-    // which is already the default value of updatedSelectedIndex.
-    if (window.selectedIndex && removedTabIndex <= window.selectedIndex) {
-        updatedSelectedIndex = Math.max(0, window.selectedIndex - 1);
-    }
+    const updatedTabs = window.tabs.filter((_candidate, index) => index !== removedTabIndex);
+    const selectedIndex = window.selectedIndex ?? 0;
+    const updatedSelectedIndex =
+        removedTabIndex < selectedIndex
+            ? selectedIndex - 1
+            : Math.min(selectedIndex, updatedTabs.length - 1);
 
     // If no more tabs exist, remove the window itself
     if (updatedTabs.length === 0) {
@@ -240,10 +234,12 @@ const treeSelectTab = (layout: LaymanLayout, path: LaymanPath, tab: TabData): La
     const window: LaymanLayout = getLayoutAtPath(layout, path);
     if (!window || !("tabs" in window)) return layout;
 
-    // Update selectedIndex in the window
+    const selectedIndex = window.tabs.findIndex((candidate) => candidate.id === tab.id);
+    if (selectedIndex === -1 || selectedIndex === window.selectedIndex) return layout;
+
     const updatedLayout = {
         ...window,
-        selectedIndex: window.tabs.findIndex((t) => t.id === tab.id),
+        selectedIndex,
     };
 
     if (path.length == 0) {
@@ -555,28 +551,35 @@ const floatingRemoveTab = (
     const floatingWindow = floatingWindows.find((fw) => fw.id === floatingId);
     if (!floatingWindow) return floatingWindows;
 
-    const updatedTabs = floatingWindow.tabs.filter((t) => t.id !== tab.id);
+    const removedTabIndex = floatingWindow.tabs.findIndex((candidate) => candidate.id === tab.id);
+    if (removedTabIndex === -1) return floatingWindows;
+
+    const updatedTabs = floatingWindow.tabs.filter((_candidate, index) => index !== removedTabIndex);
 
     // If no tabs remain, the floating window closes itself.
     if (updatedTabs.length === 0) {
         return floatingWindows.filter((fw) => fw.id !== floatingId);
     }
 
-    let updatedSelectedIndex = floatingWindow.selectedIndex;
-    const removedTabIndex = floatingWindow.tabs.indexOf(tab);
-    if (removedTabIndex <= floatingWindow.selectedIndex) {
-        updatedSelectedIndex = Math.max(0, floatingWindow.selectedIndex - 1);
-    }
+    const updatedSelectedIndex =
+        removedTabIndex < floatingWindow.selectedIndex
+            ? floatingWindow.selectedIndex - 1
+            : Math.min(floatingWindow.selectedIndex, updatedTabs.length - 1);
 
     return floatingWindows.map((fw) =>
         fw.id === floatingId ? {...fw, tabs: updatedTabs, selectedIndex: updatedSelectedIndex} : fw
     );
 };
 
-const floatingSelectTab = (floatingWindows: FloatingWindowData[], floatingId: string, tab: TabData): FloatingWindowData[] =>
-    floatingWindows.map((fw) =>
-        fw.id === floatingId ? {...fw, selectedIndex: fw.tabs.findIndex((t) => t.id === tab.id)} : fw
-    );
+const floatingSelectTab = (floatingWindows: FloatingWindowData[], floatingId: string, tab: TabData): FloatingWindowData[] => {
+    const floatingWindow = floatingWindows.find((fw) => fw.id === floatingId);
+    if (!floatingWindow) return floatingWindows;
+
+    const selectedIndex = floatingWindow.tabs.findIndex((candidate) => candidate.id === tab.id);
+    if (selectedIndex === -1 || selectedIndex === floatingWindow.selectedIndex) return floatingWindows;
+
+    return floatingWindows.map((fw) => (fw.id === floatingId ? {...fw, selectedIndex} : fw));
+};
 
 const floatingRemoveWindow = (floatingWindows: FloatingWindowData[], floatingId: string): FloatingWindowData[] => {
     if (!floatingWindows.some((fw) => fw.id === floatingId)) return floatingWindows;
@@ -599,22 +602,20 @@ const addTab = (state: LaymanState, action: AddTabAction): LaymanState => {
 
 const removeTab = (state: LaymanState, action: RemoveTabAction): LaymanState => {
     if (isFloatingAddress(action.path)) {
-        return {
-            ...state,
-            floatingWindows: floatingRemoveTab(state.floatingWindows, action.path.floatingId, action.tab),
-        };
+        const floatingWindows = floatingRemoveTab(state.floatingWindows, action.path.floatingId, action.tab);
+        return floatingWindows === state.floatingWindows ? state : {...state, floatingWindows};
     }
-    return {...state, layout: treeRemoveTab(state.layout, action.path, action.tab)};
+    const layout = treeRemoveTab(state.layout, action.path, action.tab);
+    return layout === state.layout ? state : {...state, layout};
 };
 
 const selectTab = (state: LaymanState, action: SelectTabAction): LaymanState => {
     if (isFloatingAddress(action.path)) {
-        return {
-            ...state,
-            floatingWindows: floatingSelectTab(state.floatingWindows, action.path.floatingId, action.tab),
-        };
+        const floatingWindows = floatingSelectTab(state.floatingWindows, action.path.floatingId, action.tab);
+        return floatingWindows === state.floatingWindows ? state : {...state, floatingWindows};
     }
-    return {...state, layout: treeSelectTab(state.layout, action.path, action.tab)};
+    const layout = treeSelectTab(state.layout, action.path, action.tab);
+    return layout === state.layout ? state : {...state, layout};
 };
 
 const removeWindow = (state: LaymanState, action: RemoveWindowAction): LaymanState => {
