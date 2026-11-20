@@ -308,6 +308,140 @@ describe("moveTab", () => {
         expect((result.layout as LaymanWindow).tabs).toEqual([a, b]);
         expect(result.floatingWindows[0].tabs.map((t) => t.name)).toEqual(["Stays"]);
     });
+
+    it("is a same-reference no-op when the destination is invalid", () => {
+        const a = new TabData("A");
+        const b = new TabData("B");
+        const state: LaymanState = {layout: makeRowOfTwo(a, b), floatingWindows: []};
+
+        const result = run(state, {type: "moveTab", path: [0], newPath: [99], tab: a, placement: "center"});
+
+        expect(result).toBe(state);
+    });
+
+    it("keeps a valid sibling destination when the source branch collapses", () => {
+        const a = new TabData("A");
+        const b = new TabData("B");
+        const state: LaymanState = {layout: makeRowOfTwo(a, b), floatingWindows: []};
+
+        const result = run(state, {type: "moveTab", path: [0], newPath: [1], tab: a, placement: "center"});
+
+        expect((result.layout as LaymanWindow).tabs).toEqual([b, a]);
+    });
+
+    it("is a same-reference no-op when the source tab is missing", () => {
+        const state: LaymanState = {layout: makeWindow(new TabData("A"), new TabData("B")), floatingWindows: []};
+
+        expect(
+            run(state, {
+                type: "moveTab",
+                path: [],
+                newPath: [],
+                tab: new TabData("Missing"),
+                placement: "center",
+            })
+        ).toBe(state);
+    });
+
+    it("moves the stored source tab instead of a forged action payload", () => {
+        const sourceTab = new TabData("Stored source", {source: true});
+        const stays = new TabData("Stays");
+        const forgedTab = new TabData("Forged", {source: false});
+        forgedTab.id = sourceTab.id;
+        const floatingWindow = makeFloatingWindow("float-1", new TabData("Floating"));
+        const state: LaymanState = {layout: makeWindow(sourceTab, stays), floatingWindows: [floatingWindow]};
+
+        const result = run(state, {
+            type: "moveTab",
+            path: [],
+            newPath: {floatingId: "float-1"},
+            tab: forgedTab,
+            placement: "center",
+        });
+
+        expect((result.layout as LaymanWindow).tabs).toEqual([stays]);
+        expect(result.floatingWindows[0].tabs[1]).toBe(sourceTab);
+    });
+
+    it("is a same-reference no-op for a missing floating destination", () => {
+        const a = new TabData("A");
+        const b = new TabData("B");
+        const state: LaymanState = {layout: makeWindow(a, b), floatingWindows: []};
+
+        const result = run(state, {
+            type: "moveTab",
+            path: [],
+            newPath: {floatingId: "missing"},
+            tab: b,
+            placement: "center",
+        });
+
+        expect(result).toBe(state);
+    });
+
+    it("rejects an edge placement into a floating destination", () => {
+        const a = new TabData("A");
+        const b = new TabData("B");
+        const state: LaymanState = {
+            layout: makeWindow(a, b),
+            floatingWindows: [makeFloatingWindow("float-1", new TabData("Floating"))],
+        };
+
+        const result = run(state, {
+            type: "moveTab",
+            path: [],
+            newPath: {floatingId: "float-1"},
+            tab: b,
+            placement: "left",
+        });
+
+        expect(result).toBe(state);
+    });
+
+    it("moves a floating source tab into a tiled destination", () => {
+        const root = new TabData("Root");
+        const sourceTab = new TabData("Floating");
+        const stays = new TabData("Stays");
+        const state: LaymanState = {
+            layout: makeWindow(root),
+            floatingWindows: [makeFloatingWindow("float-1", sourceTab, stays)],
+        };
+
+        const result = run(state, {
+            type: "moveTab",
+            path: {floatingId: "float-1"},
+            newPath: [],
+            tab: sourceTab,
+            placement: "center",
+        });
+
+        expect((result.layout as LaymanWindow).tabs).toEqual([root, sourceTab]);
+        expect(result.floatingWindows[0].tabs).toEqual([stays]);
+    });
+
+    it("inserts an external source tab without removing a layout tab", () => {
+        const existing = new TabData("Existing");
+        const external = new TabData("External");
+        const state: LaymanState = {layout: makeWindow(existing), floatingWindows: []};
+
+        const result = run(state, {
+            type: "moveTab",
+            path: [-1],
+            newPath: [],
+            tab: external,
+            placement: "center",
+        });
+
+        expect((result.layout as LaymanWindow).tabs).toEqual([existing, external]);
+    });
+
+    it("is a no-op for a self-targeting center move", () => {
+        const a = new TabData("A");
+        const b = new TabData("B");
+        const state: LaymanState = {layout: makeWindow(a, b), floatingWindows: []};
+
+        expect(run(state, {type: "moveTab", path: [], newPath: [], tab: b, placement: "center"})).toBe(state);
+    });
 });
 
 describe("removeWindow", () => {
