@@ -37,9 +37,6 @@
     ],
     "author": "Jeshwin Prince",
     "license": "MIT",
-    "engines": {
-        "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
-    },
     "bugs": {
         "url": "https://github.com/Jeshwin/react-layman/issues"
     },
