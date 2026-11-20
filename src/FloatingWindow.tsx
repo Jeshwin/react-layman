@@ -96,7 +96,12 @@ function FloatingWindowResizeHandles({data}: {data: FloatingWindowData}) {
             }}
         >
             {resizeHandles.map((dir) => (
-                <div key={dir} className={`layman-floating-resize ${dir}`} onMouseDown={startResize(dir)}></div>
+                <div
+                    key={dir}
+                    aria-label={`Resize floating window ${dir}`}
+                    className={`layman-floating-resize ${dir}`}
+                    onMouseDown={startResize(dir)}
+                ></div>
             ))}
         </div>
     );

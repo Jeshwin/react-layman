@@ -293,6 +293,7 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
             return (
                 <ToolbarButton
                     key={index}
+                    aria-label={`Split ${placement}`}
                     onClick={() =>
                         layoutDispatch({
                             type: "addWindow",
@@ -315,7 +316,11 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
             case "maximize":
             case "minimize":
                 return (
-                    <ToolbarButton key={index} onClick={() => setMaximizedPath(isMaximized ? null : path)}>
+                    <ToolbarButton
+                        key={index}
+                        aria-label={isMaximized ? "Restore window" : "Maximize window"}
+                        onClick={() => setMaximizedPath(isMaximized ? null : path)}
+                    >
                         {isMaximized ? <MinimizeIcon /> : <MaximizeIcon />}
                     </ToolbarButton>
                 );
@@ -324,7 +329,11 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
             case "float":
             case "unfloat":
                 return (
-                    <ToolbarButton key={index} onClick={() => (isFloating ? unfloatWindow() : floatWindow())}>
+                    <ToolbarButton
+                        key={index}
+                        aria-label={isFloating ? "Dock window" : "Float window"}
+                        onClick={() => (isFloating ? unfloatWindow() : floatWindow())}
+                    >
                         {isFloating ? <UnfloatIcon /> : <FloatIcon />}
                     </ToolbarButton>
                 );
@@ -332,6 +341,7 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
                 return (
                     <ToolbarButton
                         key={index}
+                        aria-label="Close window"
                         onClick={() => {
                             layoutDispatch({
                                 type: "removeWindow",
@@ -344,7 +354,7 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
                 );
             case "misc":
                 return (
-                    <ToolbarButton key={index} onClick={() => {}}>
+                    <ToolbarButton key={index} aria-label="More window actions" onClick={() => {}}>
                         <EllipsisIcon />
                     </ToolbarButton>
                 );
@@ -437,6 +447,7 @@ export function WindowToolbar({path, position: rawPosition, tabs, selectedIndex,
                     {/** Button to add a new blank tab */}
                     <div style={{display: "flex"}}>
                         <ToolbarButton
+                            aria-label="Add tab"
                             onClick={() => {
                                 const newTab = new TabData("blank");
                                 layoutDispatch({

@@ -44,7 +44,7 @@ export const Tab = ({tab, path, isSelected, onDelete, onMouseDown}: TabProps) =>
                 {renderTab(tab)}
             </button>
             {mutable && (
-                <button className="close-tab" onClick={onDelete}>
+                <button className="close-tab" aria-label={`Close ${tab.name}`} onClick={onDelete}>
                     <CloseIcon />
                 </button>
             )}
@@ -68,7 +68,7 @@ export const SingleTab = ({dragRef, tab, onDelete, onMouseDown}: SingleTabProps)
                 {renderTab(tab)}
             </button>
             {mutable && (
-                <button className="close-tab" onClick={onDelete}>
+                <button className="close-tab" aria-label={`Close ${tab.name}`} onClick={onDelete}>
                     <CloseIcon />
                 </button>
             )}

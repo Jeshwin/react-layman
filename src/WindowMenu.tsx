@@ -46,6 +46,7 @@ export function WindowMenu({path, position, tabs, selectedIndex, open, setOpen, 
         >
             <ToolbarButton
                 className="toolbar-button layman-window-menu-trigger"
+                aria-label="More window actions"
                 onClick={() => setOpen(!open)}
                 style={{width: buttonSize, height: buttonSize}}
             >
@@ -71,6 +72,7 @@ export function WindowMenu({path, position, tabs, selectedIndex, open, setOpen, 
                                 {mutable && (
                                     <button
                                         className="close-tab"
+                                        aria-label={`Close ${tab.name}`}
                                         onClick={() => layoutDispatch({type: "removeTab", path, tab})}
                                     >
                                         <CloseIcon />
@@ -81,6 +83,7 @@ export function WindowMenu({path, position, tabs, selectedIndex, open, setOpen, 
                     </div>
                     <div className="layman-window-menu-controls">
                         <ToolbarButton
+                            aria-label="Add tab"
                             onClick={() => {
                                 const newTab = new TabData("blank");
                                 layoutDispatch({type: "addTab", path, tab: newTab});
