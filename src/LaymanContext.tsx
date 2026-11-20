@@ -38,6 +38,7 @@ const defaultContextValue: LaymanContextType = {
     floatingWindows: [],
     maxDepth: Infinity,
     showTabs: true,
+    dragBorderElement: null,
 };
 
 type LaymanProviderProps = {
@@ -76,6 +77,8 @@ export const LaymanProvider = ({
     );
 
     const saveTimeoutRef = useRef<number | undefined>(undefined);
+    // Callback ref in state so Windows re-render once this instance's target mounts.
+    const [dragBorderElement, setDragBorderElement] = useState<HTMLDivElement | null>(null);
     useEffect(() => {
         if (!storageKey) return;
         if (saveTimeoutRef.current !== undefined) {
@@ -139,11 +142,12 @@ export const LaymanProvider = ({
                 floatingWindows,
                 maxDepth,
                 showTabs,
+                dragBorderElement,
             }}
         >
             <DndProvider backend={HTML5Backend}>
                 <DropHighlight position={dropHighlightPosition} isDragging={globalDragging} />
-                <div id="drag-window-border"></div>
+                <div ref={setDragBorderElement}></div>
                 {children}
             </DndProvider>
         </LaymanContext.Provider>

@@ -15,6 +15,7 @@ export function Window({position: rawPosition, path, tab, isSelected, zIndex: fl
         maximizedPath,
         showTabs,
         layoutDispatch,
+        dragBorderElement,
     } = useContext(LaymanContext);
 
     const isFloating = isFloatingAddress(path);
@@ -73,19 +74,7 @@ export function Window({position: rawPosition, path, tab, isSelected, zIndex: fl
         }
     }, [clientOffset, isDragging, windowDragStartPosition.x, windowDragStartPosition.y]);
 
-    const [portalElement, setPortalElement] = useState<HTMLElement | null>(null);
-
-    // Check for the portal target element when the component mounts
-    useEffect(() => {
-        const element = document.getElementById("drag-window-border");
-        if (element) {
-            setPortalElement(element);
-        } else {
-            console.error("Element with id 'drag-window-border' not found.");
-        }
-    }, []);
-
-    if (!portalElement) {
+    if (!dragBorderElement) {
         return null; // Don't render until portal element is available
     }
 
@@ -142,7 +131,7 @@ export function Window({position: rawPosition, path, tab, isSelected, zIndex: fl
                             userSelect: "none",
                         }}
                     ></div>,
-                    document.getElementById("drag-window-border")!
+                    dragBorderElement
                 )}
             <WindowContext.Provider
                 value={{

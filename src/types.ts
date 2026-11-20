@@ -234,6 +234,8 @@ export interface LaymanContextType {
     // Whether the window tab row (toolbar) is shown. When false, windows are
     // chromeless and controls move into a compact ellipsis popover.
     showTabs: boolean;
+    // This instance's drag-border portal target; null until it mounts.
+    dragBorderElement: HTMLDivElement | null;
 }
 
 // A window that has been "floated" out of the layout tree and is rendered as a
